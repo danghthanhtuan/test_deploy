@@ -21,6 +21,8 @@ public partial class Requirement
 
     public string? Staffid { get; set; }
 
+    public virtual ICollection<Assign> Assigns { get; set; } = new List<Assign>();
+
     public virtual Company Customer { get; set; } = null!;
 
     public virtual ICollection<Historyreq> Historyreqs { get; set; } = new List<Historyreq>();

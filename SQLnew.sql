@@ -108,7 +108,7 @@ CREATE TABLE REQUIREMENTS
 	DESCRIPTIONOFREQUEST NVARCHAR(MAX) NOT NULL   ,    --MÔ  TA YÊU C?U 
 	CUSTOMERID VARCHAR(15) NOT NULL,			--MÃ KH
     SUPPORT_NAME NVARCHAR(40) NOT NULL,  --MÃ H? TR? 
-	STAFFID VARCHAR(10) ,
+	STAFFID VARCHAR(10), --người tạo yêu cầu
 	FOREIGN KEY (CUSTOMERID) REFERENCES COMPANY(CUSTOMERID),
 	FOREIGN KEY (STAFFID) REFERENCES STAFF(STAFFID),
 	FOREIGN KEY (SUPPORT_NAME) REFERENCES SUPPORT_TYPE(SUPPORT_NAME)
@@ -124,6 +124,16 @@ CREATE TABLE HISTORYREQ
 	BEFORSTATUS NVARCHAR(40) NOT NULL,--TR?NG THÁI YÊU C?U TR??C 
 	APTERSTATUS NVARCHAR(40) NOT NULL,--TR?NG THÁI YÊU C?U SAU
 	STAFFID VARCHAR(10) NOT NULL,
+	FOREIGN KEY (STAFFID) REFERENCES STAFF(STAFFID),
+	FOREIGN KEY (REQUIREMENTSID) REFERENCES REQUIREMENTS(REQUIREMENTSID)
+);
+
+--tạo bảng phân công yêu cầu cho nhân viên bộ phận nào 
+CREATE TABLE Assign(
+	ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL, 
+	REQUIREMENTSID VARCHAR(10) NOT NULL, 
+	DEPARTMENT NVARCHAR(50) NOT NULL,--B? PH?N lấy theo loại hỗ trợ
+	STAFFID VARCHAR(10),   --lúc sau nhân viên bộ phận đó có thể nhận
 	FOREIGN KEY (STAFFID) REFERENCES STAFF(STAFFID),
 	FOREIGN KEY (REQUIREMENTSID) REFERENCES REQUIREMENTS(REQUIREMENTSID)
 );
@@ -237,7 +247,6 @@ INSERT INTO Account (customerID, rootAccount, rootName, rPhoneNumber, dateOfBirt
 ('IT03030014', 'ghi2@domain.com', N'Lê Thành Kim Yến', '0912345684', '1987-08-08', 1),
 ('IT03030015', 'jkl2@domain.com', N'Phạm Hữu Thịnh', '0912342685',  '1991-12-12', 0);
 
-
 INSERT INTO REQUIREMENTS (requirementsID, requirementsStatus, dateOfRequest, descriptionOfRequest, customerID) VALUES
 ('RS0001', N'Yêu cầu hỗ trợ','2025-01-01',N'Gọi điện thoại trước khi đến','IT03030001'),
 ('RS0002', N'Yêu cầu hỗ trợ','2025-01-01',N'Gọi điện thoại trước khi đến','IT03030002'),
@@ -249,7 +258,6 @@ INSERT INTO REQUIREMENTS (requirementsID, requirementsStatus, dateOfRequest, des
 ('RS0008', N'Yêu cầu hỗ trợ','2025-01-012',N'Gọi điện thoại trước khi đến','IT03030008'),
 ('RS0009', N'Yêu cầu hỗ trợ','2025-01-15',N'Gọi điện thoại trước khi đến','IT03030009'),
 ('RS0010', N'Yêu cầu hỗ trợ','2025-02-01',N'Gọi điện thoại trước khi đến','IT03030010');
-
 
 INSERT INTO CONTRACTS (CONTRACTNUMBER,STARTDATE,ENDDATE,SERVICE_TYPEName,CUSTOMERID) VALUES
 ('SV0001','2025-01-01','2025-09-01',N'Đầu số thoại','IT03030001'),
@@ -282,3 +290,6 @@ select * from HISTORYREQ
 select * from staff
 select * from LOGINadmin
 select * from SUPPORT_TYPE
+select * from Assign
+
+

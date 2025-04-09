@@ -15,6 +15,8 @@ public partial class Staff
 
     public string Department { get; set; } = null!;
 
+    public virtual ICollection<Assign> Assigns { get; set; } = new List<Assign>();
+
     public virtual ICollection<Historyreq> Historyreqs { get; set; } = new List<Historyreq>();
 
     public virtual Loginadmin? Loginadmin { get; set; }

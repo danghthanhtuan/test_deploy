@@ -34,6 +34,7 @@
         public string RootName { get; set; } = null!;
 
         public string RPhoneNumber { get; set; } = null!;
+        public string Department { get; set; }
 
     }
 
@@ -47,9 +48,7 @@
     public class Requirement_C
     {
         // public string RequirementsId { get; set; } = null!;
-
         public string Support { get; set; } = null!;
-
         public string RequirementsStatus { get; set; } = null!;
 
         public DateTime? DateOfRequest { get; set; }

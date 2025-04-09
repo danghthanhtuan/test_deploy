@@ -140,6 +140,22 @@ namespace WebApi.Service.Client
                         SupportName = Req.Support,
                     };
 
+                    string department = Req.Support switch
+                    {
+                        "Hỗ trợ Cước phí" => "Hành chính",
+                        "Cập nhật hợp đồng, dịch vụ" => "Hành chính",
+                        "Hỗ trợ Kỹ thuật" => "Kỹ thuật",
+                        "Bảo hành thiết bị" => "Kỹ thuật",
+                        _ => "Chưa phân loại"
+                    };
+
+                    var assign = new Assign
+                    {
+                        Requirementsid = newRequirements,
+                        Department = department
+                    };
+
+                    _context.Assigns.Add(assign);
                     _context.Requirements.Add(newReq);
                     _context.SaveChanges();
 

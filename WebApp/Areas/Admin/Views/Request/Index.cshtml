@@ -390,8 +390,8 @@
                             <input type="text" class="form-control w-75 phone-input" id="Support2" readonly>
                         </div>
                         <div class="form-group d-flex align-items-center">
-                            <label class="w-25">Địa chỉ hỗ trợ:</label>
-                            <input type="text" class="form-control w-75" id="cAddress2" readonly>
+                            <label class="w-25">Bộ phận tiếp nhận:</label>
+                            <input type="text" class="form-control w-75" id="assign" readonly>
                         </div>
                     </form>
                 </div>
@@ -413,6 +413,10 @@
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Email:</label>
                             <input type="email" class="form-control w-75" id="aEmail2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Địa chỉ hỗ trợ:</label>
+                            <input type="text" class="form-control w-75" id="cAddress2" readonly>
                         </div>
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Mô tả yêu cầu:</label>
@@ -539,6 +543,32 @@
         </div>
     </div>
 </div>
+
+@* <div class="modal fade" id="mySupportModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">Phân công yêu cầu</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="w-25">Bộ phận:</label>
+                <select class="form-control w-75" id="Assign" name="Assign">
+                    <option value="Truyenthong">Viễn thông & Truyền thông</option>
+                    <option value="Dientoandammay">Điện toán đám mây & Phần mềm</option>
+                    <option value="Antoanthongtin">Hỗ trợ & An toàn thông tin</option>
+                    <option value="Hopdong">Hợp đồng & Đối tác</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="confirmBtn">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div> *@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -673,7 +703,16 @@
                 { data: "contractNumber", width: "12%" },
                 { data: "support", width: "12%" },
                 { data: "serviceType", width: "10%" },
-                { data: "requirementsStatus", width: "12%" },
+                {
+                    data: "requirementsStatus",
+                    width: "14%",
+                    render: function (data, type, row) {
+                        if (data === "Yêu cầu hỗ trợ") {
+                            return `<span class="status-clickable text-danger fw-bold" data-id="${row.requirementsId}" style="cursor: pointer;">${data}</span>`;
+                        }
+                        return data || "";
+                    }
+                },
                 {
                     data: "dateOfRequest",
                     width: "12%",
@@ -689,13 +728,26 @@
                     }
                 }
             ],
+            // drawCallback: function (settings) {
+            //     $(".status-clickable").off("click").on("click", function () {
+            //         var id = $(this).data("id");
+
+            //         // Gán ID vào một phần tử riêng biệt trong modal
+            //         $("#modalLabel").text("Phân công yêu cầu: " + id);
+            //         $("#mySupportModal").data("request-id", id); // nếu sau này cần dùng
+
+            //         // Hiển thị modal
+            //         $("#mySupportModal").modal("show");
+            //     });
+            // },
+
             createdRow: function (row, data) {
                 $(row).data("fullData", data);
             },
             columnDefs: [{ "defaultContent": "-", "targets": "_all" }]
         });
-
     }
+
     $(document).ready(function () {
         $("#searchBtn").click(function () {
             var cusid = $("#searchInput").val().trim();
@@ -876,6 +928,7 @@
                     $("#cName2").val(company.companyName || "");
                     $("#reqID2").val(company.requirementsId || "");
                     $("#Support2").val(company.support || "");
+                    $("#assign").val(company.department || "");
                    
                     // Gán dữ liệu vào form thông tin tài khoản root
                     $("#aName2").val(company.rootName || "");

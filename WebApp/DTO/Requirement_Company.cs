@@ -34,6 +34,8 @@
         public string RootName { get; set; } = null!;
 
         public string RPhoneNumber { get; set; } = null!;
+        public string Department { get; set; } 
+
 
     }
 

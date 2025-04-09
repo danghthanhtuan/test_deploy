@@ -114,7 +114,7 @@ namespace WebApi.Service.Admin
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join r in _context.Requirements on c.Customerid equals r.Customerid
-                        
+                        join b in _context.Assigns on r.Requirementsid equals b.Requirementsid
                         where r.Requirementsid == req
                         join h in _context.Contracts
                         on c.Customerid equals h.Customerid
@@ -139,6 +139,7 @@ namespace WebApi.Service.Admin
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,
                             RPhoneNumber =a.Rphonenumber,
+                            Department = b.Department,
                         };
 
             return await query.ToListAsync();
@@ -194,9 +195,27 @@ namespace WebApi.Service.Admin
                     };
 
                     _context.Requirements.Add(newReq);
-                    _context.SaveChanges();
 
+                    string department = Req.Support switch
+                    {
+                        "Hỗ trợ Cước phí" => "Hành chính",
+                        "Cập nhật hợp đồng, dịch vụ" => "Hành chính",
+                        "Hỗ trợ Kỹ thuật" => "Kỹ thuật",
+                        "Bảo hành thiết bị" => "Kỹ thuật",
+                        _ => "Chưa phân loại"
+                    };
+
+                    var assign = new Assign
+                    {
+                        Requirementsid = newRequirements,
+                        Department = department
+                    };
+
+                    _context.Assigns.Add(assign);
+
+                    _context.SaveChanges();
                     transaction.Commit();
+
                     return newRequirements;
                 }
                 catch (DbUpdateException dbEx)
@@ -213,7 +232,6 @@ namespace WebApi.Service.Admin
                 }
             }
         }
-
 
         public string? UpdateStatus(historyRequest historyReq)
         {

@@ -178,6 +178,7 @@ builder.Services.AddTransient<LoginService>();
 builder.Services.AddTransient<RequirementService>();
 builder.Services.AddTransient<RequestService>();
 builder.Services.AddTransient<EmailService>();
+builder.Services.AddTransient<ContractService>();
 
 builder.Services.AddTransient<IEmailService, EmailService>(); // Thay EmailService bằng class thực tế của bạn
 

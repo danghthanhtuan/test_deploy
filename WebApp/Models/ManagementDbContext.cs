@@ -17,6 +17,8 @@ public partial class ManagementDbContext : DbContext
 
     public virtual DbSet<Account> Accounts { get; set; }
 
+    public virtual DbSet<Assign> Assigns { get; set; }
+
     public virtual DbSet<Company> Companies { get; set; }
 
     public virtual DbSet<Contract> Contracts { get; set; }
@@ -87,6 +89,37 @@ public partial class ManagementDbContext : DbContext
                 .HasPrincipalKey<Company>(p => p.Customerid)
                 .HasForeignKey<Account>(d => d.Customerid)
                 .HasConstraintName("FK_ACCOUNT_COMPANY");
+        });
+
+        modelBuilder.Entity<Assign>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Assign__3214EC27E7A8F0FE");
+
+            entity.ToTable("Assign");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Department)
+                .HasMaxLength(50)
+                .HasColumnName("DEPARTMENT");
+            entity.Property(e => e.Requirementsid)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("REQUIREMENTSID");
+            entity.Property(e => e.Staffid)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("STAFFID");
+
+            entity.HasOne(d => d.Requirements).WithMany(p => p.Assigns)
+                .HasPrincipalKey(p => p.Requirementsid)
+                .HasForeignKey(d => d.Requirementsid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Assign__REQUIREM__17036CC0");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.Assigns)
+                .HasPrincipalKey(p => p.Staffid)
+                .HasForeignKey(d => d.Staffid)
+                .HasConstraintName("FK__Assign__STAFFID__160F4887");
         });
 
         modelBuilder.Entity<Company>(entity =>
