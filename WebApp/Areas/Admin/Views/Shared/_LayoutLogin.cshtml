@@ -1,0 +1,113 @@
+﻿@* 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="~/Content/Assets/Login/images/icons/favicon.ico" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="~/Content/Assets/Login/vendor/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="~/Content/Assets/Login/fonts/font-awesome-4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="~/Content/Assets/Login/fonts/iconic/css/material-design-iconic-font.min.css" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="~/Content/Assets/Login/vendor/animate/animate.css" />
+    <link rel="stylesheet"
+          type="text/css"
+
+          href="~/Content/Assets/Login/vendor/css-hamburgers/hamburgers.min.css" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="~/Content/Assets/Login/vendor/animsition/css/animsition.min.css" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="~/Content/Assets/Login/vendor/select2/select2.min.css" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="~/Content/Assets/Login/vendor/daterangepicker/daterangepicker.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/css/util.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/css/main.css" />
+</head>
+<body>
+
+    @RenderBody()
+
+    @*<script src="~/Content/Assets/Login/vendor/jquery/jquery-3.2.1.min.js"></script>
+    <script src="~/Content/Assets/Login/vendor/animsition/js/animsition.min.js"></script>
+    <script src="~/Content/Assets/Login/vendor/bootstrap/js/popper.js"></script>
+    <script src="~/Content/Assets/Login/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/Content/Assets/Login/vendor/select2/select2.min.js"></script>
+    <script src="~/Content/Assets/Login/vendor/daterangepicker/moment.min.js"></script>
+    <script src="~/Content/Assets/Login/vendor/daterangepicker/daterangepicker.js"></script>
+    <script src="~/Content/Assets/Login/vendor/countdowntime/countdowntime.js"></script>
+    <script src="~/Content/Assets/Login/js/main.js"></script>
+</body>
+</html>
+
+
+ *@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/vendor/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/css/main.css" />
+    <style>
+        body {
+            position: relative;
+            background: url('/Content/Assets/Login/images/Ifyou.png') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+            body::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+               /*  background: white; /* Hoặc dùng black nếu muốn tối hơn 
+                opacity: 0.1; /* Điều chỉnh mức độ nhạt (0.1 - 0.5) */ 
+                z-index: -1;
+            }
+
+
+
+        .logo {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            width: 100px;
+        }
+
+        .login-container {
+            position: absolute;
+            bottom: 30%;
+            left: 10%;
+            max-width: 500px;
+           /*  background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 8px; */
+        }
+    </style>
+</head>
+<body>
+    <img src="~/Content/Assets/Login/images/Logo.jpg" class="logo" alt="Logo">
+    <div class="login-container">
+        @RenderBody()
+    </div>
+</body>
+</html>

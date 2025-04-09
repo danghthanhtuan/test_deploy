@@ -1,0 +1,1104 @@
+﻿@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<style>
+   
+    .hidden {
+        display: none !important;
+    }
+
+    #createrequestBtn {
+        width: 200px !important; /* Điều chỉnh chiều rộng */
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    #chooseCustomers {
+        width: 200px !important; /* Điều chỉnh chiều rộng */
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    #reqStatus{
+        font-size: large; 
+        width: 250px;
+    }
+    /* Đảm bảo mỗi ô có độ rộng hợp lý */
+    #listRe th, #listRe td {
+        padding: 5px 10px; /* Giảm khoảng cách giữa các ô */
+        text-align: left;
+        vertical-align: bottom; /* Đặt căn chỉnh dọc cho các ô, thay từ middle sang bottom */
+        border: 1px solid #e3e3e3;
+        white-space: nowrap; /* Ngăn không cho văn bản xuống dòng */
+        overflow: hidden;
+        text-overflow: ellipsis; /* Cắt văn bản dài nếu không đủ không gian */
+        word-wrap: break-word; /* Cho phép bẻ dòng trong các ô dài mà không bị tràn */
+    }
+
+    /* Đặt chiều rộng của các cột hợp lý */
+    #listRe .maYeuCau {
+        width: 100px; /* Bạn có thể điều chỉnh kích thước này theo nhu cầu */
+    }
+
+    #listRe .tenCongTy {
+        width: 160px; /* Giới hạn chiều rộng cho tên công ty */
+    }
+
+    #listRe .loaiHoTro, #listRe .loaiDichVu {
+        width: 120px; /* Giới hạn chiều rộng cho loại hỗ trợ */
+    }
+
+    #listRe .soHopDong {
+        width: 150px; /* Giới hạn chiều rộng cho số hợp đồng */
+    }
+
+    #listRe .trangThai, #listRe .ngayTao {
+        width: 160px; /* Giới hạn chiều rộng cho trạng thái và ngày tạo */
+    }
+
+    /* Cải thiện giao diện bảng khi có nội dung dài */
+    #listRe tbody tr {
+        word-wrap: break-word; /* Cho phép bẻ dòng trong các ô dài */
+    }
+
+        #listRe tbody tr:hover {
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+
+    /* Giảm khoảng cách giữa dòng tiêu đề và các hàng dữ liệu */
+    #listRe th {
+        padding-top: 3px; /* Giảm khoảng cách trên tiêu đề */
+        padding-bottom: 3px; /* Giảm khoảng cách dưới tiêu đề */
+        text-align: center; /* Căn giữa văn bản tiêu đề */
+        background-color: #f1f1f1; /* Đặt màu nền cho tiêu đề */
+        font-weight: bold; /* Làm đậm các tiêu đề */
+    }
+
+    /* Các phần tử trong bảng có thể điều chỉnh theo nhu cầu */
+    #listRe td {
+        font-size: 14px;
+    }
+
+    /* Thêm hiệu ứng hover cho các hàng trong bảng */
+    #listRe tbody tr:hover {
+        background-color: #e7e7e7;
+        cursor: pointer;
+    }
+
+    /* Đảm bảo không bị tràn khi có văn bản dài */
+    #listRe td {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .card-body {
+        padding-top: 5px;
+    }
+
+    .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        height: 35%;
+        padding: 15px;
+    }
+
+    .status-bar::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #ccc;
+        z-index: 0;
+    }
+
+    .status-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .status-column.alt {
+        flex-direction: column-reverse;
+    }
+
+    .status-time,
+    .status-content {
+        font-size: 14px;
+        margin: 5px 0;
+        text-align: center;
+        white-space: nowrap;
+        font-weight: bold;
+    }
+
+    .status-time {
+        min-height: 20px; /* hoặc height: 20px nếu muốn cứng */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .status-dot {
+        width: 12px;
+        height: 12px;
+       /*  background-color: green; */
+        border-radius: 50%;
+        border: 2px solid white;
+       /*  box-shadow: 0 0 0 2px green; */
+        box-shadow: 0 0 0 2px gray; /* màu mặc định */
+        background-color: gray; /* màu mặc định */
+        transition: all 0.3s ease;
+    }
+
+        .status-dot.active {
+            background-color: green;
+            box-shadow: 0 0 0 2px green;
+        }
+
+        .status-dot.skipped {
+            background-color: red;
+            box-shadow: 0 0 0 2px red;
+        }
+    #detailRequestContainer{
+        height: 85vh;
+        height: 85%;
+    }
+
+</style>
+<body>
+    <div id="listRequestContainer" class="container-fluid d-flex flex-column vh-100">
+        <div class="row flex-shrink-0" style="height: 80px;">
+            <div class="col-12">
+                <div class="card p-2">
+                    <form class="d-flex align-items-center w-100" style="gap: 10px;">
+                        <button id="createrequestBtn" class="btn btn-danger btn-sm  px-3" >
+                            👤 Tạo yêu cầu
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mục hiển thị danh sách -->
+        <div class="row flex-grow-1 overflow-auto">
+            <div class="col-12">
+                <div class="card p-3 h-100">
+                    <div class="table-responsive h-100">
+                        <table id="listRe" class="table table-striped table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Mã yêu cầu </th>
+                                    <th>Tên công ty</th>
+                                    <th>Mã Khách hàng</th>
+                                    <th>Số hợp đồng</th>
+                                    <th>Loại hỗ trợ</th>
+                                    <th>Loại dịch vụ</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Chi tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Thêm các dòng khác tương tự -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="createRequestContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
+        
+        <!-- Mục lọc -->
+        <div class="row flex-shrink-0" style="height: 80px;">
+            <div class="col-12">
+                <div class="card p-2">
+                    <form class="d-flex align-items-center w-100" style="gap: 10px;">
+                        <button id="backBtn" class="btn btn-secondary btn-sm px-3">
+                            🔙 Quay lại
+                        </button>
+                        <input id="searchInput" type="text" class="form-control form-control-sm w-25"
+                               style="min-width: 170px; padding: 5px;"
+                               placeholder="Mã khách hàng/Tên công ty/MST/Tài khoản root">
+                        <button id="searchBtn" class="btn btn-primary btn-sm flex-grow-1 px-3"
+                                style="padding: 5px; max-width: 150px;" type="button">
+                            🔍 Tìm kiếm
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal hiển thị danh sách công ty -->
+        <div class="modal fade" id="companyModal" tabindex="-1" aria-labelledby="companyModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="companyModalLabel">Chọn Công Ty</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Chọn</th>
+                                        <th>Mã khách hàng</th>
+                                        <th>Tên công ty</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="companyTableBody">
+                                    <!-- Danh sách công ty sẽ được hiển thị tại đây -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn btn-primary" id="confirmSelection">Xác nhận</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row flex-grow-1 overflow-auto">
+            <!-- Form bên trái -->
+            <div class="col-md-6">
+                <div class="card-body">
+                    <h4>THÔNG TIN CÔNG TY</h4>
+                    <form>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Tên công ty:</label>
+                            <input type="text" class="form-control w-75" id="cName" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Mã khách hàng:</label>
+                            <input type="text" class="form-control w-75" id="cId" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Mã số thuế:</label>
+                            <input type="text" class="form-control w-75" id="cTaxCode" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Email:</label>
+                            <input type="email" class="form-control w-75" id="cEmail" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Số điện thoại:</label>
+                            <input type="text" class="form-control w-75 phone-input" id="cPhone" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Địa chỉ:</label>
+                            <input type="text" class="form-control w-75" id="cAddress" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Phân loại:</label>
+                            <input type="text" class="form-control w-75" id="cType" readonly>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Form bên phải -->
+            <div class="col-md-6">
+                <div class="card-body">
+                    <h4>THÔNG TIN TÀI KHOẢN ROOT</h4>
+                    <form>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Họ và tên:</label>
+                            <input type="text" class="form-control w-75" id="aName" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Số điện thoại:</label>
+                            <input type="text" class="form-control w-75 phone-input" id="aPhone" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Email:</label>
+                            <input type="email" class="form-control w-75" id="aEmail" readonly>
+                        </div>
+
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Loại hỗ trợ:</label>
+                            <select class="form-control w-75" id="Support" name="Support">
+                                <option value="Kythuat">Hỗ trợ Kỹ thuật</option>
+                                <option value="Cuocphi">Hỗ trợ Cước phí</option>
+                                <option value="Capnhat">Cập nhật hợp đồng, dịch vụ</option>
+                                <option value="Baohanh">Bảo hành thiết bị</option>
+                            </select>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">
+                                Mô tả yêu cầu: <span style="color: red;">*</span>
+                            </label>
+                            <textarea class="form-control w-75" id="descriptionOfRequest" style="height: 150px; resize: vertical; overflow-y: auto;"></textarea>
+                        </div>
+                    </form>
+                    <button id="createAccount" class="btn btn-danger btn-sm px-3" onclick="Save()">Tạo yêu cầu</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+@*     thẻ div 3 *@    
+    <div id="detailRequestContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
+        <div class="row flex-shrink-0" style="height: 80px;">
+            <div class="col-12">
+                <div class="card p-2">
+                    <form class="d-flex align-items-center w-100" style="gap: 10px;">
+                        <button id="backBtn2" class="btn btn-secondary btn-sm px-3">
+                            🔙 Quay lại
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row flex-grow-1 overflow-auto">
+            <!-- Form bên trái -->
+            <div class="col-md-4">
+                <div class="card-body">
+                    <h4>THÔNG TIN DỊCH VỤ</h4>
+                    <form>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Số hợp đồng:</label>
+                            <input type="text" class="form-control w-75" id="contractNumber2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Nhóm dịch vụ:</label>
+                            <input type="text" class="form-control w-75" id="serviceType2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Tên chủ thể:</label>
+                            <input type="text" class="form-control w-75" id="cName2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Mã yêu cầu:</label>
+                            <input type="text" class="form-control w-75" id="reqID2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Loại hỗ trợ:</label>
+                            <input type="text" class="form-control w-75 phone-input" id="Support2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Địa chỉ hỗ trợ:</label>
+                            <input type="text" class="form-control w-75" id="cAddress2" readonly>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Form giữa -->
+            <div class="col-md-4">
+                <div class="card-body">
+                    <h4>THÔNG TIN NGƯỜI TẠO DỊCH VỤ</h4>
+                    <form>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Họ và tên:</label>
+                            <input type="text" class="form-control w-75" id="aName2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Số điện thoại:</label>
+                            <input type="text" class="form-control w-75 phone-input" id="aPhone2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Email:</label>
+                            <input type="email" class="form-control w-75" id="aEmail2" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Mô tả yêu cầu:</label>
+                            <textarea class="form-control w-75" id="descriptionOfRequest2" readonly rows="4"></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Form bên phải -->
+            <div class="col-md-4">
+                <div class="card-body">
+                    <h4>THÔNG TIN TÌNH TRẠNG</h4>
+                    <form>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Trạng thái hỗ trợ:</label>
+                            <select id="reqStatus" class="form-control w-75">
+                                <option value="Yeucauhotro">Yêu cầu hỗ trợ</option> 
+                                <option value="Yeucauchapnhan">Yêu cầu chấp nhận</option>
+                                <option value="Dangxuly">Đang xử lý</option>
+                                <option value="Hotrohoantat">Hỗ trợ hoàn tất</option>
+                                <option value="Trihoan">Trì hoãn</option>
+                                <option value="Dong">Đóng</option>
+                                <option value="Huy">Hủy</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">
+                                Mô tả tình trạng mới: <span style="color: red;">*</span>
+                            </label>
+                            <textarea class="form-control w-75" id="description2" style="height: 150px; resize: vertical; overflow-y: auto;"></textarea>
+                        </div>
+
+                        <button id="updateStatus" class="btn btn-danger btn-sm px-3 w-75">Cập nhật</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="status-bar">
+            <div class="status-column">
+                <div class="status-content">Yêu cầu hỗ trợ</div>
+                <div class="status-dot"></div>
+                <div class="status-time"></div>
+            </div>
+            <div class="status-column alt">
+                <div class="status-content">Yêu cầu chấp nhận</div>
+                <div class="status-dot"></div>
+                <div class="status-time"></div>
+            </div>
+            <div class="status-column">
+                <div class="status-content">Đang xử lý</div>
+                <div class="status-dot"></div>
+                <div class="status-time"></div>
+            </div>
+            <div class="status-column alt">
+                <div class="status-content">Hỗ trợ hoàn tất</div>
+                <div class="status-dot"></div>
+                <div class="status-time"></div>
+            </div>
+            <div class="status-column">
+                <div class="status-content">Trì hoãn</div>
+                <div class="status-dot"></div>
+                <div class="status-time"></div>
+            </div>
+            <div class="status-column alt">
+                <div class="status-content">Đóng</div>
+                <div class="status-dot"></div>
+                <div class="status-time"></div>
+            </div>
+            <div class="status-column">
+                <div class="status-content">Hủy</div>
+                <div class="status-dot"></div>
+                <div class="status-time"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<!-- Modal confirm -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="xacNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xacNhanModalLabel">Xác nhận hành động</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span class="" id="contentModalConfirm"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" id="confirmButton1">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-green">
+                <span id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thông báo lỗi -->
+<div class="modal fade" id="ModalError" tabindex="-1" aria-labelledby="ModalErrorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="ModalErrorLabel">Lỗi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="contentModalError"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM đã tải xong!");
+
+        const listRequestContainer = document.getElementById("listRequestContainer");
+        const createRequestContainer = document.getElementById("createRequestContainer");
+        const detailRequestContainer = document.getElementById("detailRequestContainer");
+
+        const createrequestBtn = document.getElementById("createrequestBtn");
+        const backBtn = document.getElementById("backBtn");
+        const backBtn2 = document.getElementById("backBtn2");
+
+        console.log("listRequestContainer:", listRequestContainer);
+        console.log("createRequestContainer:", createRequestContainer);
+        console.log("detailRequestContainer:", detailRequestContainer);
+        console.log("createrequestBtn:", createrequestBtn);
+        console.log("backBtn:", backBtn);
+
+        // Kiểm tra nếu các container có tồn tại
+        if (!listRequestContainer || !createRequestContainer || !detailRequestContainer) {
+            console.error("Một hoặc nhiều container không tìm thấy trên trang!");
+            return;
+        }
+
+        // Ẩn form tạo yêu cầu và chi tiết yêu cầu mặc định
+        createRequestContainer.classList.add("hidden");
+        detailRequestContainer.classList.add("hidden");
+
+        // Khi click "Tạo yêu cầu"
+        createrequestBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            console.log("Nhấn Tạo yêu cầu!");
+            listRequestContainer.classList.add("hidden");
+            createRequestContainer.classList.remove("hidden");
+            detailRequestContainer.classList.add("hidden");
+        });
+
+        // Khi click "Quay lại" ở trang tạo yêu cầu
+        backBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            console.log("Nhấn Quay lại!");
+            listRequestContainer.classList.remove("hidden");
+            createRequestContainer.classList.add("hidden");
+            detailRequestContainer.classList.add("hidden");
+        });
+
+        // Khi click "Quay lại" ở trang chi tiết yêu cầu
+        backBtn2.addEventListener("click", function (event) {
+            event.preventDefault();
+            console.log("Nhấn Quay lại từ update!");
+            document.getElementById("description2").value = "";
+            document.getElementById("reqStatus").value = "Yeucauhotro";
+            listRequestContainer.classList.remove("hidden");
+            createRequestContainer.classList.add("hidden");
+            detailRequestContainer.classList.add("hidden");
+        });
+
+        $(document).on("click", ".detail-btn", function (event) {
+            event.preventDefault();
+            const customerId = $(this).data("id");
+            console.log("Nhấn chỉnh sửa - chi tiết! Customer ID:", customerId);
+            getRequestByID(customerId);
+            getHis(customerId);
+            // Ẩn danh sách công ty, hiển thị form cập nhật
+            $("#listRequestContainer").addClass("hidden");
+            $("#createRequestContainer").addClass("hidden");
+            $("#detailRequestContainer").removeClass("hidden");
+        });
+    });
+
+    $(document).ready(function () {
+        init();
+    });
+
+    function init() {
+        if ($.fn.DataTable.isDataTable("#listRe")) {
+            $("#listRe").DataTable().destroy(); // Xóa DataTable cũ trước khi tạo lại
+        }
+
+        var table = $('#listRe').DataTable({
+            processing: true,
+            serverSide: true,
+            paging: true,
+            searching: false,
+            searchDelay: 400,
+            iDisplayLength: 6,
+            bLengthChange: false,
+            language: {
+                info: "Hiển thị _START_ đến _END_ của _TOTAL_ tài khoản",
+                lengthMenu: "Hiển thị _MENU_  tài khoản",
+                processing: "Đang tải dữ liệu...",
+                paginate: {
+                    previous: "Trước",
+                    next: "Tiếp theo",
+                    last: "Cuối"
+                }
+            },
+            ajax: {
+                url: "/admin/request/GetAllRequest",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: function (data) {
+                    var currentPageIndex = Math.ceil(data.start / data.length) + 1;
+                    return JSON.stringify({
+                        PageSize: data.length,
+                        Page: currentPageIndex,
+                        Cutomer: ""
+                    });
+                },
+                dataSrc: function (res) {
+                    return res.success && res.listRequest && res.listRequest.results ? res.listRequest.results : [];
+                },
+                dataFilter: function (data) {
+                    var page = $.parseJSON(data);
+                    page.recordsTotal = page.listRequest?.rowCount || 0;
+                    page.recordsFiltered = page.listRequest?.rowCount || 0;
+                    return JSON.stringify(page);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu:", error);
+                    showErrorModal("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                }
+            },
+            columns: [
+                { data: null, width: "5%", render: function (data, type, row, meta) { return meta.row + 1; } },
+                { data: "requirementsId", width: "10%" },
+                { data: "companyName", width: "13%" },
+                { data: "customerId", width: "14%" },
+                { data: "contractNumber", width: "12%" },
+                { data: "support", width: "12%" },
+                { data: "serviceType", width: "10%" },
+                { data: "requirementsStatus", width: "12%" },
+                {
+                    data: "dateOfRequest",
+                    width: "12%",
+                    render: function (data) {
+                        return data ? new Date(data).toLocaleDateString("vi-VN") : "";
+                    }
+                },
+                {
+                    data: null,
+                    width: "20%",
+                    render: function (data, type, row) {
+                        return `<button id="btnDetail"  class="btn btn-sm btn-primary detail-btn" data-id="${row.requirementsId}">Chi tiết</button>`;
+                    }
+                }
+            ],
+            createdRow: function (row, data) {
+                $(row).data("fullData", data);
+            },
+            columnDefs: [{ "defaultContent": "-", "targets": "_all" }]
+        });
+
+    }
+    $(document).ready(function () {
+        $("#searchBtn").click(function () {
+            var cusid = $("#searchInput").val().trim();
+            if (!cusid) {
+                showErrorModal("Vui lòng nhập thông tin tìm kiếm.");
+                // Gán sự kiện đóng modal vào nút "Đóng"
+                document.getElementById("btnCloseModal").addEventListener("click", function () {
+                    $("#ModalError").modal("hide");
+                });
+                return;
+            }
+
+            $.ajax({
+                url: `/admin/request/GetAllInfor?customerID=${cusid}`,
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                success: function (res) {
+                    if (res.success && Array.isArray(res.listRequest) && res.listRequest.length > 0) {
+                        var tbody = $("#companyTableBody");
+                        tbody.empty(); // Xóa danh sách cũ
+
+                        res.listRequest.forEach(function (company, index) {
+                            var row = `<tr>
+                                <td>
+                                    <input type="radio" name="selectedCompany" value="${index}" ${index === 0 ? "checked" : ""}>
+                                </td>
+                                <td>${company.customerId}</td>
+                                <td>${company.companyName}</td>
+                            </tr>`;
+                            tbody.append(row);
+                        });
+
+                        $("#companyModal").modal("show");
+                    } else {
+                        showErrorModal("Không tìm thấy dữ liệu công ty.");
+                        // Gán sự kiện đóng modal vào nút "Đóng"
+                        document.getElementById("btnCloseModal").addEventListener("click", function () {
+                            $("#ModalError").modal("hide");
+                        });
+                    }
+                },
+                error: function () {
+                    showErrorModal("Lỗi khi tìm kiếm công ty.");
+                    // Gán sự kiện đóng modal vào nút "Đóng"
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            });
+        });
+
+        $("#confirmSelection").click(function () {
+            var selectedIndex = $("input[name='selectedCompany']:checked").val();
+            if (selectedIndex !== undefined) {
+                $.ajax({
+                    url: `/admin/request/GetAllInfor?customerID=${$("#searchInput").val().trim()}`,
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (res) {
+                        if (res.success && Array.isArray(res.listRequest) && res.listRequest.length > selectedIndex) {
+                            var company = res.listRequest[selectedIndex];
+
+                            $("#cName").val(company.companyName || "");
+                            $("#cId").val(company.customerId || "");
+                            $("#cTaxCode").val(company.taxCode || "");
+                            $("#cEmail").val(company.companyAccount || "");
+                            $("#cPhone").val(company.cPhoneNumber || "");
+                            $("#cAddress").val(company.cAddress || "");
+                            $("#cType").val(company.customerType ? "Vip" : "Bình thường");
+
+                            $("#aName").val(company.rootName || "");
+                            $("#aPhone").val(company.rPhoneNumber || "");
+                            $("#aEmail").val(company.rootAccount || "");
+
+                            $("#companyModal").modal("hide"); // Đóng modal sau khi chọn
+                        }
+                    }
+                });
+            } else {
+                showErrorModal("Vui lòng chọn một công ty.");
+                // Gán sự kiện đóng modal vào nút "Đóng"
+                document.getElementById("btnCloseModal").addEventListener("click", function () {
+                    $("#ModalError").modal("hide");
+                });
+            }
+        });
+    });
+    
+    function formatDateTime(isoString) {
+        const date = new Date(isoString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
+
+        return `${day}/${month}/${year} ${hour}:${minute}`;
+    }
+
+    function getHis(requirementsID) {
+        $.ajax({
+            url: `/admin/request/getHIS?requestID=${requirementsID}`,
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (res) {
+                const listRequest = res.listRequest || [];
+
+                // Reset toàn bộ
+                $(".status-time").text("");
+                $(".status-dot").removeClass("active skipped");
+                $(".status-column").removeClass("skipped-bg");
+
+                // Lấy danh sách status đã có thời gian
+                const statusDoneMap = {};
+                listRequest.forEach(item => {
+                    const status = item.apterstatus?.trim();
+                    const time = formatDateTime(item.dateOfRequest);
+                    statusDoneMap[status] = time;
+                });
+
+                const $columns = $(".status-column");
+                let lastDoneIndex = -1;
+
+                // B1: Gán thời gian và đánh dấu các bước đã hoàn thành (active)
+                $columns.each(function (index) {
+                    const statusName = $(this).find(".status-content").text().trim();
+                    const time = statusDoneMap[statusName];
+
+                    if (time) {
+                        $(this).find(".status-time").text(time);
+                        $(this).find(".status-dot").addClass("active");
+                        lastDoneIndex = index;
+                    }
+                });
+
+                // B2: Kiểm tra bước bị bỏ qua (skipped) và đổi màu nền
+                $columns.each(function (index) {
+                    const hasTime = $(this).find(".status-time").text().trim() !== "";
+
+                    if (index < lastDoneIndex && !hasTime) {
+                        $(this).find(".status-dot").addClass("skipped");
+                        $(this).addClass("skipped-bg"); // đổi nền
+                    }
+                });
+
+                // B3: Reset và disable các option đã đi qua
+                const $select = $("#reqStatus");
+                $select.find("option").prop("disabled", false).each(function () {
+                    const text = $(this).text().trim();
+                    if (statusDoneMap[text]) {
+                        $(this).prop("disabled", true);
+                    }
+                });
+
+                // Nếu dùng select2 hoặc thư viện khác thì nhớ trigger lại để giao diện cập nhật
+                if ($select.hasClass("select2-hidden-accessible")) {
+                    $select.trigger("change.select2");
+                }
+            }
+        });
+    }
+
+    function getRequestByID(requirementsID) {
+
+        $.ajax({
+            url: `/admin/request/GetRequestByID?requestID=${requirementsID}`,
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (res) {
+                console.log("get thông tin div 3 ở request:", res.listRequest);
+
+                if (res.success && Array.isArray(res.listRequest) && res.listRequest.length > 0) {
+                    var company = res.listRequest[0]; // Lấy phần tử đầu tiên
+                    
+                    // Gán dữ liệu vào form thông tin công ty
+                    $("#contractNumber2").val(company.contractNumber || "");
+                    $("#serviceType2").val(company.serviceType || "");
+                    $("#cName2").val(company.companyName || "");
+                    $("#reqID2").val(company.requirementsId || "");
+                    $("#Support2").val(company.support || "");
+                   
+                    // Gán dữ liệu vào form thông tin tài khoản root
+                    $("#aName2").val(company.rootName || "");
+                    $("#aPhone2").val(company.rPhoneNumber || "");
+                    $("#aEmail2").val(company.rootAccount || "");
+                    $("#cAddress2").val(company.cAddress || "");
+                    $("#descriptionOfRequest2").val(company.descriptionOfRequest || "");
+
+                    console.log("Trạng thái hỗ trợ:", company.requirementsStatus);
+                    var statusMap = {
+                        "Yêu cầu hỗ trợ": "Yeucauhotro",
+                        "Yêu cầu chấp nhận": "Yeucauchapnhan",
+                        "Đang xử lý": "Dangxuly",
+                        "Hỗ trợ hoàn tất": "Hotrohoantat",
+                        "Trì hoãn": "Trihoan",
+                        "Đóng": "Dong",
+                        "Hủy": "Huy"
+                    };
+
+                    // Lấy value tương ứng từ map
+                    var statusValue = statusMap[company.requirementsStatus.trim()] || "";
+
+                    // Nếu tìm thấy giá trị phù hợp thì gán
+                    if ($("#reqStatus option[value='" + statusValue + "']").length > 0) {
+                        $("#reqStatus").val(statusValue);
+                    } else {
+                        console.warn("Không tìm thấy trạng thái:", company.requirementsStatus);
+                    }
+
+                } else {
+                    showErrorModal("Không tìm thấy dữ liệu công ty.");
+                    // Gán sự kiện đóng modal vào nút "Đóng"
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi khi lấy dữ liệu:", error);
+                showErrorModal("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                // Gán sự kiện đóng modal vào nút "Đóng"
+                document.getElementById("btnCloseModal").addEventListener("click", function () {
+                    $("#ModalError").modal("hide");
+                });
+            }
+        });
+       
+    }
+    const tokenJWT = localStorage.getItem("accessToken");
+
+    function Save() {
+
+        var customerId = document.getElementById("cId").value.trim();
+        var descriptionOfRequest = document.getElementById("descriptionOfRequest").value.trim();
+        // Lấy text của option đang chọn
+        var selectElement = document.getElementById("Support");
+        var Support = selectElement.options[selectElement.selectedIndex].text.trim();
+        var requirementsStatus = "Yêu cầu hỗ trợ";
+        var dateOfRequest = new Date().toISOString();
+
+        if (!descriptionOfRequest) {
+            showErrorModal("Vui lòng mô tả yêu cầu của bạn.");
+            // Gán sự kiện đóng modal vào nút "Đóng"
+            document.getElementById("btnCloseModal").addEventListener("click", function () {
+                $("#ModalError").modal("hide");
+            });
+            return;
+        }
+        var cValues = {
+            Support: Support,
+            RequirementsStatus: requirementsStatus,
+            DateOfRequest: dateOfRequest,
+            DescriptionOfRequest: descriptionOfRequest,
+            CustomerId: customerId
+        };
+        var StaffId = "@User.FindFirst("StaffId")?.Value";
+
+        document.getElementById("contentModalConfirm").innerHTML;
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
+
+        $("#confirmButton1").off("click").on("click", function () {
+            modal.hide();
+            $.ajax({
+                url: `/admin/request/Insert?id=${StaffId}`,
+                type: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(cValues),
+                success: function (response) {
+                    if (response.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = "Tạo yêu cầu thành công";
+                        $("#ModalSuccess").modal("show");
+                        refresh();
+                        init();
+                        backBtn.click();
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định.";
+                    if (xhr.responseJSON) {
+                        if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message.join("<br>");
+                        } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                    }
+                    $("#contentModalError").html(errorMessage);
+                    $("#ModalError").modal("show");
+                    // Gán sự kiện đóng modal vào nút "Đóng"
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            });
+        });
+    }
+    $(document).ready(function () {
+        $("#updateStatus").on("click", function (event) {
+            updateStatus(event);
+        });
+    });
+
+    function updateStatus(event) {
+        event.preventDefault(); // Ngăn chặn load lại trang nếu là <button>
+        console.log("Gọi updateStatus()"); // Kiểm tra xem hàm có được gọi không
+        // Lấy giá trị từ input
+        var reqID = $("#reqID2").val().trim();
+        var reqStatusElement = document.getElementById("reqStatus");
+        var reqStatus = reqStatusElement.options[reqStatusElement.selectedIndex].text; // Lấy nội dung hiển thị
+        console.log("reqStatus:", reqStatus);
+        console.log("reqID2:", reqID2);
+
+        var descriptionOfRequest = description2.value.trim();
+        if (!descriptionOfRequest) {
+            showErrorModal("Vui lòng mô tả tình trạng cập nhật mới nhất.");
+            // Gán sự kiện đóng modal vào nút "Đóng"
+            document.getElementById("btnCloseModal").addEventListener("click", function () {
+                $("#ModalError").modal("hide");
+            });
+            return;
+        }
+        console.log("descriptionOfRequest:", descriptionOfRequest);
+
+        // Kiểm tra nếu không có reqID
+        if (!reqID) {
+            showErrorModal("Mã yêu cầu không hợp lệ!");
+            // Gán sự kiện đóng modal vào nút "Đóng"
+            document.getElementById("btnCloseModal").addEventListener("click", function () {
+                $("#ModalError").modal("hide");
+            });
+            return;
+        }
+        var StaffId = "@User.FindFirst("StaffId")?.Value";
+        console.log("StaffId:", StaffId);
+        // Dữ liệu gửi đi
+        var requestData = {
+            RequirementsId: reqID,
+            Descriptionofrequest: descriptionOfRequest,
+            Apterstatus: reqStatus,
+            Staffid: StaffId
+        };
+            
+        // Hiển thị modal xác nhận
+        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn cập nhật trạng thái không?";
+        const modalConfirm = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modalConfirm.show();
+
+        // Khi bấm xác nhận
+        $("#confirmButton1").off("click").on("click", function () {
+            modalConfirm.hide(); // Đóng modal xác nhận
+
+            $.ajax({
+                url: "/admin/request/UpdateStatus",
+                type: "Post",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(requestData),
+                success: function (response) {
+                    if (response.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = response.message || "Cập nhật yêu cầu thành công";
+                        $("#ModalSuccess").modal("show");
+                        init();
+                        backBtn2.click();
+                        document.getElementById("description2").value = "";
+                        document.getElementById("reqStatus").value = "";
+                    } else {
+                        // Trường hợp server trả về success: false
+                        showErrorModal(response.message || "Có lỗi xảy ra khi cập nhật trạng thái.");
+                        document.getElementById("btnCloseModal").addEventListener("click", function () {
+                            $("#ModalError").modal("hide");
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    // Trường hợp lỗi như 500 hoặc BadRequest
+                    var errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại.";
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        errorMessage = response.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = xhr.responseText || errorMessage;
+                    }
+
+                    showErrorModal(errorMessage);
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+
+            });
+        });
+    }
+
+    function showErrorModal(message) {
+        $("#contentModalError").text(message);
+        $("#ModalError").modal("show");
+    }
+    function refresh() {
+        document.getElementById("descriptionOfRequest").value = "";
+        document.getElementById("Support").value = "Kythuat";
+    }
+ </script>

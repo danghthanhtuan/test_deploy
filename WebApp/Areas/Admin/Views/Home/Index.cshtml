@@ -1,0 +1,155 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div id="companyListContainer" class="container-fluid d-flex flex-column vh-100">
+    <!-- Mục hiển thị danh sách -->
+    <div class="row flex-grow-1 overflow-auto">
+        <div class="col-12">
+            <div class="card p-3 h-100">
+                <div class="table-responsive h-100">
+                    <table id="listCompany" class="table table-striped table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã khách hàng</th>
+                                <th>Tên công ty</th>
+                                <th>Tài khoản root</th>
+                                <th>Ngày cấp tài khoản</th>
+                                <th>Trạng thái</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Thêm các dòng khác tương tự -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        init();
+    });
+
+    function init() {
+
+        if ($.fn.DataTable.isDataTable("#listCompany")) {
+            $("#listCompany").DataTable().destroy(); // Xóa DataTable cũ trước khi tạo lại
+        }
+        $('#listCompany').DataTable({
+            processing: true,
+            serverSide: true,
+            paging: true,
+            searching: false,
+            searchDelay: 400,
+            scrollY: false,
+            iDisplayLength: 8,
+            bLengthChange: false,
+            language: {
+                info: "Hiển thị _START_ đến _END_ của _TOTAL_ tài khoản",
+                lengthMenu: "Hiển thị _MENU_  tài khoản",
+                //search: "Tìm kiếm",
+                processing: "Đang tải dữ liệu...",
+                paginate: {
+                    previous: "Trước",
+                    next: "Tiếp theo",
+                    last: "Cuối"
+                }
+            },
+
+            ajax: {
+                url: "/admin/account/GetAllCompany",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                beforeSend: function () {
+                    // Optional: Show loading indicator
+                },
+                data: function (data) {
+                    var listCompanyA = $("#listCompany").DataTable();
+                    var settings = listCompanyA.settings();
+                    var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+
+                    return JSON.stringify({
+                        PageSize: 8,
+                        Page: currentPageIndex,
+                        Keyword: "", // Lấy giá trị từ input tìm kiếm
+                        Category: "Tất cả"
+                    });
+                },
+                dataSrc: function (res) {
+                    console.log(res.listCompany);
+                    return res.success && res.listCompany && res.listCompany.results ? res.listCompany.results : [];
+
+                },
+                dataFilter: function (data) {
+                    var page = $.parseJSON(data);
+                    if (!page.success || !page.listCompany) {
+                        page.recordsTotal = 0;
+                        page.recordsFiltered = 0;
+                        return JSON.stringify(page);
+                    }
+                    page.recordsTotal = page.listCompany.rowCount || 0;
+                    page.recordsFiltered = page.listCompany.rowCount || 0;
+                    return JSON.stringify(page);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu:", error);
+                    alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                }
+            },
+            columns: [
+                {
+                    data: null, width: "5%", render: function (data, type, row, meta) {
+                        return meta.row + 1; // Hiển thị số thứ tự tự động
+                    }
+                },
+                { data: "customerId", width: "15%" },
+                { data: "companyName", width: "18%" },
+                { data: "companyAccount", width: "19%" },
+                {
+                    data: "accountIssuedDate",
+                    width: "17%",
+                    render: function (data, type, row) {
+                        if (!data) return ""; // Tránh lỗi khi dữ liệu null
+                        let date = new Date(data);
+                        return date.toLocaleDateString("vi-VN"); // Định dạng dd/mm/yyyy
+                    }
+                },
+                {
+                    data: "operatingStatus",
+                    width: "11%",
+                    render: function (data, type, row) {
+                        let isChecked = data ? "checked" : "";
+                        let text = data ? "ON" : "OFF";
+
+                        return `
+                    <label class="switch">
+                        <input type="checkbox" class="toggle-customerType" data-id="${row.customerId}" ${isChecked} disabled>
+                        <span class="slider round">
+                            <span class="toggle-text">${text}</span>
+                        </span>
+                    </label>
+                        `;
+                    }
+                },
+
+            ],
+            createdRow: function (row, data, dataIndex) {
+                $(row).data("fullData", data); // Lưu toàn bộ dữ liệu vào row
+            },
+
+            columnDefs: [{
+                "defaultContent": "-",
+                "targets": "_all"
+            }]
+        });
+    }
+</script>
+                             
