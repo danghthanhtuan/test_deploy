@@ -367,10 +367,7 @@ namespace WebApi.Service.Admin
                         return "Mã số thuế đã tồn tại trong hệ thống! Vui lòng kiểm tra lại.";
                     }
 
-                    //if (_context.Companies.Any(s => s.ContractNumber == CompanyAccountDTO.ContractNumber))
-                    //{
-                    //    return "Số hợp đồng đã tồn tại. Vui lòng kiểm tra lại.";
-                    //}
+                  
 
                     var lastCustomer = _context.Companies
                         .Where(c => c.Customerid.StartsWith("IT030300"))
@@ -444,7 +441,14 @@ namespace WebApi.Service.Admin
                         ServiceTypename = CompanyAccountDTO.ServiceType,
                         Customerid = newCustomerID
                     };
-
+                    var newPayment = new Payment
+                    {
+                        Customerid = newCustomerID,
+                        Contractnumber = newContractNumber,
+                        Amount = CompanyAccountDTO.Amount,
+                        Paymentstatus = false,
+                    };
+                    _context.Payments.Add(newPayment);
                     _context.Contracts.Add(newContract);
                     _context.SaveChanges();
 
@@ -463,7 +467,6 @@ namespace WebApi.Service.Admin
                 }
             }
         }
-
         private string GenerateRandomPassword()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*!";

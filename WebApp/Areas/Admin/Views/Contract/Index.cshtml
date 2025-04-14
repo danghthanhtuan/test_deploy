@@ -1,6 +1,71 @@
 ﻿@{
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
+<style>
+    .hidden {
+        display: none !important;
+    }
+
+    /* Căn chỉnh toàn bảng */
+    #listCompany {
+        margin-top: 0 !important; /* Giảm lề trên */
+        padding-top: 0 !important;
+        border-collapse: collapse; /* Gộp đường viền cho gọn */
+        font-size: 14px; /* Cỡ chữ hợp lý */
+        line-height: 1.4; /* Giảm chiều cao dòng */
+    }
+
+        /* Đảm bảo mỗi ô có độ rộng hợp lý và sát nhau hơn */
+        #listCompany th, #listCompany td {
+            padding: 4px 8px; /* Ít padding hơn */
+            text-align: left;
+            vertical-align: middle; /* Căn giữa theo chiều dọc */
+            border: 1px solid #e3e3e3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word; /* Cho phép bẻ dòng trong các ô dài mà không bị tràn */
+        }
+    /* Cải thiện giao diện bảng khi có nội dung dài */
+        #listCompany tbody tr {
+        word-wrap: break-word; /* Cho phép bẻ dòng trong các ô dài */
+    }
+
+            #listCompany tbody tr:hover {
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+    /* Giảm khoảng cách giữa dòng tiêu đề và các hàng dữ liệu */
+    #listCompany th {
+        padding-top: 3px; /* Giảm khoảng cách trên tiêu đề */
+        padding-bottom: 3px; /* Giảm khoảng cách dưới tiêu đề */
+        text-align: center; /* Căn giữa văn bản tiêu đề */
+        background-color: #f1f1f1; /* Đặt màu nền cho tiêu đề */
+        font-weight: bold; /* Làm đậm các tiêu đề */
+    }
+
+    /* Các phần tử trong bảng có thể điều chỉnh theo nhu cầu */
+    #listCompany td {
+        font-size: 14px;
+    }
+
+    /* Thêm hiệu ứng hover cho các hàng trong bảng */
+    #listCompany tbody tr:hover {
+        background-color: #e7e7e7;
+        cursor: pointer;
+    }
+
+    /* Đảm bảo không bị tràn khi có văn bản dài */
+    #listCompany td {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .card-body {
+        padding-top: 5px;
+    }
+</style>
 <body>
     <div id="companyListContainer" class="container-fluid d-flex flex-column vh-100">
         <!-- Mục lọc -->
@@ -16,9 +81,8 @@
                         </select>
 
                         <button id="searchBtn" class="btn btn-primary btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;">🔍 Tìm kiếm</button>
-                        <button class="btn btn-warning btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;" onclick=" exportToCsv(event)">📥 Xuất Excel</button>
-                        <button class="btn btn-success btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;" onclick="refresh()">➕ Làm mới</button>
-                        <button id="createAccountBtn" class="btn btn-danger btn-sm flex-grow-1 px-3" style="padding: 5px;">👤 Tạo tài khoản</button>
+                        <button class="btn btn-warning btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;">📥 Tạo hợp đồng</button>
+                        <button class="btn btn-success btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;" >➕ Làm mới</button>
                     </form>
                 </div>
             </div>
@@ -38,12 +102,12 @@
                                     <th>Mã số thuế</th>
                                     <th>Tài khoản root</th>
                                     <th>Ngày cấp tài khoản</th>
+                                    <th>Ngày hết hạn</th>
                                     <th>Trạng thái</th>
-                                    <th>Update</th>
+                                    <th>Gia hạn</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Thêm các dòng khác tương tự -->
                             </tbody>
                         </table>
                     </div>
@@ -51,9 +115,318 @@
             </div>
         </div>
     </div>
+    <!-- Form gia hạn -->
+    <div id="createAccountContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
+        <div class="row flex-shrink-0" style="height: 80px;">
+            <div class="col-12">
+                <div class="card p-2">
+                    <form class="d-flex align-items-center w-100" style="gap: 10px;">
+
+                        <button id="backBtn" class="btn btn-secondary btn-sm px-3">
+                            🔙 Quay lại
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="row flex-grow-1 overflow-auto">
+            <!-- Form bên trái -->
+            <div class="col-md-6">
+                <div class="card-body">
+                    <h4>THÔNG TIN CÔNG TY</h4>
+                    <form>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Tên công ty: <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control w-75" id="cName" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Mã khách hàng:</label>
+                            <input type="text" class="form-control w-75" id="cId" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Mã số thuế: <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control w-75" id="cTaxCode" readonly>
+                        </div>
+                       <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Email: <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control w-75" id="cEmail" pattern="@(@"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")" required>
+                        </div>
+
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Số điện thoại: <span class="text-danger">*</span></label >
+                            <input type="text" class="form-control w-75 phone-input" id="cPhone" maxlength="10" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Địa chỉ: <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control w-75" id="cAddress" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Phân loại:</label>
+                            <select class="form-control w-75" id="cType" name="cType" disabled>
+                                <option value="normal">Bình thường</option>
+                                <option value="vip">VIP</option>
+                            </select>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+
+            <!-- Form bên phải -->
+            <div class="col-md-6">
+                <div class="card-body">
+                    <h4>GIA HẠN</h4>
+                    <form>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Số hợp đồng: <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control w-75" id="contractNumber" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Loại dịch vụ:</label>
+                            <select class="form-control w-75" id="serviceType" disabled>
+                                <option value="dau-so-thoai">Đầu số thoại</option>
+                                <option value="an-toan-thong-tin">An toàn thông tin</option>
+                                <option value="cloud-partner">Cloud partner</option>
+                                <option value="dich-vu-dien-tu">Dịch vụ điện tử</option>
+                                <option value="dich-vu-phan-mem">Dịch vụ phần mềm (SaaS)</option>
+                                <option value="dien-toan-dam-may">Điện toán đám mây</option>
+                                <option value="giam-sat">Giám sát</option>
+                                <option value="trung-tam-du-lieu">Trung tâm dữ liệu</option>
+                                <option value="thiet-bi">Thiết bị</option>
+                                <option value="hoi-nghi-truyen-hinh">Hội nghị truyền hình</option>
+                                <option value="kenh-truyen">Kênh truyền</option>
+                                <option value="tin-nhan">Tin nhắn</option>
+                                <option value="tong-dai">Tổng đài</option>
+                                <option value="ho-tro-cntt">Hỗ trợ CNTT</option>
+                                <option value="hop-dong-tich-hop">Hợp đồng tích hợp/dự án</option>
+                                <option value="hop-dong-hop-tac">Hợp đồng Hợp tác</option>
+                                <option value="dich-vu-truyen-hinh">Dịch vụ truyền hình</option>
+                                <option value="doi-tac">Đối tác</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Trạng thái:</label>
+                            <select class="form-control w-75" id="aStatus" disabled>
+                                <option value="1">Hoạt động</option>
+                                <option value="0">Không hoạt động</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Ngày bắt đầu:</label>
+                            <input type="date" class="form-control w-75" id="startDate" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Ngày kết thúc:</label>
+                            <input type="date" class="form-control w-75" id="endDate" readonly>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Thời gian gia hạn:</label>
+                            <select id="timeGiahan">
+                                <option value="">Vui lòng chọn thời gian</option>
+                                <option value="1month">1 tháng</option>
+                                <option value="2month">2 tháng</option>
+                                <option value="3month">3 tháng</option>
+                                <option value="4month">4 tháng</option>
+                                <option value="5month">5 tháng</option>
+                                <option value="6month">6 tháng</option>
+                                <option value="7month">7 tháng</option>
+                                <option value="8month">8 tháng</option>
+                                <option value="9month">9 tháng</option>
+                                <option value="10month">10 tháng</option>
+                                <option value="11month">11 tháng</option>
+                                <option value="12month">12 tháng</option>
+                                <option value="13month">13 tháng</option>
+                                <option value="14month">14 tháng</option>
+                                <option value="15month">15 tháng</option>
+                                <option value="16month">16 tháng</option>
+                                <option value="17month">17 tháng</option>
+                                <option value="18month">18 tháng</option>
+                            </select>
+                        </div>
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Tổng tiền:</label>
+                            <input type="text" class="form-control w-75" id="amount" readonly>
+                        </div>
+                    </form>
+                    <button id="createAccount" class="btn btn-danger btn-sm px-3" onclick="SaveAccount()">Lưu tài khoản</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
+
+<!-- Modal confirm -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="xacNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xacNhanModalLabel">Xác nhận hành động</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span class="" id="contentModalConfirm"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" id="confirmButton1">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-green">
+                <span id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thông báo lỗi -->
+<div class="modal fade" id="ModalError" tabindex="-1" aria-labelledby="ModalErrorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="ModalErrorLabel">Lỗi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="contentModalError"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let today = new Date();
+        let todayFormatted = today.toISOString().split("T")[0]; // Định dạng yyyy-mm-dd
+
+        let nextMonth = new Date(today);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+        // Kiểm tra nếu ngày bị lệch (ví dụ: 31/3 -> 1/5)
+        if (nextMonth.getDate() !== today.getDate()) {
+            nextMonth.setDate(0);
+        }
+
+        let nextMonthFormatted = nextMonth.toISOString().split("T")[0];
+
+        let startDateInput = document.getElementById("startDate");
+        let endDateInput = document.getElementById("endDate");
+        let birthDateInput = document.getElementById("aDate"); // Trường ngày sinh
+
+        // Kiểm tra nếu input tồn tại trước khi gán
+        if (birthDateInput) {
+            if (!birthDateInput.value) {  // Chỉ đặt nếu input chưa có giá trị
+                birthDateInput.value = todayFormatted;
+            }
+            birthDateInput.max = todayFormatted;
+        }
+
+        if (startDateInput) {
+            startDateInput.value = todayFormatted;
+            startDateInput.max = todayFormatted;
+        }
+
+        if (endDateInput) {
+            endDateInput.value = nextMonthFormatted;
+        }
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+        const startDateInput = document.getElementById("startDate");
+        const endDateInput = document.getElementById("endDate");
+        const timeGiahanSelect = document.getElementById("timeGiahan");
+
+        // Lưu ngày kết thúc ban đầu (ngày đầu load trang)
+        const originalEndDate = new Date(endDateInput.value);
+
+        timeGiahanSelect.addEventListener("change", function () {
+            const value = this.value;
+            if (!value) {
+                alert("Vui lòng chọn thời gian gia hạn!");
+                return;
+            }
+
+            const monthsToAdd = parseInt(value.replace("month", ""));
+            const today = new Date();
+
+            let newStartDate, newEndDate;
+
+            // So sánh ngày kết thúc gốc với ngày hiện tại
+            if (originalEndDate <= today) {
+                // Nếu đã hết hạn → reset ngày bắt đầu = hôm nay
+                newStartDate = today;
+                newEndDate = new Date(today);
+                newEndDate.setMonth(newEndDate.getMonth() + monthsToAdd);
+            } else {
+                // Nếu chưa hết hạn → cộng thêm vào ngày kết thúc ban đầu
+                newStartDate = new Date(startDateInput.value); // giữ nguyên
+                newEndDate = new Date(originalEndDate);
+                newEndDate.setMonth(newEndDate.getMonth() + monthsToAdd);
+            }
+
+            // Cập nhật lại input
+            startDateInput.value = formatDate(newStartDate);
+            endDateInput.value = formatDate(newEndDate);
+        });
+
+        // Format yyyy-mm-dd cho input type="date"
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM đã tải xong!");
+
+        const companyListContainer = document.getElementById("companyListContainer");
+        const createAccountContainer = document.getElementById("createAccountContainer");
+        const backBtn = document.getElementById("backBtn");
+
+        console.log("companyListContainer:", companyListContainer);
+        console.log("createAccountContainer:", createAccountContainer);
+        console.log("backBtn:", backBtn);
+
+        // Ẩn form tạo tài khoản mặc định
+        createAccountContainer.classList.add("hidden");
+
+        
+        // Khi click "Quay lại"
+        backBtn.addEventListener("click", function (event) {
+            event.preventDefault(); // Ngăn chặn load lại trang nếu là <button>
+            console.log("Nhấn Quay lại!");
+            companyListContainer.classList.remove("hidden");
+            createAccountContainer.classList.add("hidden");
+            init("", "Tất cả");
+           
+        });
+
+        // Thêm sự kiện cho nút "Cập nhật"
+        document.addEventListener("click", function (event) {
+            if (event.target.classList.contains("update-btn")) {
+                event.preventDefault();
+                const customerId = event.target.getAttribute("data-id");
+                console.log("Nhấn Cập nhật! Customer ID:", customerId);
+
+                // Ẩn danh sách công ty, hiển thị form cập nhật
+                companyListContainer.classList.add("hidden");
+                createAccountContainer.classList.remove("hidden");
+            }
+        });
+    });
     $(document).ready(function () {
 
         init("", "Tất cả");
@@ -123,7 +496,6 @@
                 dataSrc: function (res) {
                     console.log(res.listCompany);
                     return res.success && res.listCompany && res.listCompany.results ? res.listCompany.results : [];
-
                 },
                 dataFilter: function (data) {
                     var page = $.parseJSON(data);
@@ -140,22 +512,30 @@
                     console.error("Lỗi khi lấy dữ liệu:", error);
                     // alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
                     showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
-
                 }
             },
             columns: [
                 {
-                    data: null, width: "5%", render: function (data, type, row, meta) {
+                    data: null, width: "3%", render: function (data, type, row, meta) {
                         return meta.row + 1; // Hiển thị số thứ tự tự động
                     }
                 },
-                { data: "customerId", width: "15%" },
-                { data: "companyName", width: "18%" },
-                { data: "taxCode", width: "12%" },
-                { data: "companyAccount", width: "19%" },
+                { data: "customerId", width: "13%" },
+                { data: "companyName", width: "12%" },
+                { data: "taxCode", width: "10%" },
+                { data: "companyAccount", width: "13%" },
                 {
                     data: "accountIssuedDate",
-                    width: "17%",
+                    width: "16%",
+                    render: function (data, type, row) {
+                        if (!data) return ""; // Tránh lỗi khi dữ liệu null
+                        let date = new Date(data);
+                        return date.toLocaleDateString("vi-VN"); // Định dạng dd/mm/yyyy
+                    }
+                },
+                {
+                    data: "enddate",
+                    width: "12%",
                     render: function (data, type, row) {
                         if (!data) return ""; // Tránh lỗi khi dữ liệu null
                         let date = new Date(data);
@@ -164,27 +544,16 @@
                 },
                 {
                     data: "operatingStatus",
-                    width: "11%",
+                    width: "12%",
                     render: function (data, type, row) {
-                        let isChecked = data ? "checked" : "";
-                        let text = data ? "ON" : "OFF";
-
-                        return `
-                        <label class="switch">
-                            <input type="checkbox" class="toggle-customerType" data-id="${row.customerId}" ${isChecked}>
-                                 <span class="slider round">
-                    <span class="toggle-text on">ON</span>
-                    <span class="toggle-text off">OFF</span>
-                </span>
-                        </label>
-                        `;
+                        return data ? "Hoạt động" : "Không hoạt động";
                     }
                 },
                 {
                     data: null,
                     width: "20%",
                     render: function (data, type, row) {
-                        return `<button id="BtnUpdate" class="btn btn-sm btn-primary update-btn" data-id="${row.customerId}"">Cập nhật</button>`;
+                        return `<button id="BtnUpdate" class="btn btn-sm btn-primary update-btn" data-id="${row.customerId}"">Gia hạn</button>`;
                     }
                 }
             ],
@@ -198,4 +567,200 @@
             }]
         });
     }
+    $("#listCompany").on("click", ".update-btn", function () {
+        var rowData = $(this).closest("tr").data("fullData"); // Lấy dữ liệu từ hàng
+        if (rowData) {
+            $("#cName").val(rowData.companyName);
+            $("#cId").val(rowData.customerId.trim());
+            $("#cTaxCode").val(rowData.taxCode);
+            $("#cEmail").val(rowData.companyAccount);
+            $("#cPhone").val(rowData.cPhoneNumber || "");
+            $("#cAddress").val(rowData.cAddress || "");
+            $("#cType").val(rowData.customerType ? "vip" : "normal");
+            
+            $("#contractNumber").val(rowData.contractNumber);
+
+            // Gán giá trị cho dropdown ServiceType
+            let foundValue = "doi-tac"; // Giá trị mặc định
+            $("#serviceType option").each(function () {
+                if ($(this).text().trim() === rowData.serviceType.trim()) {
+                    foundValue = $(this).val();
+                    return false; // Thoát vòng lặp nếu tìm thấy
+                }
+            });
+            $("#serviceType").val(foundValue);
+            $("#aStatus").val(rowData.operatingStatus ? "1" : "0");
+           
+        }
+    });
+
+    const serviceGroupMap = {
+        'Đầu số thoại': 'TELCO',
+        'Kênh truyền': 'TELCO',
+        'Tổng đài': 'TELCO',
+        'Hội nghị truyền hình': 'TELCO',
+        'Tin nhắn': 'TELCO',
+        'Dịch vụ truyền hình': 'TELCO',
+
+        'Cloud partner': 'CLOUD_SW',
+        'Điện toán đám mây': 'CLOUD_SW',
+        'Dịch vụ điện tử': 'CLOUD_SW',
+        'Dịch vụ phần mềm (SaaS)': 'CLOUD_SW',
+
+        'An toàn thông tin': 'SUPPORT',
+        'Giám sát': 'SUPPORT',
+        'Trung tâm dữ liệu': 'SUPPORT',
+        'Thiết bị': 'SUPPORT',
+        'Hỗ trợ CNTT': 'SUPPORT',
+
+        'Hợp đồng tích hợp/dự án': 'CONTRACT',
+        'Hợp đồng hợp tác': 'CONTRACT',
+        'Đối tác': 'CONTRACT'
+    };
+
+    const servicePrice = {
+        'TELCO': 1000000,
+        'CLOUD_SW': 1500000,
+        'SUPPORT': 1800000,
+        'CONTRACT': 1200000
+    };
+
+    function updateTongTien() {
+        const timeSelect = document.getElementById("timeGiahan");
+        const serviceType = document.getElementById("serviceType");
+
+        if (!timeSelect || !serviceType) return;
+
+        const selectedTimeValue = timeSelect.value; // ví dụ "3month"
+        const selectedText = timeSelect.options[timeSelect.selectedIndex].text; // ví dụ "3 tháng"
+        const selectedService = serviceType.options[serviceType.selectedIndex].text;
+
+        if (!selectedTimeValue) {
+            document.getElementById("amount").value = "Vui lòng chọn thời gian";
+            return;
+        }
+
+        const months = parseInt(selectedTimeValue.replace("month", ""));
+        const group = serviceGroupMap[selectedService];
+        const unitPrice = servicePrice[group] || 0;
+
+        let total = unitPrice * months;
+
+        // Áp dụng giảm giá
+        if (months >= 12) {
+            total *= 0.9; // giảm 10%
+        } else if (months >= 6) {
+            total *= 0.95; // giảm 5%
+        }
+
+        document.getElementById("amount").value = formatMoney(total);
+    }
+
+    // Hàm định dạng tiền
+    function formatMoney(number) {
+        return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+    }
+
+    // Gắn sự kiện onchange
+    document.getElementById("timeGiahan").addEventListener("change", updateTongTien);
+
+    function SaveAccount() {
+        var cId = document.getElementById("cId").value.trim();
+        var contractNumber = document.getElementById("contractNumber").value.trim();
+        var amount = document.getElementById("amount").value.trim();
+        var startDate = document.getElementById("startDate").value;
+        var endDate = document.getElementById("endDate").value;
+
+        var serviceTypeElement = document.getElementById("serviceType");
+        var serviceTypeText = serviceTypeElement.options[serviceTypeElement.selectedIndex].text; // Lấy nội dung hiển thị
+
+        var timeGiahanElement = document.getElementById("timeGiahan");
+        var chooseMonthRaw = timeGiahanElement ? timeGiahanElement.value : "";
+
+        if (startDate >= endDate) {
+            showError("Kiểm tra lại ngày tháng của hợp đồng: Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+            return;
+        }
+        if (!chooseMonthRaw) {
+            showError("Vui lòng chọn thời gian gia hạn.");
+            return;
+
+        }
+
+        var chooseMonth = 0;
+        if (chooseMonthRaw.includes("month")) {
+            chooseMonth = parseInt(chooseMonthRaw.replace("month", ""));
+        }
+        console.log("tháng gia hạn", chooseMonth);
+        var normalizedAmount = parseFloat(amount.replace(/[^\d]/g, ''));
+        var cValues = {
+            CustomerId: cId || "AUTO_GENERATED_ID",
+            ContractNumber: contractNumber,
+            Amount: normalizedAmount,
+            Startdate: startDate,
+            Enddate: endDate,
+            ServiceType: serviceTypeText,
+            chooseMonth: chooseMonth,
+        };
+        console.log("lưu gia hạn: ", cValues)
+        var StaffId = "@User.FindFirst("StaffId")?.Value";
+        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc chắn muốn gia hạn hợp đồng này không?";
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
+
+        $("#confirmButton1").off("click").on("click", function () {
+            modal.hide();
+            $.ajax({
+                url: `/admin/contract/Insert?id=${StaffId}`,
+                type: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(cValues),
+                success: function (response) {
+                    if (response.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = "Gia hạn hợp đồng thành công";
+                        $("#ModalSuccess").modal("show");
+                        
+                        init();
+                        backBtn.click();
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định.";
+                    if (xhr.responseJSON) {
+                        if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message.join("<br>");
+                        } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                    }
+                    $("#contentModalError").html(errorMessage);
+                    $("#ModalError").modal("show");
+                    // Gán sự kiện đóng modal vào nút "Đóng"
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            });
+        });
+    }
+    function showError(message) {
+        document.getElementById("contentModalError").innerText = message;
+
+        // Khởi tạo modal bằng Bootstrap 5
+        var errorModal = new bootstrap.Modal(document.getElementById("ModalError"), {
+            keyboard: true, // Cho phép bấm phím ESC để đóng
+            backdrop: 'static' // Không đóng modal khi bấm ngoài
+        });
+        // Hiển thị modal
+        errorModal.show();
+        // Gán sự kiện đóng modal vào nút "Đóng"
+        document.getElementById("btnCloseModal").addEventListener("click", function () {
+            errorModal.hide();
+        });
+    }
+
 </script>

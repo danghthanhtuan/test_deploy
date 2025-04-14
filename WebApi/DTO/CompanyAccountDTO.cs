@@ -23,20 +23,15 @@
         public string ContractNumber { get; set; } = null!;
 
         public string RootAccount { get; set; } = null!;
-
         public string RootName { get; set; } = null!;
-
         public string RPhoneNumber { get; set; } = null!;
-
         public bool OperatingStatus { get; set; }
-
         public DateTime DateOfBirth { get; set; }
-
         public bool Gender { get; set; }
-
         public DateTime Startdate { get; set; }
-
         public DateTime Enddate { get; set; }
+        public decimal Amount { get; set; }
+
     }
     public class PagingResult<T>
     {

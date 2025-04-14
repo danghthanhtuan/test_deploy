@@ -17,6 +17,8 @@ public partial class Contract
 
     public string Customerid { get; set; } = null!;
 
+    public string? Original { get; set; }
+
     public virtual Company Customer { get; set; } = null!;
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();

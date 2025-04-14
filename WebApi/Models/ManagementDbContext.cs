@@ -57,13 +57,13 @@ public partial class ManagementDbContext : DbContext
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.Customerid).HasName("PK__ACCOUNT__61DBD7883AE156A9");
+            entity.HasKey(e => e.Customerid).HasName("PK__ACCOUNT__61DBD7882255C557");
 
             entity.ToTable("ACCOUNT");
 
-            entity.HasIndex(e => e.Rphonenumber, "UQ__ACCOUNT__D5AD45F3D0C3D441").IsUnique();
+            entity.HasIndex(e => e.Rphonenumber, "UQ__ACCOUNT__D5AD45F3875D05C8").IsUnique();
 
-            entity.HasIndex(e => e.Rootaccount, "UQ__ACCOUNT__D6A078E4B84651C3").IsUnique();
+            entity.HasIndex(e => e.Rootaccount, "UQ__ACCOUNT__D6A078E45B8FED91").IsUnique();
 
             entity.Property(e => e.Customerid)
                 .HasMaxLength(15)
@@ -93,7 +93,7 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Assign>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Assign__3214EC27E7A8F0FE");
+            entity.HasKey(e => e.Id).HasName("PK__Assign__3214EC2736013291");
 
             entity.ToTable("Assign");
 
@@ -114,27 +114,27 @@ public partial class ManagementDbContext : DbContext
                 .HasPrincipalKey(p => p.Requirementsid)
                 .HasForeignKey(d => d.Requirementsid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Assign__REQUIREM__17036CC0");
+                .HasConstraintName("FK__Assign__REQUIREM__68487DD7");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.Assigns)
                 .HasPrincipalKey(p => p.Staffid)
                 .HasForeignKey(d => d.Staffid)
-                .HasConstraintName("FK__Assign__STAFFID__160F4887");
+                .HasConstraintName("FK__Assign__STAFFID__6754599E");
         });
 
         modelBuilder.Entity<Company>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__COMPANY__3214EC27A5CF2A8A");
+            entity.HasKey(e => e.Id).HasName("PK__COMPANY__3214EC27B13599C1");
 
             entity.ToTable("COMPANY");
 
-            entity.HasIndex(e => e.Customerid, "UQ__COMPANY__61DBD7899A131545").IsUnique();
+            entity.HasIndex(e => e.Customerid, "UQ__COMPANY__61DBD7897EBE38E2").IsUnique();
 
-            entity.HasIndex(e => e.Taxcode, "UQ__COMPANY__85178AA45F9A2C59").IsUnique();
+            entity.HasIndex(e => e.Taxcode, "UQ__COMPANY__85178AA4C516DD36").IsUnique();
 
-            entity.HasIndex(e => e.Cphonenumber, "UQ__COMPANY__87EF62230A3E456A").IsUnique();
+            entity.HasIndex(e => e.Cphonenumber, "UQ__COMPANY__87EF62237EA7E08A").IsUnique();
 
-            entity.HasIndex(e => e.Companyaccount, "UQ__COMPANY__A1F84A4EB01AB9DD").IsUnique();
+            entity.HasIndex(e => e.Companyaccount, "UQ__COMPANY__A1F84A4E5BCE9668").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Accountissueddate)
@@ -168,11 +168,11 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Contract>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__CONTRACT__3214EC27966C2ACE");
+            entity.HasKey(e => e.Id).HasName("PK__CONTRACT__3214EC2703A28828");
 
             entity.ToTable("CONTRACTS");
 
-            entity.HasIndex(e => e.Contractnumber, "UQ__CONTRACT__29BF5AB03B204492").IsUnique();
+            entity.HasIndex(e => e.Contractnumber, "UQ__CONTRACT__29BF5AB00C19601B").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Contractnumber)
@@ -186,6 +186,10 @@ public partial class ManagementDbContext : DbContext
             entity.Property(e => e.Enddate)
                 .HasColumnType("datetime")
                 .HasColumnName("ENDDATE");
+            entity.Property(e => e.Original)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("ORIGINAL");
             entity.Property(e => e.ServiceTypename)
                 .HasMaxLength(255)
                 .HasColumnName("SERVICE_TYPEName");
@@ -208,7 +212,7 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Historyreq>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__HISTORYR__3214EC2744C139CA");
+            entity.HasKey(e => e.Id).HasName("PK__HISTORYR__3214EC27E176076F");
 
             entity.ToTable("HISTORYREQ");
 
@@ -247,7 +251,7 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Loginadmin>(entity =>
         {
-            entity.HasKey(e => e.Staffid).HasName("PK__LOGINADM__28B5063BD491640B");
+            entity.HasKey(e => e.Staffid).HasName("PK__LOGINADM__28B5063B2F844074");
 
             entity.ToTable("LOGINADMIN");
 
@@ -272,7 +276,7 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Loginclient>(entity =>
         {
-            entity.HasKey(e => e.Customerid).HasName("PK__LOGINCLI__61DBD788117A8769");
+            entity.HasKey(e => e.Customerid).HasName("PK__LOGINCLI__61DBD78884294ABE");
 
             entity.ToTable("LOGINCLIENT");
 
@@ -297,11 +301,11 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__PAYMENT__3214EC27C9CB9A86");
+            entity.HasKey(e => e.Id).HasName("PK__PAYMENT__3214EC27FF71A67F");
 
             entity.ToTable("PAYMENT");
 
-            entity.HasIndex(e => e.TransactionCode, "UQ__PAYMENT__1EB66D56A7D5C790").IsUnique();
+            entity.HasIndex(e => e.TransactionCode, "UQ__PAYMENT__1EB66D564F1FB0E4").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Amount)
@@ -316,15 +320,12 @@ public partial class ManagementDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("CUSTOMERID");
             entity.Property(e => e.PaymentDate)
-                .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("PAYMENT_DATE");
             entity.Property(e => e.PaymentMethod)
                 .HasMaxLength(50)
                 .HasColumnName("PAYMENT_METHOD");
-            entity.Property(e => e.Paymentstatus)
-                .HasMaxLength(20)
-                .HasColumnName("PAYMENTSTATUS");
+            entity.Property(e => e.Paymentstatus).HasColumnName("PAYMENTSTATUS");
             entity.Property(e => e.TransactionCode)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -334,22 +335,22 @@ public partial class ManagementDbContext : DbContext
                 .HasPrincipalKey(p => p.Contractnumber)
                 .HasForeignKey(d => d.Contractnumber)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PAYMENT__CONTRAC__76969D2E");
+                .HasConstraintName("FK__PAYMENT__CONTRAC__797309D9");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Payments)
                 .HasPrincipalKey(p => p.Customerid)
                 .HasForeignKey(d => d.Customerid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PAYMENT__CUSTOME__778AC167");
+                .HasConstraintName("FK__PAYMENT__CUSTOME__7A672E12");
         });
 
         modelBuilder.Entity<Requirement>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__REQUIREM__3214EC27F5F66A4B");
+            entity.HasKey(e => e.Id).HasName("PK__REQUIREM__3214EC2721139549");
 
             entity.ToTable("REQUIREMENTS");
 
-            entity.HasIndex(e => e.Requirementsid, "UQ__REQUIREM__8ECC5B578E5B82B6").IsUnique();
+            entity.HasIndex(e => e.Requirementsid, "UQ__REQUIREM__8ECC5B571257F134").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Customerid)
@@ -395,7 +396,7 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Resetpassword>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__RESETPAS__3214EC27A860C60D");
+            entity.HasKey(e => e.Id).HasName("PK__RESETPAS__3214EC2751A15DEB");
 
             entity.ToTable("RESETPASSWORD");
 
@@ -422,7 +423,7 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Review>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__REVIEW__3214EC274650EF91");
+            entity.HasKey(e => e.Id).HasName("PK__REVIEW__3214EC27984C8A63");
 
             entity.ToTable("REVIEW");
 
@@ -449,28 +450,28 @@ public partial class ManagementDbContext : DbContext
                 .HasPrincipalKey(p => p.Customerid)
                 .HasForeignKey(d => d.Customerid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__REVIEW__CUSTOMER__693CA210");
+                .HasConstraintName("FK__REVIEW__CUSTOMER__6D0D32F4");
 
             entity.HasOne(d => d.Requirements).WithMany(p => p.Reviews)
                 .HasPrincipalKey(p => p.Requirementsid)
                 .HasForeignKey(d => d.Requirementsid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__REVIEW__REQUIREM__6A30C649");
+                .HasConstraintName("FK__REVIEW__REQUIREM__6E01572D");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.Reviews)
                 .HasPrincipalKey(p => p.Staffid)
                 .HasForeignKey(d => d.Staffid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__REVIEW__STAFFID__68487DD7");
+                .HasConstraintName("FK__REVIEW__STAFFID__6C190EBB");
         });
 
         modelBuilder.Entity<ReviewCriterion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__REVIEW_C__3214EC2720D575B7");
+            entity.HasKey(e => e.Id).HasName("PK__REVIEW_C__3214EC27F7DBDAD7");
 
             entity.ToTable("REVIEW_CRITERIA");
 
-            entity.HasIndex(e => e.CriteriaName, "UQ__REVIEW_C__60CA328C33BA4FC8").IsUnique();
+            entity.HasIndex(e => e.CriteriaName, "UQ__REVIEW_C__60CA328C83827CB5").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.CriteriaName)
@@ -480,7 +481,7 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<ReviewDetail>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__REVIEW_D__3214EC27A9211836");
+            entity.HasKey(e => e.Id).HasName("PK__REVIEW_D__3214EC274A1A762E");
 
             entity.ToTable("REVIEW_DETAIL");
 
@@ -492,21 +493,21 @@ public partial class ManagementDbContext : DbContext
             entity.HasOne(d => d.Criteria).WithMany(p => p.ReviewDetails)
                 .HasForeignKey(d => d.CriteriaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__REVIEW_DE__CRITE__71D1E811");
+                .HasConstraintName("FK__REVIEW_DE__CRITE__75A278F5");
 
             entity.HasOne(d => d.Review).WithMany(p => p.ReviewDetails)
                 .HasForeignKey(d => d.ReviewId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__REVIEW_DE__REVIE__70DDC3D8");
+                .HasConstraintName("FK__REVIEW_DE__REVIE__74AE54BC");
         });
 
         modelBuilder.Entity<ServiceGroup>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__SERVICE___3214EC2716EE3230");
+            entity.HasKey(e => e.Id).HasName("PK__SERVICE___3214EC27E351A701");
 
             entity.ToTable("SERVICE_GROUP");
 
-            entity.HasIndex(e => e.ServiceGroupid, "UQ__SERVICE___AA713153A63BA52C").IsUnique();
+            entity.HasIndex(e => e.ServiceGroupid, "UQ__SERVICE___AA7131532C0E16BE").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.GroupName)
@@ -520,11 +521,11 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<ServiceType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__SERVICE___3214EC272A365064");
+            entity.HasKey(e => e.Id).HasName("PK__SERVICE___3214EC273119E385");
 
             entity.ToTable("SERVICE_TYPE");
 
-            entity.HasIndex(e => e.ServiceTypename, "UQ__SERVICE___08CAC1E0B26A3718").IsUnique();
+            entity.HasIndex(e => e.ServiceTypename, "UQ__SERVICE___08CAC1E09519BC06").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.ServiceGroupid)
@@ -544,13 +545,13 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<Staff>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__STAFF__3214EC27F6B4A214");
+            entity.HasKey(e => e.Id).HasName("PK__STAFF__3214EC27AEBDFC3C");
 
             entity.ToTable("STAFF");
 
-            entity.HasIndex(e => e.Staffid, "UQ__STAFF__28B5063ADE10ED20").IsUnique();
+            entity.HasIndex(e => e.Staffid, "UQ__STAFF__28B5063A2C7BCFAA").IsUnique();
 
-            entity.HasIndex(e => e.Staffphone, "UQ__STAFF__821DCC58E5A7484B").IsUnique();
+            entity.HasIndex(e => e.Staffphone, "UQ__STAFF__821DCC581D94337A").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Department)
@@ -571,13 +572,13 @@ public partial class ManagementDbContext : DbContext
 
         modelBuilder.Entity<SupportType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__SUPPORT___3214EC27C8406704");
+            entity.HasKey(e => e.Id).HasName("PK__SUPPORT___3214EC2778A86ACC");
 
             entity.ToTable("SUPPORT_TYPE");
 
-            entity.HasIndex(e => e.SupportName, "UQ__SUPPORT___7661AF1ED20C95E7").IsUnique();
+            entity.HasIndex(e => e.SupportName, "UQ__SUPPORT___7661AF1E22EE6C6E").IsUnique();
 
-            entity.HasIndex(e => e.SupportCode, "UQ__SUPPORT___E5AB82334C6B4AFE").IsUnique();
+            entity.HasIndex(e => e.SupportCode, "UQ__SUPPORT___E5AB823391222DBB").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.SupportCode)

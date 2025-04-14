@@ -33,6 +33,8 @@
         public DateTime Startdate { get; set; }
 
         public DateTime Enddate { get; set; }
+        public decimal Amount { get; set; }
+
     }
     public class PagingResult<T>
     {

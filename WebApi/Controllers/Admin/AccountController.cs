@@ -8,7 +8,6 @@ using WebApi.Service.Client;
 
 namespace WebApi.Controllers
 {
-
     [Route("api/admin/[controller]/[action]")]
     [ApiController]
     public class AccountController : Controller
@@ -93,7 +92,6 @@ namespace WebApi.Controllers
 
         }
 
-
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost]
         public IActionResult Update([FromBody] CompanyAccountDTO companyAccountDTO, [FromQuery] string id)
@@ -116,20 +114,6 @@ namespace WebApi.Controllers
             }
             return BadRequest(new { success = false, message = company });
         }
-
-        //[HttpPost]
-        //public async Task<IActionResult> ExportToCsv([FromBody] ExportRequestDTO request)
-        //{
-        //    try
-        //    {
-        //        string fileUrl = await _accountService.ExportToCsv(request);
-        //        return Ok(new { success = true, fileUrl });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { success = false, message = ex.Message });
-        //    }
-        //}
 
         [HttpPost]
         public async Task<IActionResult> ExportToCsv([FromBody] ExportRequestDTO request)

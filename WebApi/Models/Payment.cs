@@ -15,9 +15,9 @@ public partial class Payment
 
     public DateTime? PaymentDate { get; set; }
 
-    public string PaymentMethod { get; set; } = null!;
+    public string? PaymentMethod { get; set; }
 
-    public string Paymentstatus { get; set; } = null!;
+    public bool Paymentstatus { get; set; }
 
     public string? TransactionCode { get; set; }
 

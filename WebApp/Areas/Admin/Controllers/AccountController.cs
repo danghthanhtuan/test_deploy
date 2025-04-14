@@ -134,17 +134,14 @@ namespace WebApp.Areas.Admin.Controllers
 
             try
             {
-                // Chuẩn bị request body
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(companyAccountDTO), Encoding.UTF8, "application/json");
 
-                // Gửi request với token
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 var response = await _client.PostAsync(_client.BaseAddress + $"/account/Insert?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
 
-                // Lấy message dưới dạng string, tránh lỗi mảng rỗng
                 string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API.";
 
                 if (response.IsSuccessStatusCode)
