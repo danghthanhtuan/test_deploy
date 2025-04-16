@@ -31,19 +31,13 @@ namespace WebApi.Service.Admin
             _logger = logger;
         }
 
-        //public AccountService(ManagementDbContext context,  IEmailService emailService, IConnectionMultiplexer redis, ILogger<AccountService> logger)
-        //{
-        //    _context = context;
-        //    _emailService = emailService;
-        //    _redis = redis;
-        //    _logger = logger;
-        //}
-
         public async Task<PagingResult<CompanyAccountDTO>> GetAllCompany(GetListCompanyPaging req)
         {
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
+                        join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
+                        join q in _context.Payments on b.Contractnumber equals q.Contractnumber
                         select new CompanyAccountDTO
                         {
                             CustomerId = c.Customerid,
@@ -54,8 +48,8 @@ namespace WebApi.Service.Admin
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
                             CustomerType = c.Customertype,
-                            ServiceType = b.ServiceTypename,
-                            ContractNumber  = b.Contractnumber,
+                            ServiceType = h.ServiceTypename,
+                            ContractNumber = b.Contractnumber,
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,
                             RPhoneNumber = a.Rphonenumber,
@@ -63,7 +57,9 @@ namespace WebApi.Service.Admin
                             DateOfBirth = a.Dateofbirth,
                             Gender = a.Gender,
                             Startdate = b.Startdate,
-                            Enddate = b.Enddate
+                            Enddate = b.Enddate,
+                            Amount = q.Amount,
+                            Original = b.Original,
                         };
 
             if (!string.IsNullOrEmpty(req.Keyword))
@@ -84,25 +80,57 @@ namespace WebApi.Service.Admin
                 query = query.Where(c => c.CustomerType);
             }
 
-            var totalRow = await query.CountAsync();
+            // Lấy toàn bộ dữ liệu trước khi group
+            var rawList = await query.ToListAsync();
 
-            var companies = await query
+            // Gom nhóm theo Original (nếu có) hoặc ContractNumber
+            var grouped = rawList
+                .GroupBy(x => x.Original ?? x.ContractNumber)
+                .Select(g => new CompanyAccountDTO
+                {
+                    CustomerId = g.First().CustomerId,
+                    CompanyName = g.First().CompanyName,
+                    TaxCode = g.First().TaxCode,
+                    CompanyAccount = g.First().CompanyAccount,
+                    AccountIssuedDate = g.First().AccountIssuedDate,
+                    CPhoneNumber = g.First().CPhoneNumber,
+                    CAddress = g.First().CAddress,
+                    CustomerType = g.First().CustomerType,
+                    ServiceType = g.First().ServiceType,
+                    ContractNumber = g.Key, // dùng ContractNumber gốc
+                    RootAccount = g.First().RootAccount,
+                    RootName = g.First().RootName,
+                    RPhoneNumber = g.First().RPhoneNumber,
+                    OperatingStatus = g.First().OperatingStatus,
+                    DateOfBirth = g.First().DateOfBirth,
+                    Gender = g.First().Gender,
+                    Startdate = g.Min(x => x.Startdate), // Lấy nhỏ nhất trong các lần gia hạn
+                    Enddate = g.Max(x => x.Enddate),     // Lấy lớn nhất
+                    Amount = g.Sum(x => x.Amount),       // Tổng tiền thanh toán của tất cả hợp đồng
+                    Original = null // không cần hiển thị Original nữa
+                })
+                .ToList();
+
+            // Phân trang
+            var totalRow = grouped.Count;
+            var pagedResult = grouped
                 .OrderByDescending(c => c.CustomerId)
                 .Skip((req.Page - 1) * req.PageSize)
                 .Take(req.PageSize)
-                .ToListAsync();
+                .ToList();
 
             var pageCount = (int)Math.Ceiling(totalRow / (double)req.PageSize);
 
             return new PagingResult<CompanyAccountDTO>
             {
-                Results = companies,
+                Results = pagedResult,
                 CurrentPage = req.Page,
                 RowCount = totalRow,
                 PageSize = req.PageSize,
                 PageCount = pageCount
             };
         }
+
         public bool UpdateStatus(bool Tinhtrang, string CustomerID)
         {
             try
@@ -183,11 +211,11 @@ namespace WebApi.Service.Admin
                     existingCompany.Companyname = CompanyAccountDTO.CompanyName;
                     existingCompany.Taxcode = CompanyAccountDTO.TaxCode;
                     existingCompany.Companyaccount = CompanyAccountDTO.CompanyAccount;
-                    existingCompany.Accountissueddate = CompanyAccountDTO.AccountIssuedDate;
+                    //existingCompany.Accountissueddate = CompanyAccountDTO.AccountIssuedDate;
                     existingCompany.Cphonenumber = CompanyAccountDTO.CPhoneNumber;
                     existingCompany.Caddress = CompanyAccountDTO.CAddress;
-                    existingCompany.Customertype = CompanyAccountDTO.CustomerType;
-                    existingCompany.Operatingstatus = CompanyAccountDTO.OperatingStatus;
+                    //existingCompany.Customertype = CompanyAccountDTO.CustomerType;
+                    //existingCompany.Operatingstatus = CompanyAccountDTO.OperatingStatus;
 
                     //existingCompany.ServiceType = CompanyAccountDTO.ServiceType;
                     // existingCompany.ContractNumber = CompanyAccountDTO.ContractNumber;
@@ -247,11 +275,20 @@ namespace WebApi.Service.Admin
                     {
                         return "Tài khoản khách hàng với mã khách hàng không tồn tại";
                     }
-                    existingContracts.ServiceTypename = CompanyAccountDTO.ServiceType;
-                    existingContracts.Startdate = CompanyAccountDTO.Startdate;
-                    existingContracts.Enddate = CompanyAccountDTO.Enddate;
+                  //  var serviceType = _context.ServiceTypes
+    // .FirstOrDefault(st => st.ServiceTypename == CompanyAccountDTO.ServiceType);
+    //
+                   // if (serviceType == null)
+                   // {
+                    //    return $"Loại dịch vụ '{CompanyAccountDTO.ServiceType}' không tồn tại.";
+                   // }
 
-                    _context.Contracts.Update(existingContracts);
+                    // Gán thông tin mới cho hợp đồng
+                   // existingContracts.ServiceTypeid = serviceType.Id; 
+                    //existingContracts.Startdate = CompanyAccountDTO.Startdate;
+                   // existingContracts.Enddate = CompanyAccountDTO.Enddate;
+
+                   // _context.Contracts.Update(existingContracts);
                     _context.SaveChanges();
 
                     transaction.Commit();
@@ -276,6 +313,7 @@ namespace WebApi.Service.Admin
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
+                        join h in _context.Payments on b.Contractnumber equals h.Contractnumber
                         select new CompanyAccountDTO
                         {
                             CustomerId = c.Customerid,
@@ -288,6 +326,7 @@ namespace WebApi.Service.Admin
                             ContractNumber = b.Contractnumber,
                             Startdate = b.Startdate,
                             Enddate = b.Enddate,
+                            Amount = h.Amount,
                         };
 
             if (!string.IsNullOrEmpty(req.Keyword))
@@ -367,8 +406,6 @@ namespace WebApi.Service.Admin
                         return "Mã số thuế đã tồn tại trong hệ thống! Vui lòng kiểm tra lại.";
                     }
 
-                  
-
                     var lastCustomer = _context.Companies
                         .Where(c => c.Customerid.StartsWith("IT030300"))
                         .OrderByDescending(c => c.Customerid)
@@ -432,18 +469,26 @@ namespace WebApi.Service.Admin
 
                     int nextContractNumber = lastContract != null ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1 : 1;
                     string newContractNumber = $"SV{nextContractNumber:D4}";
+                    
+                    var serviceType = _context.ServiceTypes
+    .FirstOrDefault(st => st.ServiceTypename == CompanyAccountDTO.ServiceType);
+
+                    if (serviceType == null)
+                    {
+                        return $"Loại dịch vụ '{CompanyAccountDTO.ServiceType}' không tồn tại.";
+                    }
 
                     var newContract = new Contract
                     {
                         Contractnumber = newContractNumber,
                         Startdate = CompanyAccountDTO.Startdate,
                         Enddate = CompanyAccountDTO.Enddate,
-                        ServiceTypename = CompanyAccountDTO.ServiceType,
+                        ServiceTypeid = serviceType.Id,
                         Customerid = newCustomerID
                     };
                     var newPayment = new Payment
                     {
-                        Customerid = newCustomerID,
+                        //Customerid = newCustomerID,
                         Contractnumber = newContractNumber,
                         Amount = CompanyAccountDTO.Amount,
                         Paymentstatus = false,

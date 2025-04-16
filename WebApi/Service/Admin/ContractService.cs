@@ -28,70 +28,76 @@ namespace WebApi.Service.Admin
                     {
                         return $"Nhân viên với mã nhân viên = {id} không tồn tại";
                     }
+
                     var oldContract = _context.Contracts
                         .FirstOrDefault(c => c.Contractnumber == contractDTO.ContractNumber);
 
-                    if (oldContract != null && oldContract.Enddate >= DateTime.Today)
+                    if (oldContract == null)
                     {
-                        oldContract.Enddate = oldContract.Enddate
-                            .AddMonths(contractDTO.chooseMonth)
-                            .AddDays(-1);
+                        return $"Hợp đồng với mã {contractDTO.ContractNumber} không tồn tại.";
+                    }
 
-                        _context.Contracts.Update(oldContract);
+                    // Tạo số hợp đồng mới
+                    var lastContract = _context.Contracts
+                        .OrderByDescending(c => c.Contractnumber)
+                        .FirstOrDefault();
 
-                        var newPayment = new Payment
-                        {
-                            Customerid = contractDTO.CustomerId,
-                            Contractnumber = oldContract.Contractnumber,
-                            Amount = contractDTO.Amount,
-                            Paymentstatus = false,
-                        };
-                        _context.Payments.Add(newPayment);
+                    int nextContractNumber = lastContract != null
+                        ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1
+                        : 1;
 
-                        _context.SaveChanges();
-                        transaction.Commit();
-                        return null;
+                    string newContractNumber = $"SV{nextContractNumber:D4}";
+
+                    // Tìm loại dịch vụ
+                    var serviceType = _context.ServiceTypes
+                        .FirstOrDefault(st => st.ServiceTypename == contractDTO.ServiceType);
+
+                    if (serviceType == null)
+                    {
+                        return $"Loại dịch vụ '{contractDTO.ServiceType}' không tồn tại.";
+                    }
+
+                    DateTime newStartDate;
+                    DateTime newEndDate;
+                    string? originalContract = null;
+
+                    if (oldContract.Enddate < DateTime.Today)
+                    {
+                        // Hợp đồng đã hết hạn → tạo mới
+                        newStartDate = DateTime.Today;
+                        newEndDate = newStartDate.AddMonths(contractDTO.chooseMonth);
+                        originalContract = null;
                     }
                     else
                     {
-                        DateTime startDate = DateTime.Today;
-                        DateTime endDate = startDate.AddMonths(contractDTO.chooseMonth).AddDays(-1);
-                        string? originalContractNumber = oldContract?.Contractnumber;
-
-                        var lastContract = _context.Contracts
-                            .OrderByDescending(c => c.Contractnumber)
-                            .FirstOrDefault();
-
-                        int nextContractNumber = lastContract != null
-                            ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1
-                            : 1;
-
-                        string newContractNumber = $"SV{nextContractNumber:D4}";
-
-                        var newContract = new Contract
-                        {
-                            Contractnumber = newContractNumber,
-                            Startdate = startDate,
-                            Enddate = endDate,
-                            ServiceTypename = contractDTO.ServiceType,
-                            Customerid = contractDTO.CustomerId,
-                            Original = originalContractNumber
-                        };
-
-                        var newPayment = new Payment
-                        {
-                            Customerid = contractDTO.CustomerId,
-                            Contractnumber = newContractNumber,
-                            Amount = contractDTO.Amount,
-                            Paymentstatus = false,
-                        };
-                        _context.Contracts.Add(newContract);
-                        _context.Payments.Add(newPayment);
-                        _context.SaveChanges();
-
-                        transaction.Commit();
-                        return null;
+                        // Hợp đồng còn hạn → gia hạn từ ngày hết hạn cũ + 1 đến ngày người dùng chọn
+                        newStartDate = oldContract.Enddate.AddDays(1);
+                        newEndDate = contractDTO.Enddate;
+                        originalContract = oldContract.Contractnumber;
                     }
+                    var newContract = new Contract
+                    {
+                        Contractnumber = newContractNumber,
+                        Startdate = newStartDate,
+                        Enddate = newEndDate,
+                        ServiceTypeid = serviceType.Id,
+                        Customerid = contractDTO.CustomerId,
+                        Original = originalContract
+                    };
+
+                    var newPayment = new Payment
+                    {
+                        Contractnumber = newContractNumber,
+                        Amount = contractDTO.Amount,
+                        Paymentstatus = false
+                    };
+
+                    _context.Contracts.Add(newContract);
+                    _context.Payments.Add(newPayment);
+                    _context.SaveChanges();
+                    transaction.Commit();
+
+                    return null;
                 }
                 catch (Exception ex)
                 {
@@ -101,7 +107,6 @@ namespace WebApi.Service.Admin
                 }
             }
         }
-
-
+        
     }
 }

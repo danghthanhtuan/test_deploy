@@ -9,8 +9,6 @@ public partial class Payment
 
     public string Contractnumber { get; set; } = null!;
 
-    public string Customerid { get; set; } = null!;
-
     public decimal Amount { get; set; }
 
     public DateTime? PaymentDate { get; set; }
@@ -22,6 +20,4 @@ public partial class Payment
     public string? TransactionCode { get; set; }
 
     public virtual Contract ContractnumberNavigation { get; set; } = null!;
-
-    public virtual Company Customer { get; set; } = null!;
 }

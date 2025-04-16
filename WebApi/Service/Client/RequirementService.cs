@@ -75,6 +75,7 @@ namespace WebApi.Service.Client
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
+                        join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
                         where c.Customerid == req
                         select new CompanyAccountDTO
                         {
@@ -86,7 +87,7 @@ namespace WebApi.Service.Client
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
                             CustomerType = c.Customertype,
-                            ServiceType = b.ServiceTypename,
+                            ServiceType = h.ServiceTypename,
                             ContractNumber = b.Contractnumber,
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,
@@ -129,15 +130,15 @@ namespace WebApi.Service.Client
                     }
 
                     string newRequirements = $"RS00{nextNumber:D2}";
+                    var support = _context.SupportTypes.FirstOrDefault(st => st.SupportName == Req.Support);
                     var newReq = new Requirement
                     {
                         Requirementsid = newRequirements,
-                        //Support = Req.Support,
+                        SupportCode = support.SupportCode,
                         Requirementsstatus = Req.RequirementsStatus,
                         Dateofrequest = Req.DateOfRequest,
                         Descriptionofrequest = Req.DescriptionOfRequest,
                         Customerid = Req.CustomerId,
-                        SupportName = Req.Support,
                     };
 
                     string department = Req.Support switch
@@ -202,6 +203,7 @@ namespace WebApi.Service.Client
             var query = (from c in _context.Companies
                          join a in _context.Accounts on c.Customerid equals a.Customerid
                          join r in _context.Requirements on c.Customerid equals r.Customerid
+                         join q in _context.SupportTypes on r.SupportCode equals q.SupportCode
                          join b in _context.Contracts on c.Customerid equals b.Customerid
                          join h in _context.Historyreqs on r.Requirementsid equals h.Requirementsid into historyJoin
                          from h in historyJoin.DefaultIfEmpty() // Left Join
@@ -210,7 +212,7 @@ namespace WebApi.Service.Client
                          select new Requirement_Company1
                          {
                              RequirementsId = r.Requirementsid,
-                             Support = r.SupportName,
+                             Support = q.SupportName,
                              RequirementsStatus = r.Requirementsstatus,
                              DateOfRequest = r.Dateofrequest,
                              DescriptionOfRequest1 = r.Descriptionofrequest,
@@ -269,11 +271,13 @@ namespace WebApi.Service.Client
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join r in _context.Requirements on c.Customerid equals r.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
+                        join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
+                        join q in _context.SupportTypes on r.SupportCode equals q.SupportCode
                         where r.Requirementsid == requestid
                         select new Requirement_Company
                         {
                             RequirementsId = r.Requirementsid,
-                            Support = r.SupportName,
+                            Support = q.SupportName,
                             RequirementsStatus = r.Requirementsstatus,
                             DateOfRequest = r.Dateofrequest,
                             DescriptionOfRequest = r.Descriptionofrequest,
@@ -284,7 +288,7 @@ namespace WebApi.Service.Client
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
                             CustomerType = c.Customertype,
-                            ServiceType = b.ServiceTypename,
+                            ServiceType = h.ServiceTypename,
                             ContractNumber = b.Contractnumber,
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,

@@ -20,8 +20,4 @@ public partial class Staff
     public virtual ICollection<Historyreq> Historyreqs { get; set; } = new List<Historyreq>();
 
     public virtual Loginadmin? Loginadmin { get; set; }
-
-    public virtual ICollection<Requirement> Requirements { get; set; } = new List<Requirement>();
-
-    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

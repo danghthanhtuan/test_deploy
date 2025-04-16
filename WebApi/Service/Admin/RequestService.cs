@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Buffers;
 using WebApi.DTO;
 using WebApi.Models;
 
@@ -15,7 +16,6 @@ namespace WebApi.Service.Admin
         }
 
         //lấy tất cả yêu cầu của công ty 
-        //bổ sung công ty hết hạn hợp đồng thì không click được  
         public async Task<PagingResult<Requirement_Company>> GetAllRequest(GetListReq req)
         {
             // Truy vấn dữ liệu với điều kiện CustomerId
@@ -25,9 +25,10 @@ namespace WebApi.Service.Admin
                         join a in _context.Accounts
                         on c.Customerid equals a.Customerid
                         join s in _context.SupportTypes 
-                        on r.SupportName equals s.SupportName
+                        on r.SupportCode equals s.SupportCode
                         join h in _context.Contracts
                         on c.Customerid equals h.Customerid
+                        join q in _context.ServiceTypes on h.ServiceTypeid equals q.Id
                        // where c.CustomerId == req.Cutomer
                         select new Requirement_Company
                         {
@@ -43,16 +44,17 @@ namespace WebApi.Service.Admin
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
                             CustomerType = c.Customertype,
-                            ServiceType = h.ServiceTypename,
+                            ServiceType = q.ServiceTypename,
                             ContractNumber = h.Contractnumber,
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,
-                            RPhoneNumber = a.Rphonenumber
+                            RPhoneNumber = a.Rphonenumber,
+                            Startdate = h.Startdate,
+                            Enddate = h.Enddate,
                         };
 
             // Tổng số dòng
             var totalRow = await query.CountAsync();
-
             // Phân trang và sắp xếp theo RequirementsId giảm dần
             var sup = await query
                 .OrderByDescending(r => r.DateOfRequest)
@@ -75,7 +77,7 @@ namespace WebApi.Service.Admin
         }
 
         //lấy thông tin cty search để tạo phiếu yêu cầu
-        //đã thêm kiểm tra điều kiện hạn hợp đồng
+        //đã thêm kiểm tra điều kiện hạn hợp đồng còn, vaf  hoat dong.
         public async Task<List<CompanyAccountDTO>> GetAllInfor(string req)
         {
             req = req?.Trim().ToLower();
@@ -84,10 +86,15 @@ namespace WebApi.Service.Admin
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join h in _context.Contracts
                         on c.Customerid equals h.Customerid
-                        where (string.IsNullOrEmpty(req) ||
+                        join q in _context.ServiceTypes on h.ServiceTypeid equals q.Id
+                        where (
+                             (string.IsNullOrEmpty(req) ||
                               c.Customerid.ToLower().Contains(req) ||
                               c.Companyname.ToLower().Contains(req) ||
-                              c.Taxcode.ToLower().Contains(req)) && c.Operatingstatus == true
+                              c.Taxcode.ToLower().Contains(req))
+                              && c.Operatingstatus == true
+                              && h.Enddate >= DateTime.Now
+                         )
                         select new CompanyAccountDTO
                         {
                             CustomerId = c.Customerid,
@@ -98,7 +105,7 @@ namespace WebApi.Service.Admin
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
                             CustomerType = c.Customertype,
-                            ServiceType = h.ServiceTypename,
+                            ServiceType = q.ServiceTypename,
                             ContractNumber = h.Contractnumber,
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,
@@ -108,7 +115,8 @@ namespace WebApi.Service.Admin
             return await query.ToListAsync();
         }
 
-        //lấy thông tin cty khi click vào 1 yêu cầu
+        //lấy thông tin cty khi click vào 1 yêu cầu xem chi tiết
+        //ở đây lấy thêm hạn hợp đồng của yêu cầu đó check nếu hết hạn thì enable không cho chỉnh sửa 
         public async Task<List<Requirement_Company>> GetRequestByID(string req)
         {
             var query = from c in _context.Companies
@@ -119,7 +127,9 @@ namespace WebApi.Service.Admin
                         join h in _context.Contracts
                         on c.Customerid equals h.Customerid
                         join s in _context.SupportTypes
-                        on r.SupportName equals s.SupportName
+                        on r.SupportCode equals s.SupportCode
+                        join q in _context.ServiceTypes on h.ServiceTypeid equals q.Id
+
                         select new Requirement_Company
                         {
                             RequirementsId = r.Requirementsid,
@@ -134,16 +144,21 @@ namespace WebApi.Service.Admin
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
                             CustomerType = c.Customertype,
-                            ServiceType = h.ServiceTypename,
+                            ServiceType = q.ServiceTypename,
                             ContractNumber = h.Contractnumber,
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,
                             RPhoneNumber =a.Rphonenumber,
                             Department = b.Department,
+                            Startdate = h.Startdate, 
+                            Enddate = h.Enddate,
+                            Operatingstatus = c.Operatingstatus
                         };
 
             return await query.ToListAsync();
         }
+
+        //insert vì đã lấy theo lọc nên chỉ tạo cho yêu cầu có hợp đồng còn hạn và còn hoạt động
         public string? Insert(Requirement_C Req, string id)
         {
             if (Req == null)
@@ -182,6 +197,7 @@ namespace WebApi.Service.Admin
                     }
 
                     string newRequirements = $"RS00{nextNumber:D2}";
+                    var support = _context.SupportTypes.FirstOrDefault(st => st.SupportName == Req.Support);
                     var newReq = new Requirement
                     {
                         Requirementsid = newRequirements,
@@ -190,8 +206,8 @@ namespace WebApi.Service.Admin
                         Dateofrequest = Req.DateOfRequest,
                         Descriptionofrequest = Req.DescriptionOfRequest,
                         Customerid = Req.CustomerId,
-                        SupportName = Req.Support, 
-                        Staffid = id,   
+                        SupportCode = support.SupportCode, 
+                        //Staffid = id,   
                     };
 
                     _context.Requirements.Add(newReq);
@@ -233,6 +249,7 @@ namespace WebApi.Service.Admin
             }
         }
 
+        //cái này có check ở trên để chỉnh được cái nào còn hạn hợp đồng và hoạt động.
         public string? UpdateStatus(historyRequest historyReq)
         {
             try
@@ -421,11 +438,12 @@ namespace WebApi.Service.Admin
 
             // Bản ghi ban đầu từ bảng Requirements
             var initial = from c in _context.Requirements
+                          join a in _context.Assigns on c.Requirementsid equals a.Requirementsid
                           where c.Requirementsid.ToLower().Contains(req)
                           select new HistoryRequests
                           {
                               Requirementsid = c.Requirementsid,
-                              Staffid = c.Staffid,
+                              Staffid = a.Staffid,
                               Descriptionofrequest = c.Descriptionofrequest,
                               //BeforStatus = "Khởi tạo",
                               Apterstatus = "Yêu cầu hỗ trợ",

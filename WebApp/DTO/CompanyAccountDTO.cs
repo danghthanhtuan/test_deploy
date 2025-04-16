@@ -34,7 +34,7 @@
 
         public DateTime Enddate { get; set; }
         public decimal Amount { get; set; }
-
+        public string? Original { get; set; }
     }
     public class PagingResult<T>
     {

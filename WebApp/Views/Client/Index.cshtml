@@ -2,7 +2,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-
+    .flex-shrink-0 {
+        height: 60px;
+    }
     /* Khi một hàng có lớp row-clicked */
     #tblDanhSachDG_PhieuMuon tr.row-clicked {
         background-color: #e0e0e0; /* Màu nền xám */
@@ -139,7 +141,7 @@
 </style>
 <body>
     <div id="listRequestContainer" class="container-fluid d-flex flex-column vh-100">
-        <div class="row flex-shrink-0" style="height: 80px;">
+        <div class="row flex-shrink-0" >
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">
@@ -177,7 +179,7 @@
         </div>
     </div>
     <div id="createRequestContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
-        <div class="row flex-shrink-0" style="height: 80px;">
+        <div class="row flex-shrink-0" >
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">

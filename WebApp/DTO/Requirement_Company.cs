@@ -34,8 +34,11 @@
         public string RootName { get; set; } = null!;
 
         public string RPhoneNumber { get; set; } = null!;
-        public string Department { get; set; } 
+        public string Department { get; set; }
 
+        public DateTime Startdate { get; set; }
+        public DateTime Enddate { get; set; }
+        public bool Operatingstatus { get; set; }
 
     }
 

@@ -7,6 +7,9 @@
         display: none !important;
     }
 
+    .flex-shrink-0 {
+        height: 60px;
+    }
     #createrequestBtn {
         width: 200px !important; /* Điều chỉnh chiều rộng */
         padding-left: 8px !important;
@@ -79,6 +82,7 @@
 
     .status-bar {
         display: flex;
+        padding-bottom: 40px;
         justify-content: space-between;
         align-items: center;
         position: relative;
@@ -151,10 +155,15 @@
         height: 85%;
     }
 
+    #expiredNotice
+    {
+        padding: 5px;
+        margin-top: 10px;
+    }
 </style>
 <body>
     <div id="listRequestContainer" class="container-fluid d-flex flex-column vh-100">
-        <div class="row flex-shrink-0" style="height: 80px;">
+        <div class="row flex-shrink-0" >
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">
@@ -198,7 +207,7 @@
     <div id="createRequestContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
         
         <!-- Mục lọc -->
-        <div class="row flex-shrink-0" style="height: 80px;">
+        <div class="row flex-shrink-0">
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">
@@ -332,7 +341,7 @@
     </div>
 @*     thẻ div 3 *@    
     <div id="detailRequestContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
-        <div class="row flex-shrink-0" style="height: 80px;">
+        <div class="row flex-shrink-0" >
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">
@@ -432,6 +441,8 @@
                         </div>
 
                         <button id="updateStatus" class="btn btn-danger btn-sm px-3 w-75">Cập nhật</button>
+                        <div id="expiredNotice" class="alert alert-warning mb-2" style="display: none;"></div>
+
                     </form>
                 </div>
             </div>
@@ -936,6 +947,26 @@
                         $("#reqStatus").val(statusValue);
                     } else {
                         console.warn("Không tìm thấy trạng thái:", company.requirementsStatus);
+                    }
+
+
+                    // 🔍 Kiểm tra ngày kết thúc và trạng thái hoạt động
+                    var endDate = new Date(company.enddate);
+                    var today = new Date();
+                    var isOperating = company.operatingstatus === true || company.operatingstatus === "true"; // Phòng khi trả về là chuỗi
+                    if (endDate >= today && isOperating) {
+                        // Còn hạn và công ty còn hoạt động => cho chỉnh sửa
+                        $("#reqStatus").prop("disabled", false);
+                        $("#description2").prop("readonly", false);
+                        $("#updateStatus").prop("readonly", false);
+
+                        $("#expiredNotice").hide(); // Ẩn thông báo nếu đang còn hoạt động
+                    } else {
+                        // Hết hạn hoặc công ty không hoạt động => không cho chỉnh sửa
+                        $("#reqStatus").prop("disabled", true);
+                        $("#description2").prop("readonly", true);
+
+                        $("#expiredNotice").text("Yêu cầu đã hết hạn hoặc công ty đã ngừng hoạt động. Bạn chỉ được xem thông tin.").show();
                     }
 
                 } else {

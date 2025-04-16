@@ -109,7 +109,6 @@ CREATE TABLE REQUIREMENTS
 	DESCRIPTIONOFREQUEST NVARCHAR(MAX) NOT NULL   ,    --MÔ  TA YÊU C?U 
 	CUSTOMERID VARCHAR(15) NOT NULL,			--MÃ KH
 	SUPPORT_CODE VARCHAR(10) NOT NULL UNIQUE, 
-    SUPPORT_NAME NVARCHAR(40) NOT NULL,  --MÃ H? TR? 
 	FOREIGN KEY (CUSTOMERID) REFERENCES COMPANY(CUSTOMERID),
 	FOREIGN KEY (SUPPORT_CODE) REFERENCES SUPPORT_TYPE(SUPPORT_CODE)
 );
@@ -173,10 +172,12 @@ CREATE TABLE PAYMENT (
     PAYMENT_DATE DATETIME,                -- Ngày thanh toán
     PAYMENT_METHOD NVARCHAR(50),          -- Phương thức thanh toán 
     PAYMENTSTATUS BIT NOT NULL,           -- 0: chưa thanh toán, 1: đã thanh toán
-    TRANSACTION_CODE VARCHAR(50) UNIQUE NULL, -- Mã giao dịch
+    TRANSACTION_CODE VARCHAR(50) NULL, -- Mã giao dịch
     FOREIGN KEY (CONTRACTNUMBER) REFERENCES CONTRACTS(CONTRACTNUMBER)
     
 );
+
+
 
 --nếu hợp đồng >=6 tháng giảm 5%
 --nếu hợp đồng >=12 tháng giảm 10%
@@ -184,6 +185,7 @@ CREATE TABLE PAYMENT (
 --nếu CLOUD_SW 1.500.000/ tháng
 --nếu SUPPORT 1.800.000/ tháng
 --nếu CONTRACT 1.200.000/ tháng
+--VIP tăng 30%
 
 INSERT INTO SUPPORT_TYPE ( SUPPORT_CODE, SUPPORT_NAME) VALUES 
 ('SP0001',N'Hỗ trợ Cước phí'),
@@ -283,9 +285,10 @@ INSERT INTO CONTRACTS (CONTRACTNUMBER,STARTDATE,ENDDATE,SERVICE_TYPEName,CUSTOME
 ('SV0015','2025-02-09','2026-02-09',N'Hợp đồng tích hợp/dự án','IT03030015');
 
 select * from company 
-select * from contracts
-
 select * from Account 
+select * from contracts
+select * from Payment
+
 select * from contracts
 select * from LOGINclient
 select * from RESETPASSWORD
@@ -304,3 +307,5 @@ select * from contracts
 select * from Payment
 
 --thiếu insert payment ở tạo tài khoản. 
+update contracts set STARTDATE ='2025-03-14' where contractnumber = 'SV0002'
+update contracts set enddate ='2025-04-14' where contractnumber = 'SV0002'

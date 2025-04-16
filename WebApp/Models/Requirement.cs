@@ -17,9 +17,7 @@ public partial class Requirement
 
     public string Customerid { get; set; } = null!;
 
-    public string SupportName { get; set; } = null!;
-
-    public string? Staffid { get; set; }
+    public string SupportCode { get; set; } = null!;
 
     public virtual ICollection<Assign> Assigns { get; set; } = new List<Assign>();
 
@@ -29,7 +27,5 @@ public partial class Requirement
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
-    public virtual Staff? Staff { get; set; }
-
-    public virtual SupportType SupportNameNavigation { get; set; } = null!;
+    public virtual SupportType SupportCodeNavigation { get; set; } = null!;
 }

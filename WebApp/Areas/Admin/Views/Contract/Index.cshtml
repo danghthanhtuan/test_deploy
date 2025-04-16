@@ -6,6 +6,9 @@
         display: none !important;
     }
 
+    .flex-shrink-0 {
+        height: 60px;
+    }
     /* Căn chỉnh toàn bảng */
     #listCompany {
         margin-top: 0 !important; /* Giảm lề trên */
@@ -69,7 +72,7 @@
 <body>
     <div id="companyListContainer" class="container-fluid d-flex flex-column vh-100">
         <!-- Mục lọc -->
-        <div class="row flex-shrink-0" style="height: 80px;">
+        <div class="row flex-shrink-0">
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">
@@ -107,6 +110,7 @@
                                     <th>Gia hạn</th>
                                 </tr>
                             </thead>
+
                             <tbody>
                             </tbody>
                         </table>
@@ -117,7 +121,7 @@
     </div>
     <!-- Form gia hạn -->
     <div id="createAccountContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
-        <div class="row flex-shrink-0" style="height: 80px;">
+        <div class="row flex-shrink-0" >
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">
@@ -151,7 +155,7 @@
                         </div>
                        <div class="form-group d-flex align-items-center">
                             <label class="w-25">Email: <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control w-75" id="cEmail" pattern="@(@"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")" required>
+                            <input type="email" class="form-control w-75" id="cEmail" pattern="@(@"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")" required readonly>
                         </div>
 
                         <div class="form-group d-flex align-items-center">
@@ -308,48 +312,30 @@
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let today = new Date();
-        let todayFormatted = today.toISOString().split("T")[0]; // Định dạng yyyy-mm-dd
+    let initialEndDate = null; // lưu lại ngày endDate ban đầu khi còn hạn
 
-        let nextMonth = new Date(today);
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-        // Kiểm tra nếu ngày bị lệch (ví dụ: 31/3 -> 1/5)
-        if (nextMonth.getDate() !== today.getDate()) {
-            nextMonth.setDate(0);
-        }
-
-        let nextMonthFormatted = nextMonth.toISOString().split("T")[0];
-
-        let startDateInput = document.getElementById("startDate");
-        let endDateInput = document.getElementById("endDate");
-        let birthDateInput = document.getElementById("aDate"); // Trường ngày sinh
-
-        // Kiểm tra nếu input tồn tại trước khi gán
-        if (birthDateInput) {
-            if (!birthDateInput.value) {  // Chỉ đặt nếu input chưa có giá trị
-                birthDateInput.value = todayFormatted;
-            }
-            birthDateInput.max = todayFormatted;
-        }
-
-        if (startDateInput) {
-            startDateInput.value = todayFormatted;
-            startDateInput.max = todayFormatted;
-        }
-
-        if (endDateInput) {
-            endDateInput.value = nextMonthFormatted;
-        }
-    });
     document.addEventListener("DOMContentLoaded", function () {
         const startDateInput = document.getElementById("startDate");
         const endDateInput = document.getElementById("endDate");
         const timeGiahanSelect = document.getElementById("timeGiahan");
 
-        // Lưu ngày kết thúc ban đầu (ngày đầu load trang)
-        const originalEndDate = new Date(endDateInput.value);
+        function parseDate(input) {
+            const parts = input.split("-");
+            if (parts.length === 3) {
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                return new Date(year, month, day);
+            }
+            return null;
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
         timeGiahanSelect.addEventListener("change", function () {
             const value = this.value;
@@ -361,34 +347,37 @@
             const monthsToAdd = parseInt(value.replace("month", ""));
             const today = new Date();
 
-            let newStartDate, newEndDate;
+            const currentStartDate = parseDate(startDateInput.value);
+            const currentEndDate = parseDate(endDateInput.value);
 
-            // So sánh ngày kết thúc gốc với ngày hiện tại
-            if (originalEndDate <= today) {
-                // Nếu đã hết hạn → reset ngày bắt đầu = hôm nay
-                newStartDate = today;
-                newEndDate = new Date(today);
+            let newStartDate;
+            let newEndDate;
+
+            if (currentEndDate && currentEndDate >= today) {
+                // Còn hạn → lấy từ endDate gốc nếu có, nếu chưa thì lưu lại lần đầu
+                if (!initialEndDate) {
+                    initialEndDate = new Date(currentEndDate);
+                }
+
+                newStartDate = currentStartDate;
+
+                newEndDate = new Date(initialEndDate);
                 newEndDate.setMonth(newEndDate.getMonth() + monthsToAdd);
             } else {
-                // Nếu chưa hết hạn → cộng thêm vào ngày kết thúc ban đầu
-                newStartDate = new Date(startDateInput.value); // giữ nguyên
-                newEndDate = new Date(originalEndDate);
-                newEndDate.setMonth(newEndDate.getMonth() + monthsToAdd);
+                // Hết hạn → KHÔNG cộng dồn, tính từ hôm nay mỗi lần
+                initialEndDate = null;
+
+                newStartDate = new Date(today); // luôn từ hôm nay
+                newEndDate = new Date(today);
+                newEndDate.setMonth(newStartDate.getMonth() + monthsToAdd);
             }
 
-            // Cập nhật lại input
             startDateInput.value = formatDate(newStartDate);
             endDateInput.value = formatDate(newEndDate);
         });
-
-        // Format yyyy-mm-dd cho input type="date"
-        function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
     });
+
+
     document.addEventListener("DOMContentLoaded", function () {
         console.log("DOM đã tải xong!");
 
@@ -411,7 +400,8 @@
             companyListContainer.classList.remove("hidden");
             createAccountContainer.classList.add("hidden");
             init("", "Tất cả");
-           
+            refresh();
+
         });
 
         // Thêm sự kiện cho nút "Cập nhật"
@@ -590,7 +580,8 @@
             });
             $("#serviceType").val(foundValue);
             $("#aStatus").val(rowData.operatingStatus ? "1" : "0");
-           
+            $("#startDate").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
+            $("#endDate").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
         }
     });
 
@@ -723,7 +714,7 @@
                     if (response.success) {
                         document.getElementById("contentModalSuccess").innerHTML = "Gia hạn hợp đồng thành công";
                         $("#ModalSuccess").modal("show");
-                        
+                        refresh();
                         init();
                         backBtn.click();
                     }
@@ -762,5 +753,22 @@
             errorModal.hide();
         });
     }
-
+    function refresh() {
+        document.getElementById("cId").value = "";
+        document.getElementById("cName").value = "";
+        document.getElementById("cTaxCode").value = "";
+        document.getElementById("cEmail").value = "";
+        document.getElementById("cPhone").value = "";
+        document.getElementById("cAddress").value = "";
+        document.getElementById("cType").value = "normal";
+        document.getElementById("serviceType").value = "doi-tac";
+        document.getElementById("contractNumber").value = "";
+       
+        document.getElementById("startDate").value = "";
+        document.getElementById("endDate").value = "";
+        document.getElementById("aStatus").value = "1";
+        document.getElementById("timeGiahan").value = "";
+        document.getElementById("amount").value = "";
+        initialEndDate = null;
+    }
 </script>
