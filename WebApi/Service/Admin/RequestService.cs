@@ -43,7 +43,7 @@ namespace WebApi.Service.Admin
                             CompanyAccount = c.Companyaccount,
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
-                            CustomerType = c.Customertype,
+                            CustomerType = h.Customertype,
                             ServiceType = q.ServiceTypename,
                             ContractNumber = h.Contractnumber,
                             RootAccount = a.Rootaccount,
@@ -104,12 +104,14 @@ namespace WebApi.Service.Admin
                             AccountIssuedDate = c.Accountissueddate,
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
-                            CustomerType = c.Customertype,
+                            CustomerType = h.Customertype,
                             ServiceType = q.ServiceTypename,
                             ContractNumber = h.Contractnumber,
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,
                             RPhoneNumber = a.Rphonenumber,
+                            Gender = a.Gender,
+                            DateOfBirth = a.Dateofbirth,
                         };
 
             return await query.ToListAsync();
@@ -143,7 +145,7 @@ namespace WebApi.Service.Admin
                             CompanyAccount = c.Companyaccount,
                             CPhoneNumber = c.Cphonenumber,
                             CAddress = c.Caddress,
-                            CustomerType = c.Customertype,
+                            CustomerType = h.Customertype,
                             ServiceType = q.ServiceTypename,
                             ContractNumber = h.Contractnumber,
                             RootAccount = a.Rootaccount,

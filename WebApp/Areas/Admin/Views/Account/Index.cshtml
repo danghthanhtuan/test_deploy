@@ -143,6 +143,12 @@
         display: none;
     }
 
+    .p-3 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-top: 0px;
+       
+    }
 </style>
 <body>
     <div id="companyListContainer" class="container-fluid d-flex flex-column vh-100">
@@ -213,7 +219,7 @@
             <!-- Form bên trái -->
             <div class="col-md-6">
                 <div class="card-body">
-                    <h4>THÔNG TIN CÔNG TY</h4>
+                    <h5>THÔNG TIN CÔNG TY</h5>
                     <form>
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Tên công ty: <span class="text-danger">*</span></label>
@@ -252,7 +258,7 @@
                         </div>
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Loại dịch vụ:</label>
-                            <select id="serviceType">
+                            <select class="form-control w-75" id="serviceType">
                                 <option value="dau-so-thoai">Đầu số thoại</option>
                                 <option value="an-toan-thong-tin">An toàn thông tin</option>
                                 <option value="cloud-partner">Cloud partner</option>
@@ -287,12 +293,12 @@
             <!-- Form bên phải -->
             <div class="col-md-6">
                 <div class="card-body">
-                    
+                    <h5>THÔNG TIN TÀI KHOẢN</h5>
                     <form>
-                        <div class="form-group d-flex align-items-center">
+                        @* <div class="form-group d-flex align-items-center">
                             <label class="w-25">Username:</label>
                             <input type="text" class="form-control w-75" id="aNameID" readonly>
-                        </div>
+                        </div> *@
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Email: <span class="text-danger">*</span></label>
                             <input type="email" class="form-control w-75" id="aEmail">
@@ -319,7 +325,7 @@
                             </select>
                         </div>
 
-                        <div class="form-group d-flex align-items-center">
+                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Ngày bắt đầu:</label>
                             <input type="date" class="form-control w-75" id="startDate" readonly>
                         </div>
@@ -354,7 +360,7 @@
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Tổng tiền:</label>
                             <input type="text" class="form-control w-75" id="amount" readonly>
-                        </div>
+                        </div> 
                     </form>
                     <button id="createAccount" class="btn btn-danger btn-sm px-3" onclick="SaveAccount()">Lưu tài khoản</button>
                 </div>
@@ -414,10 +420,14 @@
                             </select>
                         </div>
                         <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Ngày tạo TK:</label>
+                            <input type="date" class="form-control w-75" id="accountIssuedDate" readonly>
+                        </div>
+                         @* <div class="form-group d-flex align-items-center">
                             <label class="w-25">Số hợp đồng: <span class="text-danger">*</span></label>
                             <input type="text" class="form-control w-75" id="contractNumber2" readonly>
-                        </div>
-                        <div class="form-group d-flex align-items-center">
+                        </div> *@
+                        @* <div class="form-group d-flex align-items-center">
                             <label class="w-25">Loại dịch vụ:</label>
                             <select id="serviceType2" disabled>
                                 <option value="dau-so-thoai">Đầu số thoại</option>
@@ -439,14 +449,14 @@
                                 <option value="dich-vu-truyen-hinh">Dịch vụ truyền hình</option>
                                 <option value="doi-tac">Đối tác</option>
                             </select>
-                        </div>
-                        <div class="form-group d-flex align-items-center">
+                        </div> *@
+                        @*<div class="form-group d-flex align-items-center">
                             <label class="w-25">Trạng thái:</label>
                             <select class="form-control w-75" id="aStatus2" disabled>
                                 <option value="1">Hoạt động</option>
                                 <option value="0">Không hoạt động</option>
                             </select>
-                        </div>
+                        </div> *@
                     </form>
                 </div>
             </div>
@@ -455,7 +465,6 @@
             <div class="col-md-6">
                 <div class="card-body">
                     <h5>THÔNG TIN TÀI KHOẢN</h5>
-
                     <form>
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Username:</label>
@@ -473,8 +482,6 @@
                             <label class="w-25">Số điện thoại: <span class="text-danger">*</span></label>
                             <input type="text" class="form-control w-75 phone-input" id="aPhone2" maxlength="10">
                         </div>
-
-
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Ngày sinh:</label>
                             <input type="date" class="form-control w-75" id="aDate2">
@@ -486,15 +493,22 @@
                                 <option value="nu">Nữ</option>
                             </select>
                         </div>
-
                         <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Trạng thái:</label>
+                            <select class="form-control w-75" id="aStatus2" disabled>
+                                <option value="1">Hoạt động</option>
+                                <option value="0">Không hoạt động</option>
+                            </select>
+                        </div>
+                        
+                        @* <div class="form-group d-flex align-items-center">
                             <label class="w-25">Ngày bắt đầu:</label>
                             <input type="date" class="form-control w-75" id="startDate2" readonly>
                         </div>
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Ngày kết thúc:</label>
                             <input type="date" class="form-control w-75" id="endDate2" readonly>
-                        </div>
+                        </div> *@
                         @* <div class="form-group d-flex align-items-center">
                             <label class="w-25">Tổng tiền:</label>
                             <input type="text" class="form-control w-75" id="amount2" readonly>
@@ -735,13 +749,13 @@
             $("#listCompany").DataTable().destroy(); // Xóa DataTable cũ trước khi tạo lại
         }
 
-        $('#listCompany').DataTable({
+        var table = $('#listCompany').DataTable({
             processing: true,
             serverSide: true,
             paging: true,
             searching: false,
             searchDelay: 400,
-            scrollY: false,
+           // scrollY: false,
             iDisplayLength: 7,
             bLengthChange: false,
             language: {
@@ -1009,17 +1023,17 @@
             $("#cPhone2").val(rowData.cPhoneNumber || "");
             $("#cAddress2").val(rowData.cAddress || "");
             $("#cType2").val(rowData.customerType ? "vip" : "normal");
-            $("#contractNumber2").val(rowData.contractNumber);
+           // $("#contractNumber2").val(rowData.contractNumber);
 
-            // Gán giá trị cho dropdown ServiceType
-            let foundValue = "doi-tac"; // Giá trị mặc định
-            $("#serviceType2 option").each(function () {
-                if ($(this).text().trim() === rowData.serviceType.trim()) {
-                    foundValue = $(this).val();
-                    return false; // Thoát vòng lặp nếu tìm thấy
-                }
-            });
-            $("#serviceType2").val(foundValue);
+            // // Gán giá trị cho dropdown ServiceType
+            // let foundValue = "doi-tac"; // Giá trị mặc định
+            // $("#serviceType2 option").each(function () {
+            //     if ($(this).text().trim() === rowData.serviceType.trim()) {
+            //         foundValue = $(this).val();
+            //         return false; // Thoát vòng lặp nếu tìm thấy
+            //     }
+            // });
+            // $("#serviceType2").val(foundValue);
 
             $("#aNameID2").val(rowData.customerId.trim());
             $("#aEmail2").val(rowData.rootAccount || "");
@@ -1028,8 +1042,10 @@
             $("#aStatus2").val(rowData.operatingStatus ? "1" : "0");
             $("#aDate2").val(rowData.dateOfBirth ? rowData.dateOfBirth.substring(0,10):"");
             $("#aGender2").val(rowData.gender ? "nu" : "nam");
-            $("#startDate2").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
-            $("#endDate2").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
+            $("#accountIssuedDate").val(rowData.accountIssuedDate ? rowData.accountIssuedDate.substring(0, 10) : "");
+
+           // $("#startDate2").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
+            //$("#endDate2").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
            // $("#amount2").val(formatMoney(rowData.amount) || "");
         }
     });
@@ -1091,10 +1107,7 @@
         var cPhone = document.getElementById("cPhone2").value.replace(/\D/g, '');
         var cAddress = document.getElementById("cAddress2").value;
         var cType = document.getElementById("cType2").value;
-        var contractNumber = document.getElementById("contractNumber2").value.trim();
-        var serviceTypeElement = document.getElementById("serviceType2");
-        var serviceType = serviceTypeElement.value.trim();
-        var serviceTypeText = serviceTypeElement.options[serviceTypeElement.selectedIndex].text;
+       
         
         var aEmail = document.getElementById("aEmail2").value;
         var aName = document.getElementById("aName2").value;
@@ -1102,12 +1115,7 @@
         var aStatus = document.getElementById("aStatus2").value;
         var aDate = document.getElementById("aDate2").value;
         var aGender = document.getElementById("aGender2").value;
-        var startDate = document.getElementById("startDate2").value;
-        var endDate = document.getElementById("endDate2").value;
-       // var amount = document.getElementById("amount2").value.trim();
-
-        
-        var normalizedAmount = parseFloat(amount.replace(/[^\d]/g, ''));
+  
         var cValues = {
             CustomerId: cID || "AUTO_GENERATED_ID",
             CompanyName: cName,
@@ -1117,17 +1125,18 @@
             CPhoneNumber: cPhone,
             CAddress: cAddress,
             CustomerType: cType.toLowerCase() === "vip",
-            ContractNumber: contractNumber,
-            ServiceType: serviceTypeText, // Lưu tên hiển thị thay vì ID
+            ContractNumber: "",
+            ServiceType: "", // Lưu tên hiển thị thay vì ID
+
             RootAccount: aEmail,
             RootName: aName,
             RPhoneNumber: aPhone,
             OperatingStatus: aStatus.trim() === "1",
             DateOfBirth: aDate ? new Date(aDate).toISOString() : null,
             Gender: aGender === "nu",
-            Startdate: startDate,
-            EndDate: endDate,
-            Amount: normalizedAmount
+            Startdate: null,
+            Enddate: null,
+            Amount: 0
         };
         return cValues;
     }
@@ -1141,25 +1150,35 @@
         if (cId === "" && cId2 !== "") {
 
             cValues = getID2(cId2);
+            console.log("Gia tri cValues2  la: ", cValues);
+
+            if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber ) {
+
+                showError("Vui lòng nhập đầy đủ thông tin.");
+
+                return;
+            }
         }
         else {
             cValues = getID1(cId);
+            console.log("Gia tri cValues  la: ", cValues);
+
+            var startDate = new Date(cValues.Startdate);
+            var endDate = new Date(cValues.EndDate);
+            if (startDate >= endDate) {
+                showError("Kiểm tra lại ngày tháng của hợp đồng: Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+                return;
+            }
+            if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber || !cValues.Amount) {
+
+                showError("Vui lòng nhập đầy đủ thông tin.");
+                return;
+            }
+
         }
         console.log("Gia tri la: ",cValues); 
-        var startDate = new Date(cValues.Startdate);
-        var endDate = new Date(cValues.EndDate);
-
-        if (startDate >= endDate) {
-            showError("Kiểm tra lại ngày tháng của hợp đồng: Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
-            return;
-        }
        
-        if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber || !cValues.Amount) {
-            
-            showError("Vui lòng nhập đầy đủ thông tin.");
-            return;
-        }
-
+        
         var phoneRegex = /^(0\d{9,10})$/; // Số điện thoại bắt đầu bằng số 0, có 10 hoặc 11 chữ số
         // Biểu thức chính quy kiểm tra email hợp lệ
         var emailRegex = @Html.Raw("/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/");
@@ -1168,10 +1187,7 @@
         var taxCodeRegex = /^[a-zA-Z0-9]{9}$/;
 
         // Kiểm tra độ dài contractNumber (tối đa 10 ký tự)
-        if (cValues.ContractNumber.length > 10) {
-            showError("Số hợp đồng (Contract Number) vượt quá 10 ký tự.");
-            return;
-        }
+       
         if (!phoneRegex.test(cValues.CPhoneNumber)) {
             showError("Số điện thoại khách hàng không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
             return;
@@ -1230,6 +1246,11 @@
                         var category = $('select').val();
                         init(keyword, category);
                         // Gọi sự kiện "Quay lại" để trở về danh sách
+                        if (isUpdate)
+                        {
+                            backBtn2.click();
+                        }
+                        else
                         backBtn.click();
                     }
                 },
@@ -1264,7 +1285,7 @@
         document.getElementById("serviceType").value = "doi-tac";
         document.getElementById("contractNumber").value = "";
         document.getElementById("aEmail").value = "";
-        document.getElementById("aNameID").value = "";
+       // document.getElementById("aNameID").value = "";
         document.getElementById("aName").value = "";
         document.getElementById("aPhone").value = "";
         document.getElementById("aDate").value = "";
@@ -1282,17 +1303,20 @@
         document.getElementById("cPhone2").value = "";
         document.getElementById("cAddress2").value = "";
         document.getElementById("cType2").value = "normal";
-        document.getElementById("serviceType2").value = "doi-tac";
-        document.getElementById("contractNumber2").value = "";
+       // document.getElementById("serviceType2").value = "doi-tac";
+       // document.getElementById("contractNumber2").value = "";
         document.getElementById("aEmail2").value = "";
         document.getElementById("aNameID2").value = "";
         document.getElementById("aName2").value = "";
         document.getElementById("aPhone2").value = "";
         document.getElementById("aDate2").value = "";
+        document.getElementById("accountIssuedDate").value = "";
+
         document.getElementById("aGender2").value = "nam";
         document.getElementById("aStatus2").value = "1";
-        document.getElementById("startDate2").value = "";
-        document.getElementById("endDate2").value = "";
+        //document.getElementById("startDate2").value = "";
+       
+       //  document.getElementById("endDate2").value = "";
       //  document.getElementById("amount2").value = "";
 
     }

@@ -1,4 +1,5 @@
-﻿using WebApi.DTO;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApi.DTO;
 using WebApi.Models;
 using WebApi.Service.Client;
 
@@ -12,7 +13,107 @@ namespace WebApi.Service.Admin
         {
             _context = context;
         }
-        public string? Insert(ContractDTO contractDTO, string id)
+
+        public async Task<PagingResult<CompanyAccountDTO>> GetAllCompany(GetListCompanyPaging req)
+        {
+            var query = from c in _context.Companies
+                        join a in _context.Accounts on c.Customerid equals a.Customerid
+                        join b in _context.Contracts on c.Customerid equals b.Customerid
+                        join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
+                        join q in _context.Payments on b.Contractnumber equals q.Contractnumber
+                        select new CompanyAccountDTO
+                        {
+                            CustomerId = c.Customerid,
+                            CompanyName = c.Companyname,
+                            TaxCode = c.Taxcode,
+                            CompanyAccount = c.Companyaccount,
+                            AccountIssuedDate = c.Accountissueddate,
+                            CPhoneNumber = c.Cphonenumber,
+                            CAddress = c.Caddress,
+                            CustomerType = b.Customertype,
+                            ServiceType = h.ServiceTypename,
+                            ContractNumber = b.Contractnumber,
+                            RootAccount = a.Rootaccount,
+                            RootName = a.Rootname,
+                            RPhoneNumber = a.Rphonenumber,
+                            OperatingStatus = c.Operatingstatus,
+                            DateOfBirth = a.Dateofbirth,
+                            Gender = a.Gender,
+                            Startdate = b.Startdate,
+                            Enddate = b.Enddate,
+                            Amount = q.Amount,
+                            Original = b.Original,
+                        };
+
+            if (!string.IsNullOrEmpty(req.Keyword))
+            {
+                query = query.Where(c =>
+                    c.CompanyName.Contains(req.Keyword) ||
+                    c.CustomerId.Contains(req.Keyword) ||
+                    c.CompanyAccount.Contains(req.Keyword) ||
+                    c.TaxCode.Contains(req.Keyword));
+            }
+
+            if (req.Category == "Bình thường")
+            {
+                query = query.Where(c => !c.CustomerType);
+            }
+            else if (req.Category == "Vip")
+            {
+                query = query.Where(c => c.CustomerType);
+            }
+
+            // Lấy toàn bộ dữ liệu trước khi group
+            var rawList = await query.ToListAsync();
+
+            // Gom nhóm theo Original (nếu có) hoặc ContractNumber
+            var grouped = rawList
+                .GroupBy(x => x.Original ?? x.ContractNumber)
+                .Select(g => new CompanyAccountDTO
+                {
+                    CustomerId = g.First().CustomerId,
+                    CompanyName = g.First().CompanyName,
+                    TaxCode = g.First().TaxCode,
+                    CompanyAccount = g.First().CompanyAccount,
+                    AccountIssuedDate = g.First().AccountIssuedDate,
+                    CPhoneNumber = g.First().CPhoneNumber,
+                    CAddress = g.First().CAddress,
+                    CustomerType = g.First().CustomerType,
+                    ServiceType = g.First().ServiceType,
+                    ContractNumber = g.Key, // dùng ContractNumber gốc
+                    RootAccount = g.First().RootAccount,
+                    RootName = g.First().RootName,
+                    RPhoneNumber = g.First().RPhoneNumber,
+                    OperatingStatus = g.First().OperatingStatus,
+                    DateOfBirth = g.First().DateOfBirth,
+                    Gender = g.First().Gender,
+                    Startdate = g.Min(x => x.Startdate), // Lấy nhỏ nhất trong các lần gia hạn
+                    Enddate = g.Max(x => x.Enddate),     // Lấy lớn nhất
+                    Amount = g.Sum(x => x.Amount),       // Tổng tiền thanh toán của tất cả hợp đồng
+                    Original = null // không cần hiển thị Original nữa
+                })
+                .ToList();
+
+            // Phân trang
+            var totalRow = grouped.Count;
+            var pagedResult = grouped
+                .OrderByDescending(c => c.CustomerId)
+                .Skip((req.Page - 1) * req.PageSize)
+                .Take(req.PageSize)
+                .ToList();
+
+            var pageCount = (int)Math.Ceiling(totalRow / (double)req.PageSize);
+
+            return new PagingResult<CompanyAccountDTO>
+            {
+                Results = pagedResult,
+                CurrentPage = req.Page,
+                RowCount = totalRow,
+                PageSize = req.PageSize,
+                PageCount = pageCount
+            };
+        }
+        public string? InsertExtend(ContractDTO contractDTO, string id)
         {
             if (contractDTO == null || contractDTO.chooseMonth <= 0)
             {
@@ -60,8 +161,20 @@ namespace WebApi.Service.Admin
                     DateTime newStartDate;
                     DateTime newEndDate;
                     string? originalContract = null;
+                    // Tìm toàn bộ chuỗi hợp đồng gốc + gia hạn
+                    var contractChain = _context.Contracts
+                        .Where(c => c.Contractnumber == contractDTO.ContractNumber || c.Original == contractDTO.ContractNumber)
+                        .ToList();
 
-                    if (oldContract.Enddate < DateTime.Today)
+                    if (!contractChain.Any())
+                    {
+                        return $"Hợp đồng với mã {contractDTO.ContractNumber} không tồn tại.";
+                    }
+
+                    // Tìm hợp đồng có ngày kết thúc lớn nhất
+                    var latestContract = contractChain.OrderByDescending(c => c.Enddate).First();
+    
+                    if (latestContract.Enddate < DateTime.Today)
                     {
                         // Hợp đồng đã hết hạn → tạo mới
                         newStartDate = DateTime.Today;
@@ -71,9 +184,9 @@ namespace WebApi.Service.Admin
                     else
                     {
                         // Hợp đồng còn hạn → gia hạn từ ngày hết hạn cũ + 1 đến ngày người dùng chọn
-                        newStartDate = oldContract.Enddate.AddDays(1);
+                        newStartDate = latestContract.Enddate.AddDays(1);
                         newEndDate = contractDTO.Enddate;
-                        originalContract = oldContract.Contractnumber;
+                        originalContract = latestContract.Contractnumber;
                     }
                     var newContract = new Contract
                     {
@@ -107,6 +220,135 @@ namespace WebApi.Service.Admin
                 }
             }
         }
-        
+
+        public async Task<string?> InsertContract(CompanyAccountDTO CompanyAccountDTO, string id)
+        {
+            if (CompanyAccountDTO == null)
+            {
+                return "Dữ liệu không hợp lệ.";
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == id);
+                    if (staff == null)
+                    {
+                        return $"Nhân viên với mã nhân viên = {id} không tồn tại";
+                    }
+                  
+                    var lastContract = _context.Contracts
+                .OrderByDescending(c => c.Contractnumber)
+                .FirstOrDefault();
+                    int nextContractNumber = lastContract != null ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1 : 1;
+                    string newContractNumber = $"SV{nextContractNumber:D4}";
+
+                    var serviceType = _context.ServiceTypes
+    .FirstOrDefault(st => st.ServiceTypename == CompanyAccountDTO.ServiceType);
+
+                    if (serviceType == null)
+                    {
+                        return $"Loại dịch vụ '{CompanyAccountDTO.ServiceType}' không tồn tại.";
+                    }
+
+                    var newContract = new Contract
+                    {
+                        Contractnumber = newContractNumber,
+                        Startdate = (DateTime)CompanyAccountDTO.Startdate!,
+                        Enddate = (DateTime)CompanyAccountDTO.Enddate!,
+                        ServiceTypeid = serviceType.Id,
+                        Customerid = CompanyAccountDTO.CustomerId,
+                    };
+                    var newPayment = new Payment
+                    {
+                        //Customerid = newCustomerID,
+                        Contractnumber = newContractNumber,
+                        Amount = CompanyAccountDTO.Amount,
+                        Paymentstatus = false,
+                    };
+                    _context.Payments.Add(newPayment);
+                    _context.Contracts.Add(newContract);
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+
+                    return newContractNumber;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                    return "Lỗi hệ thống, vui lòng thử lại sau.";
+                }
+            }
+        }
+
+        public string? InsertUpgrade(ContractDTO contractDTO, string id)
+        {
+            if (contractDTO == null)
+            {
+                return "Dữ liệu không hợp lệ.";
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == id);
+                    if (staff == null)
+                    {
+                        return $"Nhân viên với mã nhân viên = {id} không tồn tại.";
+                    }
+
+                    var existingContract = _context.Contracts.FirstOrDefault(c => c.Contractnumber == contractDTO.ContractNumber);
+                    if (existingContract == null)
+                    {
+                        return "Hợp đồng không tồn tại.";
+                    }
+
+                    // Kiểm tra mã khách hàng có tồn tại trong bảng hợp đồng không
+                    if (!_context.Contracts.Any(s => s.Customerid == contractDTO.CustomerId))
+                    {
+                        return "Mã khách hàng không tồn tại trong hệ thống.";
+                    }
+
+                    // Cập nhật loại khách hàng
+                    existingContract.Customertype = contractDTO.Customertype;
+                    // Cập nhật loại khách hàng cho các hợp đồng phụ có ORIGINAL là contract gốc
+                    var relatedContracts = _context.Contracts
+                        .Where(c => c.Original == contractDTO.ContractNumber)
+                        .ToList();
+
+                    foreach (var contract in relatedContracts)
+                    {
+                        contract.Customertype = contractDTO.Customertype;
+                    }
+
+                    _context.SaveChanges();
+
+
+                    var newPayment = new Payment
+                    {
+                        Contractnumber = contractDTO.ContractNumber,
+                        Amount = contractDTO.Amount,
+                        Paymentstatus = false
+                    };
+
+                    _context.Payments.Add(newPayment);
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+                    return null; // Trả về null khi thành công
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                    return "Lỗi hệ thống, vui lòng thử lại sau.";
+                }
+            }
+        }
+
     }
 }

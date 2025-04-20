@@ -33,35 +33,51 @@ namespace WebApi.Service.Admin
 
         public async Task<PagingResult<CompanyAccountDTO>> GetAllCompany(GetListCompanyPaging req)
         {
+          
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
-                        join q in _context.Payments on b.Contractnumber equals q.Contractnumber
+                        group new {c,a,h} by new
+                        {
+                            c.Customerid,
+                            c.Companyname, 
+                            c.Taxcode,
+                            c.Companyaccount,
+                            c.Accountissueddate, 
+                            c.Cphonenumber, 
+                            c.Caddress,
+                            //b.Customertype,
+                            //h.ServiceTypename,
+                            a.Rootaccount,
+                            a.Rootname,
+                            a.Rphonenumber,
+                            c.Operatingstatus,
+                            a.Dateofbirth,
+                            a.Gender,
+                        } into g
                         select new CompanyAccountDTO
                         {
-                            CustomerId = c.Customerid,
-                            CompanyName = c.Companyname,
-                            TaxCode = c.Taxcode,
-                            CompanyAccount = c.Companyaccount,
-                            AccountIssuedDate = c.Accountissueddate,
-                            CPhoneNumber = c.Cphonenumber,
-                            CAddress = c.Caddress,
-                            CustomerType = c.Customertype,
-                            ServiceType = h.ServiceTypename,
-                            ContractNumber = b.Contractnumber,
-                            RootAccount = a.Rootaccount,
-                            RootName = a.Rootname,
-                            RPhoneNumber = a.Rphonenumber,
-                            OperatingStatus = c.Operatingstatus,
-                            DateOfBirth = a.Dateofbirth,
-                            Gender = a.Gender,
-                            Startdate = b.Startdate,
-                            Enddate = b.Enddate,
-                            Amount = q.Amount,
-                            Original = b.Original,
+                            CustomerId = g.Key.Customerid,
+                            CompanyName = g.Key.Companyname,
+                            TaxCode = g.Key.Taxcode,
+                            CompanyAccount = g.Key.Companyaccount,
+                            AccountIssuedDate = g.Key.Accountissueddate,
+                            CPhoneNumber = g.Key.Cphonenumber,
+                            CAddress = g.Key.Caddress,
+                            //CustomerType = g.Key.Customertype,
+                            //ServiceType = g.Key.ServiceTypename,
+                            //ContractNumber = b.Contractnumber,
+                            RootAccount = g.Key.Rootaccount,
+                            RootName = g.Key.Rootname,
+                            RPhoneNumber = g.Key.Rphonenumber,
+                            OperatingStatus = g.Key.Operatingstatus,
+                            DateOfBirth = g.Key.Dateofbirth,
+                            Gender = g.Key.Gender,
                         };
 
+
+            // Tìm kiếm
             if (!string.IsNullOrEmpty(req.Keyword))
             {
                 query = query.Where(c =>
@@ -71,6 +87,7 @@ namespace WebApi.Service.Admin
                     c.TaxCode.Contains(req.Keyword));
             }
 
+            // Lọc loại khách hàng
             if (req.Category == "Bình thường")
             {
                 query = query.Where(c => !c.CustomerType);
@@ -80,44 +97,13 @@ namespace WebApi.Service.Admin
                 query = query.Where(c => c.CustomerType);
             }
 
-            // Lấy toàn bộ dữ liệu trước khi group
-            var rawList = await query.ToListAsync();
-
-            // Gom nhóm theo Original (nếu có) hoặc ContractNumber
-            var grouped = rawList
-                .GroupBy(x => x.Original ?? x.ContractNumber)
-                .Select(g => new CompanyAccountDTO
-                {
-                    CustomerId = g.First().CustomerId,
-                    CompanyName = g.First().CompanyName,
-                    TaxCode = g.First().TaxCode,
-                    CompanyAccount = g.First().CompanyAccount,
-                    AccountIssuedDate = g.First().AccountIssuedDate,
-                    CPhoneNumber = g.First().CPhoneNumber,
-                    CAddress = g.First().CAddress,
-                    CustomerType = g.First().CustomerType,
-                    ServiceType = g.First().ServiceType,
-                    ContractNumber = g.Key, // dùng ContractNumber gốc
-                    RootAccount = g.First().RootAccount,
-                    RootName = g.First().RootName,
-                    RPhoneNumber = g.First().RPhoneNumber,
-                    OperatingStatus = g.First().OperatingStatus,
-                    DateOfBirth = g.First().DateOfBirth,
-                    Gender = g.First().Gender,
-                    Startdate = g.Min(x => x.Startdate), // Lấy nhỏ nhất trong các lần gia hạn
-                    Enddate = g.Max(x => x.Enddate),     // Lấy lớn nhất
-                    Amount = g.Sum(x => x.Amount),       // Tổng tiền thanh toán của tất cả hợp đồng
-                    Original = null // không cần hiển thị Original nữa
-                })
-                .ToList();
-
             // Phân trang
-            var totalRow = grouped.Count;
-            var pagedResult = grouped
+            var totalRow = await query.CountAsync();
+            var pagedResult = await query
                 .OrderByDescending(c => c.CustomerId)
                 .Skip((req.Page - 1) * req.PageSize)
                 .Take(req.PageSize)
-                .ToList();
+                .ToListAsync();
 
             var pageCount = (int)Math.Ceiling(totalRow / (double)req.PageSize);
 
@@ -130,6 +116,7 @@ namespace WebApi.Service.Admin
                 PageCount = pageCount
             };
         }
+
 
         public bool UpdateStatus(bool Tinhtrang, string CustomerID)
         {
@@ -250,7 +237,7 @@ namespace WebApi.Service.Admin
                     existingAccount.Rootname = CompanyAccountDTO.RootName;
                     existingAccount.Rphonenumber = CompanyAccountDTO.RPhoneNumber;
                     //existingAccount.OperatingStatus = CompanyAccountDTO.OperatingStatus;
-                    existingAccount.Dateofbirth = CompanyAccountDTO.DateOfBirth;
+                    existingAccount.Dateofbirth = (DateTime)CompanyAccountDTO.DateOfBirth!;
                     existingAccount.Gender = CompanyAccountDTO.Gender;
 
                     _context.Accounts.Update(existingAccount);
@@ -312,23 +299,38 @@ namespace WebApi.Service.Admin
         {
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
-                        join b in _context.Contracts on c.Customerid equals b.Customerid
-                        join h in _context.Payments on b.Contractnumber equals h.Contractnumber
+                        group new { c, a } by new
+                        {
+                            c.Customerid,
+                            c.Companyname,
+                            c.Cphonenumber,
+                            c.Taxcode,
+                            c.Companyaccount,
+                            c.Accountissueddate,
+                            c.Operatingstatus,
+                            a.Rootname,
+                            a.Rootaccount,
+                            a.Rphonenumber,
+                            a.Gender,
+                            a.Dateofbirth,
+                        } into g
                         select new CompanyAccountDTO
                         {
-                            CustomerId = c.Customerid,
-                            CompanyName = c.Companyname,
-                            TaxCode = c.Taxcode,
-                            CompanyAccount = c.Companyaccount,
-                            AccountIssuedDate = c.Accountissueddate,
-                            OperatingStatus = c.Operatingstatus,
-                            CustomerType = c.Customertype,
-                            ContractNumber = b.Contractnumber,
-                            Startdate = b.Startdate,
-                            Enddate = b.Enddate,
-                            Amount = h.Amount,
+                            CustomerId = g.Key.Customerid,
+                            CompanyName = g.Key.Companyname,
+                            CPhoneNumber = g.Key.Cphonenumber,
+                            TaxCode = g.Key.Taxcode,
+                            CompanyAccount = g.Key.Companyaccount,
+                            AccountIssuedDate = g.Key.Accountissueddate,
+                            OperatingStatus = g.Key.Operatingstatus,
+                            RootName = g.Key.Rootname,
+                            RootAccount = g.Key.Rootaccount,
+                            RPhoneNumber = g.Key.Rphonenumber,
+                            Gender = g.Key.Gender,
+                            DateOfBirth = g.Key.Dateofbirth,
                         };
 
+            // Lọc theo từ khóa
             if (!string.IsNullOrEmpty(req.Keyword))
             {
                 query = query.Where(c =>
@@ -336,15 +338,6 @@ namespace WebApi.Service.Admin
                     c.CustomerId.Contains(req.Keyword) ||
                     c.CompanyAccount.Contains(req.Keyword) ||
                     c.TaxCode.Contains(req.Keyword));
-            }
-
-            if (req.Category == "Bình thường")
-            {
-                query = query.Where(c => c.CustomerType == false);
-            }
-            else if (req.Category == "Vip")
-            {
-                query = query.Where(c => c.CustomerType == true);
             }
 
             var data = await query.ToListAsync();
@@ -356,22 +349,31 @@ namespace WebApi.Service.Admin
             using (var memoryStream = new MemoryStream())
             using (var writer = new StreamWriter(memoryStream, Encoding.UTF8))
             {
-                writer.WriteLine("STT,Mã khách hàng,Tên công ty,Mã số thuế,Tài khoản root,Ngày cấp tài khoản,Trạng thái");
+                writer.WriteLine("STT,Mã khách hàng,Tên công ty,Mã số thuế,SDT Công ty,Email công ty,Ngày cấp tài khoản,Trạng thái,Tên KH,Tài khoản KH,Số điện thoại,Giới tính,Ngày sinh");
 
                 int stt = 1;
                 foreach (var item in data)
                 {
                     string ngayCap = item.AccountIssuedDate?.ToString("dd/MM/yyyy") ?? "";
+                    string ngaySinh = item.DateOfBirth?.ToString("dd/MM/yyyy") ?? "";
+
                     string trangThai = item.OperatingStatus ? "Hoạt động" : "Không hoạt động";
 
-                    writer.WriteLine($"{stt},{item.CustomerId},{item.CompanyName},{item.TaxCode},{item.CompanyAccount},{ngayCap},{trangThai}");
+                    string gioiTinh = item.Gender ? "Nam" : "Nữ";
+                    // Thêm dấu ' trước số để giữ 0 đầu trong Excel
+                    string sdtCongTy = $"'{item.CPhoneNumber}";
+                    string sdtKhachHang = $"'{item.RPhoneNumber}";
+
+                    writer.WriteLine($"{stt},{item.CustomerId},{item.CompanyName},{item.TaxCode},{sdtCongTy},{item.CompanyAccount},{ngayCap},{trangThai},{item.RootName},{item.RootAccount},{sdtKhachHang},{gioiTinh},{ngaySinh}");
                     stt++;
                 }
 
                 writer.Flush();
-                return memoryStream.ToArray(); // ✅ Trả về `byte[]`
+                return memoryStream.ToArray();
             }
         }
+
+
         public async Task<string?> Insert(CompanyAccountDTO CompanyAccountDTO, string id)
         {
             if (CompanyAccountDTO == null)
@@ -423,7 +425,7 @@ namespace WebApi.Service.Admin
                         Accountissueddate = CompanyAccountDTO.AccountIssuedDate,
                         Cphonenumber = CompanyAccountDTO.CPhoneNumber,
                         Caddress = CompanyAccountDTO.CAddress,
-                        Customertype = CompanyAccountDTO.CustomerType,
+                        //Customertype = CompanyAccountDTO.CustomerType,
                         Operatingstatus = CompanyAccountDTO.OperatingStatus,
 
                         // ServiceType = CompanyAccountDTO.ServiceType,
@@ -444,7 +446,7 @@ namespace WebApi.Service.Admin
                         Rootname = CompanyAccountDTO.RootName,
                         Rphonenumber = CompanyAccountDTO.RPhoneNumber,
                         //OperatingStatus = CompanyAccountDTO.OperatingStatus,
-                        Dateofbirth = CompanyAccountDTO.DateOfBirth,
+                        Dateofbirth = (DateTime)CompanyAccountDTO.DateOfBirth!,
                         Gender = CompanyAccountDTO.Gender,
                     };
                     _context.Accounts.Add(newAccount);
@@ -481,10 +483,11 @@ namespace WebApi.Service.Admin
                     var newContract = new Contract
                     {
                         Contractnumber = newContractNumber,
-                        Startdate = CompanyAccountDTO.Startdate,
-                        Enddate = CompanyAccountDTO.Enddate,
+                        Startdate = (DateTime)CompanyAccountDTO.Startdate!,
+                        Enddate = (DateTime)CompanyAccountDTO.Enddate!,
                         ServiceTypeid = serviceType.Id,
-                        Customerid = newCustomerID
+                        Customerid = newCustomerID,
+                        Customertype = CompanyAccountDTO.CustomerType,
                     };
                     var newPayment = new Payment
                     {

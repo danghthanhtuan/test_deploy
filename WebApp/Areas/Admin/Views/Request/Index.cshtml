@@ -22,9 +22,17 @@
         padding-right: 8px !important;
     }
     
-    #reqStatus{
+    /* #reqStatus{
         font-size: large; 
         width: 250px;
+    } */
+
+    #listRe {
+        margin-top: 0 !important; /* Giảm lề trên */
+        padding-top: 0 !important;
+        border-collapse: collapse; /* Gộp đường viền cho gọn */
+        font-size: 14px; /* Cỡ chữ hợp lý */
+        line-height: 1.4; /* Giảm chiều cao dòng */
     }
     /* Đảm bảo mỗi ô có độ rộng hợp lý */
     #listRe th, #listRe td {
@@ -259,7 +267,6 @@
                 </div>
             </div>
         </div>
-
 
         <div class="row flex-grow-1 overflow-auto">
             <!-- Form bên trái -->
@@ -506,6 +513,7 @@
     </div>
 </div>
 
+
 <!-- Modal success-->
 <div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -579,6 +587,7 @@
         console.log("detailRequestContainer:", detailRequestContainer);
         console.log("createrequestBtn:", createrequestBtn);
         console.log("backBtn:", backBtn);
+        console.log("backBtn2:", backBtn2);
 
         // Kiểm tra nếu các container có tồn tại
         if (!listRequestContainer || !createRequestContainer || !detailRequestContainer) {

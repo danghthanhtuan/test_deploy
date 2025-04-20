@@ -37,10 +37,44 @@ namespace WebApp.Areas.Admin.Controllers
                 return View();
             }
         }
-
         [HttpPost]
-        [Route("Insert")]
-        public async Task<IActionResult> Insert([FromBody] ContractDTO contractDTO, [FromQuery] string id)
+        [Route("GetAllCompany")]
+        public async Task<IActionResult> GetAllCompany([FromBody] GetListCompanyPaging req)
+        {
+            try
+            {
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+                if (string.IsNullOrEmpty(token))
+                    return Unauthorized(new { success = false, message = "Thiếu token." });
+
+                List<CompanyAccountDTO> listCompany = new List<CompanyAccountDTO>();
+                var reqjson = JsonConvert.SerializeObject(req);
+                var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
+
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Contract/GetAllCompany", httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<PagingResult<CompanyAccountDTO>>(responseData);
+                    return Ok(new { success = true, listCompany = responseObject });
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
+            }
+        }
+        [HttpPost]
+        [Route("InsertExtend")]
+        public async Task<IActionResult> InsertExtend([FromBody] ContractDTO contractDTO, [FromQuery] string id)
         {
             if(!Request.Headers.ContainsKey("Authorization"))
                 return Unauthorized(new {success = false, message = "Thiếu token"});
@@ -61,7 +95,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/Contract/Insert?id={id}", jsonContent);
+                var response = await _client.PostAsync(_client.BaseAddress + $"/Contract/InsertExtend?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
                 string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
@@ -79,6 +113,94 @@ namespace WebApp.Areas.Admin.Controllers
                 return StatusCode(500, new {success = false , message = "Lỗi hệ thống, vui lòng thử lại sau"});
             }
         }
-        
+
+        [HttpPost]
+        [Route("InsertContract")]
+        public async Task<IActionResult> InsertContract([FromBody] CompanyAccountDTO companyAccountDTO, [FromQuery] string id)
+        {
+            // Lấy token từ header Authorization
+            if (!Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(new { success = false, message = "Thiếu token." });
+
+            string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+            if (string.IsNullOrEmpty(token))
+                return Unauthorized(new { success = false, message = "Token không hợp lệ." });
+
+            // Kiểm tra dữ liệu đầu vào
+            if (string.IsNullOrEmpty(id))
+                return BadRequest(new { success = false, message = "Mã nhân viên không hợp lệ!" });
+
+            if (companyAccountDTO == null)
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+
+            try
+            {
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(companyAccountDTO), Encoding.UTF8, "application/json");
+
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await _client.PostAsync(_client.BaseAddress + $"/Contract/InsertContract?id={id}", jsonContent);
+
+                var result = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
+
+                string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API.";
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok(new { success = true, message = errorMessage });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau." });
+            }
+        }
+
+        [HttpPost]
+        [Route("InsertUpgrade")]
+        public async Task<IActionResult> InsertUpgrade([FromBody] ContractDTO contractDTO, [FromQuery] string id)
+        {
+            if (!Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(new { success = false, message = "Thiếu token" });
+            string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized(new { success = false, message = "Token không hợp lệ" });
+            }
+            if (string.IsNullOrEmpty(contractDTO.CustomerId))
+            {
+                return BadRequest(new { success = false, message = "Mã khách hàng không hợp lệ" });
+            }
+            if (contractDTO == null)
+            {
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+            }
+            try
+            {
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await _client.PostAsync(_client.BaseAddress + $"/Contract/InsertUpgrade?id={id}", jsonContent);
+                var result = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
+                string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok(new { success = true, message = errorMessage });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau" });
+            }
+        }
     }
 }

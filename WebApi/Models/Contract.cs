@@ -19,6 +19,8 @@ public partial class Contract
 
     public string? Original { get; set; }
 
+    public bool Customertype { get; set; }
+
     public virtual Company Customer { get; set; } = null!;
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();

@@ -83,7 +83,6 @@ namespace WebApp.Areas.Admin.Controllers
         public async Task<IActionResult> UpdateStatus([FromBody] updateID updateID)
         {
             try
-
             {
                 string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
@@ -188,7 +187,6 @@ namespace WebApp.Areas.Admin.Controllers
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 var response = await _client.PostAsync(_client.BaseAddress + $"/account/Update?id={id}", jsonContent);
-
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
 
