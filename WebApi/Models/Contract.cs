@@ -25,5 +25,7 @@ public partial class Contract
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
+    public virtual ICollection<Requirement> Requirements { get; set; } = new List<Requirement>();
+
     public virtual ServiceType ServiceType { get; set; } = null!;
 }

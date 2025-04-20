@@ -15,13 +15,13 @@ public partial class Requirement
 
     public string Descriptionofrequest { get; set; } = null!;
 
-    public string Customerid { get; set; } = null!;
+    public string Contractnumber { get; set; } = null!;
 
     public string SupportCode { get; set; } = null!;
 
     public virtual ICollection<Assign> Assigns { get; set; } = new List<Assign>();
 
-    public virtual Company Customer { get; set; } = null!;
+    public virtual Contract ContractnumberNavigation { get; set; } = null!;
 
     public virtual ICollection<Historyreq> Historyreqs { get; set; } = new List<Historyreq>();
 

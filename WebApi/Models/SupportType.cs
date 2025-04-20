@@ -11,5 +11,5 @@ public partial class SupportType
 
     public string SupportName { get; set; } = null!;
 
-    public virtual Requirement? Requirement { get; set; }
+    public virtual ICollection<Requirement> Requirements { get; set; } = new List<Requirement>();
 }

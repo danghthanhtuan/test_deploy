@@ -213,7 +213,6 @@
         </div>
     </div>
     <div id="createRequestContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
-        
         <!-- Mục lọc -->
         <div class="row flex-shrink-0">
             <div class="col-12">
@@ -323,7 +322,10 @@
                             <label class="w-25">Email:</label>
                             <input type="email" class="form-control w-75" id="aEmail" readonly>
                         </div>
-
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Mã hợp đồng:</label>
+                            <input type="text" class="form-control w-75" id="contractNumber" readonly>
+                        </div>
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Loại hỗ trợ:</label>
                             <select class="form-control w-75" id="Support" name="Support">
@@ -343,7 +345,6 @@
                     <button id="createAccount" class="btn btn-danger btn-sm px-3" onclick="Save()">Tạo yêu cầu</button>
                 </div>
             </div>
-
         </div>
     </div>
 @*     thẻ div 3 *@    
@@ -615,6 +616,7 @@
             listRequestContainer.classList.remove("hidden");
             createRequestContainer.classList.add("hidden");
             detailRequestContainer.classList.add("hidden");
+            refresh();
         });
 
         // Khi click "Quay lại" ở trang chi tiết yêu cầu
@@ -812,6 +814,8 @@
 
                             $("#cName").val(company.companyName || "");
                             $("#cId").val(company.customerId || "");
+                            $("#contractNumber").val(company.contractNumber || "");
+
                             $("#cTaxCode").val(company.taxCode || "");
                             $("#cEmail").val(company.companyAccount || "");
                             $("#cPhone").val(company.cPhoneNumber || "");
@@ -1002,6 +1006,8 @@
     function Save() {
 
         var customerId = document.getElementById("cId").value.trim();
+        var contractNumber = document.getElementById("contractNumber").value.trim();
+
         var descriptionOfRequest = document.getElementById("descriptionOfRequest").value.trim();
         // Lấy text của option đang chọn
         var selectElement = document.getElementById("Support");
@@ -1022,7 +1028,7 @@
             RequirementsStatus: requirementsStatus,
             DateOfRequest: dateOfRequest,
             DescriptionOfRequest: descriptionOfRequest,
-            CustomerId: customerId
+            ContractNumber: contractNumber
         };
         var StaffId = "@User.FindFirst("StaffId")?.Value";
 
@@ -1173,5 +1179,19 @@
     function refresh() {
         document.getElementById("descriptionOfRequest").value = "";
         document.getElementById("Support").value = "Kythuat";
+        document.getElementById("cId").value = "";
+        document.getElementById("cName").value = "";
+        document.getElementById("cTaxCode").value = "";
+        document.getElementById("cEmail").value = "";
+        document.getElementById("cPhone").value = "";
+        document.getElementById("cAddress").value = "";
+        document.getElementById("cType").value = "";
+        document.getElementById("contractNumber").value = "";
+        document.getElementById("aEmail").value = "";
+        document.getElementById("aName").value = "";
+        document.getElementById("aPhone").value = "";
+        document.getElementById("searchInput").value = "";
     }
+
+
  </script>

@@ -39,7 +39,7 @@ namespace WebApi.Controllers.Client
         [HttpPost]
         public IActionResult Insert([FromBody] Requirement_C Req)
         {
-            if (Req == null || string.IsNullOrEmpty(Req.CustomerId))
+            if (Req == null || string.IsNullOrEmpty(Req.ContractNumber))
             {
                 Console.WriteLine("Dữ liệu đầu vào không hợp lệ.");
                 return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });

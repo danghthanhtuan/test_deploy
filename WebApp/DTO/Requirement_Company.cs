@@ -60,7 +60,7 @@
         public DateTime? DateOfRequest { get; set; }
         public string? DescriptionOfRequest { get; set; } = null!;
 
-        public string CustomerId { get; set; } = null!;
+        public string ContractNumber { get; set; } = null!;
 
     }
 

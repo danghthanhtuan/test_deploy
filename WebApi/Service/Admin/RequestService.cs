@@ -20,14 +20,15 @@ namespace WebApi.Service.Admin
         {
             // Truy vấn dữ liệu với điều kiện CustomerId
             var query = from r in _context.Requirements
+                        join h in _context.Contracts
+                        on r.Contractnumber equals h.Contractnumber
                         join c in _context.Companies
-                        on r.Customerid equals c.Customerid
+                        on h.Customerid equals c.Customerid
                         join a in _context.Accounts
                         on c.Customerid equals a.Customerid
                         join s in _context.SupportTypes 
                         on r.SupportCode equals s.SupportCode
-                        join h in _context.Contracts
-                        on c.Customerid equals h.Customerid
+                       
                         join q in _context.ServiceTypes on h.ServiceTypeid equals q.Id
                        // where c.CustomerId == req.Cutomer
                         select new Requirement_Company
@@ -123,15 +124,13 @@ namespace WebApi.Service.Admin
         {
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
-                        join r in _context.Requirements on c.Customerid equals r.Customerid
+                        join h in _context.Contracts on c.Customerid equals h.Customerid
+                        join r in _context.Requirements on h.Contractnumber equals r.Contractnumber
                         join b in _context.Assigns on r.Requirementsid equals b.Requirementsid
                         where r.Requirementsid == req
-                        join h in _context.Contracts
-                        on c.Customerid equals h.Customerid
                         join s in _context.SupportTypes
                         on r.SupportCode equals s.SupportCode
                         join q in _context.ServiceTypes on h.ServiceTypeid equals q.Id
-
                         select new Requirement_Company
                         {
                             RequirementsId = r.Requirementsid,
@@ -177,10 +176,10 @@ namespace WebApi.Service.Admin
                     {
                         return $"Nhân viên với mã nhân viên = {id} không tồn tại";
                     }
-                    var customerid = _context.Companies.FirstOrDefault(s => s.Customerid == Req.CustomerId);
-                    if (customerid == null)
+                    var contractNumber = _context.Contracts.FirstOrDefault(s => s.Contractnumber == Req.ContractNumber);
+                    if (contractNumber == null)
                     {
-                        return $"Khách hàng với mã công ty = {Req.CustomerId} không tồn tại";
+                        return $"Khách hàng với mã hợp đồng không tồn tại";
                     }
 
                     var lastCustomer = _context.Requirements
@@ -207,7 +206,7 @@ namespace WebApi.Service.Admin
                         Requirementsstatus = Req.RequirementsStatus,
                         Dateofrequest = Req.DateOfRequest,
                         Descriptionofrequest = Req.DescriptionOfRequest,
-                        Customerid = Req.CustomerId,
+                        Contractnumber = Req.ContractNumber,
                         SupportCode = support.SupportCode, 
                         //Staffid = id,   
                     };
@@ -263,8 +262,10 @@ namespace WebApi.Service.Admin
                 }
                 // Kiểm tra trạng thái hoạt động của công ty
                 var isOperating = (from r in _context.Requirements
+                                   join h in _context.Contracts
+                                   on r.Contractnumber equals h.Contractnumber
                                    join c in _context.Companies
-                                   on r.Customerid equals c.Customerid
+                                   on h.Customerid equals c.Customerid
                                    where r.Requirementsid == historyReq.Requirementsid
                                    select c.Operatingstatus).FirstOrDefault();
 

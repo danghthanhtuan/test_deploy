@@ -11,5 +11,9 @@ public partial class ServiceGroup
 
     public string GroupName { get; set; } = null!;
 
+    public virtual ICollection<Endow> Endows { get; set; } = new List<Endow>();
+
+    public virtual ICollection<Regulation> Regulations { get; set; } = new List<Regulation>();
+
     public virtual ICollection<ServiceType> ServiceTypes { get; set; } = new List<ServiceType>();
 }

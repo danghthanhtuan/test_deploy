@@ -29,7 +29,5 @@ public partial class Company
 
     public virtual Loginclient? Loginclient { get; set; }
 
-    public virtual ICollection<Requirement> Requirements { get; set; } = new List<Requirement>();
-
     public virtual ICollection<Resetpassword> Resetpasswords { get; set; } = new List<Resetpassword>();
 }

@@ -108,10 +108,10 @@ namespace WebApi.Service.Client
             {
                 try
                 {
-                    var customerid = _context.Companies.FirstOrDefault(s => s.Customerid == Req.CustomerId);
-                    if (customerid == null)
+                    var contractNumber = _context.Contracts.FirstOrDefault(s => s.Contractnumber == Req.ContractNumber);
+                    if (contractNumber == null)
                     {
-                        return $"Khách hàng với mã công ty = {Req.CustomerId} không tồn tại";
+                        return $"Khách hàng với mã công ty = {Req.ContractNumber} không tồn tại";
                     }
 
                     var lastCustomer = _context.Requirements
@@ -138,7 +138,7 @@ namespace WebApi.Service.Client
                         Requirementsstatus = Req.RequirementsStatus,
                         Dateofrequest = Req.DateOfRequest,
                         Descriptionofrequest = Req.DescriptionOfRequest,
-                        Customerid = Req.CustomerId,
+                        Contractnumber = Req.ContractNumber,
                     };
 
                     string department = Req.Support switch
@@ -201,10 +201,10 @@ namespace WebApi.Service.Client
 
             // Truy vấn dữ liệu với điều kiện CustomerId
             var query = (from c in _context.Companies
-                         join a in _context.Accounts on c.Customerid equals a.Customerid
-                         join r in _context.Requirements on c.Customerid equals r.Customerid
-                         join q in _context.SupportTypes on r.SupportCode equals q.SupportCode
+                         //join a in _context.Accounts on c.Customerid equals a.Customerid
                          join b in _context.Contracts on c.Customerid equals b.Customerid
+                         join r in _context.Requirements on b.Contractnumber equals r.Contractnumber
+                         join q in _context.SupportTypes on r.SupportCode equals q.SupportCode
                          join h in _context.Historyreqs on r.Requirementsid equals h.Requirementsid into historyJoin
                          from h in historyJoin.DefaultIfEmpty() // Left Join
 
@@ -269,8 +269,8 @@ namespace WebApi.Service.Client
         {
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
-                        join r in _context.Requirements on c.Customerid equals r.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
+                        join r in _context.Requirements on b.Contractnumber equals r.Contractnumber
                         join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
                         join q in _context.SupportTypes on r.SupportCode equals q.SupportCode
                         where r.Requirementsid == requestid

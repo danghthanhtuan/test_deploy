@@ -105,7 +105,7 @@ namespace WebApp.Areas.Admin.Controllers
                 return BadRequest(new { success = false, message = "Mã nhân viên không hợp lệ!" });
 
             // Kiểm tra dữ liệu đầu vào
-            if (string.IsNullOrEmpty(Req.CustomerId))
+            if (string.IsNullOrEmpty(Req.ContractNumber))
                 return BadRequest(new { success = false, message = "Mã khách hàng không hợp lệ!" });
 
             if (Req == null)
