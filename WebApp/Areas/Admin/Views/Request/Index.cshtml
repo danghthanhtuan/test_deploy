@@ -722,13 +722,30 @@
                         return data ? new Date(data).toLocaleDateString("vi-VN") : "";
                     }
                 },
+                // {
+                //     data: null,
+                //     width: "20%",
+                //     render: function (data, type, row) {
+                //         return `<button id="btnDetail"  class="btn btn-sm btn-primary detail-btn" data-id="${row.requirementsId}">Chi tiết</button>`;
+                //     }
+                // }
                 {
                     data: null,
-                    width: "20%",
+                    width: "10%",
                     render: function (data, type, row) {
-                        return `<button id="btnDetail"  class="btn btn-sm btn-primary detail-btn" data-id="${row.requirementsId}">Chi tiết</button>`;
+                        return `
+            <div class="text-center">
+                <i id="btnDetail" class="fa-solid fa-clipboard-list text-primary detail-btn"
+                   style="cursor: pointer; font-size: 1.4rem; transition: 0.3s;"
+                   title="Xem & Cập nhật"
+                   data-id="${row.requirementsId}">
+                </i>
+            </div>`;
                     }
                 }
+
+
+
             ],
             // drawCallback: function (settings) {
             //     $(".status-clickable").off("click").on("click", function () {

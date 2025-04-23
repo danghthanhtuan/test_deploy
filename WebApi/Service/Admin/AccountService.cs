@@ -425,11 +425,7 @@ namespace WebApi.Service.Admin
                         Accountissueddate = CompanyAccountDTO.AccountIssuedDate,
                         Cphonenumber = CompanyAccountDTO.CPhoneNumber,
                         Caddress = CompanyAccountDTO.CAddress,
-                        //Customertype = CompanyAccountDTO.CustomerType,
                         Operatingstatus = CompanyAccountDTO.OperatingStatus,
-
-                        // ServiceType = CompanyAccountDTO.ServiceType,
-                        // ContractNumber = CompanyAccountDTO.ContractNumber,
                     };
 
                     _context.Companies.Add(newCompany);

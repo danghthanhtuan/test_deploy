@@ -81,6 +81,22 @@ CREATE TABLE CONTRACTS (
     FOREIGN KEY (SERVICE_TYPEID) REFERENCES SERVICE_TYPE(ID),
     FOREIGN KEY (CUSTOMERID) REFERENCES COMPANY(CUSTOMERID)
 );
+ALTER TABLE CONTRACTS
+ALTER COLUMN SERVICE_TYPEID INT NULL;
+SELECT name 
+FROM sys.foreign_keys 
+WHERE parent_object_id = OBJECT_ID('CONTRACTS');
+ALTER TABLE CONTRACTS
+
+DROP CONSTRAINT FK__CONTRACTS__SERVI__534D60F1;
+
+ALTER TABLE CONTRACTS
+DROP CONSTRAINT FK__CONTRACTS__CUSTO__5441852A;
+
+ALTER TABLE CONTRACTS
+ADD CONSTRAINT FK_CONTRACTS_SERVICE_TYPEID
+FOREIGN KEY (SERVICE_TYPEID) REFERENCES SERVICE_TYPE(ID)
+ON DELETE SET NULL;
 
 --T?O B?NG NHÂN VIÊN
 CREATE TABLE STAFF (
@@ -186,19 +202,24 @@ CREATE TABLE REGULATIONS
 	PRICE DECIMAL(18,2) NOT NULL,        
 	FOREIGN KEY(SERVICE_GROUPID) REFERENCES SERVICE_GROUP(SERVICE_GROUPID)
 );
-
+-- BẢNG ƯU ĐÃI
 CREATE TABLE ENDOW
 (
-	ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL, 
-	DURATION INT NOT NULL, 
-	DISCOUNT FLOAT NOT NULL, 
-	SERVICE_GROUPID VARCHAR(10), 
-	STARTDATE DATETIME,
-	ENDDATE DATETIME,
-	FOREIGN KEY(SERVICE_GROUPID) REFERENCES SERVICE_GROUP(SERVICE_GROUPID),
+	ID INT PRIMARY KEY IDENTITY(1,1),
+	ENDOWID VARCHAR(10) NOT NULL UNIQUE,  -- MÃ ƯU ĐÃI
+	SERVICE_GROUPID VARCHAR(10) NOT NULL, -- ÁP DỤNG CHO LOẠI DỊCH VỤ NÀO
+	DISCOUNT FLOAT NOT NULL,              -- % GIẢM
+	STARTDATE DATETIME NULL,              -- BẮT ĐẦU ƯU ĐÃI
+	ENDDATE DATETIME NULL,                -- KẾT THÚC ƯU ĐÃI
+	DURATION INT NULL,                    -- SỐ THÁNG ÁP DỤNG (nếu có) CHO DẠNG HỢP ĐỒNG BAO LÂU 
+	DESCRIPTIONENDOW NVARCHAR(255) NULL,       -- MÔ TẢ ƯU ĐÃI
+	FOREIGN KEY(SERVICE_GROUPID) REFERENCES SERVICE_GROUP(SERVICE_GROUPID)
+);
 
-);	
-
+INSERT INTO ENDOW(ENDOWID,SERVICE_GROUPID,DISCOUNT,STARTDATE,ENDDATE)
+VALUES ('ENDOW00001','SER0001',5,'2024-08-25','2026-08-25')
+select * from endow
+update endow set DISCOUNT = 5 where ENDOWID ='ENDOW00001'
 --nếu hợp đồng >=6 tháng giảm 5%
 --nếu hợp đồng >=12 tháng giảm 10%
 --nếu TELCO 1.000.000/ tháng 
@@ -215,32 +236,36 @@ INSERT INTO SUPPORT_TYPE ( SUPPORT_CODE, SUPPORT_NAME) VALUES
 
 -- Thêm nhóm dịch vụ
 INSERT INTO SERVICE_GROUP (SERVICE_GROUPID, GROUP_NAME) VALUES
-('TELCO', N'Viễn thông & Truyền thông'),
-('CLOUD_SW', N'Điện toán đám mây & Phần mềm'),
-('SUPPORT', N'Hỗ trợ & An toàn thông tin'),
-('CONTRACT', N'Hợp đồng & Đối tác');
+('SER0001', N'Viễn thông & Truyền thông'),
+('SER0002', N'Điện toán đám mây & Phần mềm'),
+('SER0003', N'Hỗ trợ & An toàn thông tin'),
+('SER0004', N'Hợp đồng & Đối tác');
 
 -- Thêm loại dịch vụ
 INSERT INTO SERVICE_TYPE (SERVICE_GROUPID, SERVICE_TYPEName) VALUES 
-('TELCO', N'Đầu số thoại'),
-('TELCO', N'Kênh truyền'),
-('TELCO', N'Tổng đài'),
-('TELCO', N'Hội nghị truyền hình'),
-('TELCO', N'Tin nhắn'),
-('TELCO', N'Dịch vụ truyền hình'),
-('CLOUD_SW', N'Cloud partner'),
-('CLOUD_SW', N'Điện toán đám mây'),
-('CLOUD_SW', N'Dịch vụ điện tử'),
-('CLOUD_SW', N'Dịch vụ phần mềm (SaaS)'),
-('SUPPORT', N'An toàn thông tin'),
-('SUPPORT', N'Giám sát'),
-('SUPPORT', N'Trung tâm dữ liệu'),
-('SUPPORT', N'Thiết bị'),
-('SUPPORT', N'Hỗ trợ CNTT'),
-('CONTRACT', N'Hợp đồng tích hợp/dự án'),
-('CONTRACT', N'Hợp đồng hợp tác'),
-('CONTRACT', N'Đối tác');
+('SER0001', N'Đầu số thoại'),
+('SER0001', N'Kênh truyền'),
+('SER0001', N'Tổng đài'),
+('SER0001', N'Hội nghị truyền hình'),
+('SER0001', N'Tin nhắn'),
+('SER0001', N'Dịch vụ truyền hình'),
+('SER0002', N'Cloud partner'),
+('SER0002', N'Điện toán đám mây'),
+('SER0002', N'Dịch vụ điện tử'),
+('SER0002', N'Dịch vụ phần mềm (SaaS)'),
+('SER0003', N'An toàn thông tin'),
+('SER0003', N'Giám sát'),
+('SER0003', N'Trung tâm dữ liệu'),
+('SER0003', N'Thiết bị'),
+('SER0003', N'Hỗ trợ CNTT'),
+('SER0004', N'Hợp đồng tích hợp/dự án'),
+('SER0004', N'Hợp đồng hợp tác'),
+('SER0004', N'Đối tác');
 
+insert into REGULATIONS (SERVICE_GROUPID,PRICE) values ('SER0001','1000000')
+insert into REGULATIONS (SERVICE_GROUPID,PRICE) values ('SER0002','1500000')
+insert into REGULATIONS (SERVICE_GROUPID,PRICE) values ('SER0003','1800000')
+insert into REGULATIONS (SERVICE_GROUPID,PRICE) values ('SER0004','1200000')
 INSERT INTO Company ( customerID, companyName, taxCode, companyAccount, accountIssuedDate, cPhoneNumber, cAddress, customerType,OPERATINGSTATUS) VALUES
 ('IT03030001', N'TNHH Nam Á', '012345432', 'rireland0@answers.com', '2024-08-25', '0147258369', N'Đường Lê Lợi, quận 10', 0,0),
 ('IT03030002', N'Công ty Cổ phần ABC', '012355432', 'contact@abc.com', '2024-09-10', '0147258370', N'123 Đường Trần Hưng Đạo, quận 1', 1,1),
@@ -311,6 +336,8 @@ select * from Payment
 select * from contracts
 select * from LOGINclient
 select * from RESETPASSWORD
+select * from endow
+
 select HISTORYREQ.DESCRIPTIONOFREQUEST, DATEOFREQUEST, BEFORSTATUS, APTERSTATUS, HISTORYREQ.STAFFID 
 select *
 from REQUIREMENTS join HISTORYREQ on REQUIREMENTS.REQUIREMENTSID = HISTORYREQ.REQUIREMENTSID 
@@ -337,3 +364,7 @@ join SERVICE_TYPE e on d.SERVICE_TYPEID = e.ID
 --where c.COMPANYNAME like '%tnhh%'
 Group by c.Customerid,c.Companyname,c.Taxcode , c.Companyaccount,c.Accountissueddate, c.Cphonenumber,  c.Caddress, c.Customertype, e.SERVICE_TYPEName,
 a.Rootaccount,a.Rootname,a.Rphonenumber,c.Operatingstatus,a.Dateofbirth,a.Gender
+
+select * from SERVICE_GROUP
+select * from SERVICE_TYPE
+select * from REGULATIONS

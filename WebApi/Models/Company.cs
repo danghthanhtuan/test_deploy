@@ -25,8 +25,6 @@ public partial class Company
 
     public virtual Account? Account { get; set; }
 
-    public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
-
     public virtual Loginclient? Loginclient { get; set; }
 
     public virtual ICollection<Resetpassword> Resetpasswords { get; set; } = new List<Resetpassword>();

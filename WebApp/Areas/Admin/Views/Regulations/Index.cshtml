@@ -1,0 +1,1492 @@
+﻿@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .hidden {
+        display: none !important;
+    }
+
+    .flex-shrink-0 {
+        height: 60px;
+    }
+    .addServiceBtn
+    {
+        padding: 5px;
+        margin-right: 10px;
+        width: 250px;
+    }
+
+    .addDiscountBtn {
+        padding: 5px;
+        margin-right: 10px;
+        width: 250px;
+    }
+
+    .p-3 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-top: 0px;
+    }
+    /* Căn chỉnh toàn bảng */
+    #listEndow {
+        margin-top: 0 !important; /* Giảm lề trên */
+        padding-top: 0 !important;
+        border-collapse: collapse; /* Gộp đường viền cho gọn */
+        font-size: 14px; /* Cỡ chữ hợp lý */
+        line-height: 1.4; /* Giảm chiều cao dòng */
+    }
+
+        /* Đảm bảo mỗi ô có độ rộng hợp lý và sát nhau hơn */
+        #listEndow th, #listEndow td {
+            padding: 4px 8px; /* Ít padding hơn */
+            text-align: left;
+            vertical-align: middle; /* Căn giữa theo chiều dọc */
+            border: 1px solid #e3e3e3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word; /* Cho phép bẻ dòng trong các ô dài mà không bị tràn */
+        }
+        /* Cải thiện giao diện bảng khi có nội dung dài */
+        #listEndow tbody tr {
+            word-wrap: break-word; /* Cho phép bẻ dòng trong các ô dài */
+        }
+
+            #listEndow tbody tr:hover {
+                background-color: #f9f9f9;
+                cursor: pointer;
+            }
+        /* Giảm khoảng cách giữa dòng tiêu đề và các hàng dữ liệu */
+        #listEndow th {
+            padding-top: 3px; /* Giảm khoảng cách trên tiêu đề */
+            padding-bottom: 3px; /* Giảm khoảng cách dưới tiêu đề */
+            text-align: center; /* Căn giữa văn bản tiêu đề */
+            background-color: #f1f1f1; /* Đặt màu nền cho tiêu đề */
+            font-weight: bold; /* Làm đậm các tiêu đề */
+        }
+
+        /* Các phần tử trong bảng có thể điều chỉnh theo nhu cầu */
+        #listEndow td {
+            font-size: 14px;
+        }
+
+        /* Thêm hiệu ứng hover cho các hàng trong bảng */
+        #listEndow tbody tr:hover {
+            background-color: #e7e7e7;
+            cursor: pointer;
+        }
+
+        /* Đảm bảo không bị tràn khi có văn bản dài */
+        #listEndow td {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+    /* Căn chỉnh toàn bảng */
+    #listRegulations {
+        margin-top: 0 !important; /* Giảm lề trên */
+        padding-top: 0 !important;
+        border-collapse: collapse; /* Gộp đường viền cho gọn */
+        font-size: 14px; /* Cỡ chữ hợp lý */
+        line-height: 1.4; /* Giảm chiều cao dòng */
+    }
+
+        /* Đảm bảo mỗi ô có độ rộng hợp lý và sát nhau hơn */
+        #listRegulations th, #listRegulations td {
+            padding: 4px 8px; /* Ít padding hơn */
+            text-align: left;
+            vertical-align: middle; /* Căn giữa theo chiều dọc */
+            border: 1px solid #e3e3e3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word; /* Cho phép bẻ dòng trong các ô dài mà không bị tràn */
+        }
+        /* Cải thiện giao diện bảng khi có nội dung dài */
+       #listRegulations tbody tr {
+            word-wrap: break-word; /* Cho phép bẻ dòng trong các ô dài */
+        }
+
+            #listRegulations tbody tr:hover {
+                background-color: #f9f9f9;
+                cursor: pointer;
+            }
+        /* Giảm khoảng cách giữa dòng tiêu đề và các hàng dữ liệu */
+       #listRegulations th {
+            padding-top: 3px; /* Giảm khoảng cách trên tiêu đề */
+            padding-bottom: 3px; /* Giảm khoảng cách dưới tiêu đề */
+            text-align: center; /* Căn giữa văn bản tiêu đề */
+            background-color: #f1f1f1; /* Đặt màu nền cho tiêu đề */
+            font-weight: bold; /* Làm đậm các tiêu đề */
+        }
+
+        /* Các phần tử trong bảng có thể điều chỉnh theo nhu cầu */
+       #listRegulations td {
+            font-size: 14px;
+        }
+
+        /* Thêm hiệu ứng hover cho các hàng trong bảng */
+         #listRegulations tbody tr:hover {
+            background-color: #e7e7e7;
+            cursor: pointer;
+        }
+
+        /* Đảm bảo không bị tràn khi có văn bản dài */
+         #listRegulations td {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        #listRegulations tr.row-clicked,
+        #listEndow tr.row-clicked {
+            background-color: #c0c0c0; /* Màu nền xám đậm hơn */
+        }
+
+            #listRegulations tr.row-clicked td,
+            #listEndow tr.row-clicked td {
+                border: 1px solid #666666; /* Viền đậm hơn chút nếu muốn */
+            }
+
+    .service-table {
+        background-color: #E0F7FA; /* Màu nền xanh dương pastel rất nhạt */
+        border: 1px solid #00008B; /* Viền xanh đậm */
+    }
+
+        .service-table th, .service-table td {
+            border: 1px solid #00008B; /* Viền xanh đậm */
+            background-color: #E0F7FA; /* Màu nền xanh dương pastel rất nhạt */
+        }
+
+        .service-table th {
+            background-color: #e0e94; /* Màu nền xám cho tiêu đề */
+        }
+
+    .modal#ModalSuccess {
+        z-index: 1051 !important; /* Đảm bảo modal success luôn có z-index cao hơn các modal khác */
+    }
+
+    .modal-backdrop {
+        z-index: 1050 !important; /* Đảm bảo backdrop không che modal success */
+    }
+
+</style>
+<body>
+    <div id="regulationListContainer" class="container-fluid d-flex flex-column vh-100">
+        <!-- Mục lọc -->
+        <div class="row flex-shrink-0">
+            <div class="col-12">
+                <div class="card p-2">
+                    <form class="d-flex align-items-center w-100" style="gap: 10px;">
+                        <button id="addServiceBtn" class="btn btn-warning btn-sm px-3">
+                            <i class="fas fa-plus-circle me-1"></i> Thêm dịch vụ
+                        </button>
+
+                        <button id="addDiscountBtn" class="btn btn-success btn-sm px-3">
+                            <i class="fas fa-gift me-1"></i> Thêm ưu đãi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vùng hiển thị chia làm 2 cột -->
+        <div class="row flex-grow-1 overflow-auto">
+            <div class="col-md-6">
+                <div class="card p-3 h-100">
+                     <h5 class="mb-3">Bảng dịch vụ</h5> 
+                    <div class="table-responsive h-100">
+                        <table id="listRegulations" class="table table-striped table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>More</th>
+                                    <th>Mã dịch vụ</th>
+                                    <th>Nhóm dịch vụ</th>
+                                    <th>Giá</th>
+                                    <th>Cập nhật</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card p-3 h-100">
+                     <h5 class="mb-3">Bảng ưu đãi</h5> 
+                    <div class="table-responsive h-100">
+                        <table id="listEndow" class="table table-striped table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>More</th>
+                                    <th>Mã Ưu đãi</th>
+                                    <th>Thời gian bắt đầu</th>
+                                    <th>Thời gian kết thúc</th>
+                               </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<!-- Modal confirm -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="xacNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xacNhanModalLabel">Xác nhận hành động</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span class="" id="contentModalConfirm"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" id="confirmButton1">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-green">
+                <span id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal thông báo lỗi -->
+<div class="modal fade" id="ModalError" tabindex="-1" aria-labelledby="ModalErrorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="ModalErrorLabel">Lỗi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="contentModalError"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal thêm dịch vụ-->
+<div class="modal fade" id="regulationModal" tabindex="-1" role="dialog" aria-labelledby="regulationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="regulationModalLabel">Thêm Nhóm dịch vụ</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="regulationForm">
+                    <div class="form-group">
+                        <label for="groupName">Nhóm dịch vụ</label>
+                        <input type="text" class="form-control" id="groupName" name="groupName" placeholder="Nhập tên nhóm dịch vụ">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Giá</label>
+                        <input type="number" class="form-control" id="price" name="price" placeholder="Nhập giá dịch vụ">
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="mb-0">Tên dịch vụ</label>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addServiceType">
+                            <i class="fa fa-plus"></i> Thêm dịch vụ
+                        </button>
+                    </div>
+
+                    <div id="serviceTypeList">
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control service-type-input" name="serviceTypeNames" placeholder="Nhập tên dịch vụ">
+                            <button type="button" class="btn btn-outline-danger removeServiceType" style="display: none;">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="InsertRegulation()">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm ưu đãi -->
+<div class="modal fade" id="discountModal" tabindex="-1" aria-labelledby="discountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content p-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="discountModalLabel">Thêm ưu đãi</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="startDate" class="form-label">Ngày bắt đầu</label>
+                    <input type="date" id="startDate" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="endDate" class="form-label">Ngày kết thúc</label>
+                    <input type="date" id="endDate" class="form-control">
+                </div>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Loại dịch vụ</th>
+                            <th>Hạn hợp đồng</th>
+                            <th>Giảm giá (%)</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <select id="serviceTypeSelect" class="form-select">
+                                    <option value="">-- Chọn --</option>
+                                </select>
+                            </td>
+                            <td><input type="text" id="contractTerm" class="form-control"></td>
+                            <td><input type="number" id="discountPercent" class="form-control" min="0" max="100"></td>
+                            <td><input type="text" id="description" class="form-control"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button id="saveDiscountBtn" class="btn btn-primary">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        init();
+
+        // Khi nút "Đóng" trong modal được click
+        $('#regulationModal').on('click', '.btn-secondary', function () {
+            // Reset các input
+            $('#groupName').val('');
+            $('#price').val('');
+
+            // Reset danh sách dịch vụ: giữ lại 1 ô duy nhất
+            $('#serviceTypeList').html(`
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control service-type-input" name="serviceTypeNames" placeholder="Nhập tên dịch vụ">
+                    <button type="button" class="btn btn-outline-danger removeServiceType" style="display: none;">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `);
+        });
+
+        document.querySelector('.close').addEventListener('click', function () {
+            $('#regulationModal').modal('hide');  // Đóng modal thủ công nếu cần
+            // Hoặc sự kiện đóng tự động của Bootstrap đã đủ rồi, không cần lặp lại
+        });
+
+        $('#discountModal').on('hidden.bs.modal', function () {
+            // Reset các trường input trong modal
+            $('#startDate').val('');
+            $('#endDate').val('');
+            $('#serviceTypeSelect').val('');
+            $('#contractTerm').val('');
+            $('#discountPercent').val('');
+            $('#description').val('');
+        });
+
+        // Lắng nghe sự kiện cho nút đóng (close) trong modal
+        document.querySelector('.close').addEventListener('click', function () {
+            $('#discountModal').modal('hide');  // Đóng modal thủ công nếu cần
+            // Hoặc sự kiện đóng tự động của Bootstrap đã đủ rồi, không cần lặp lại
+        });
+    });
+
+    const tokenJWT = localStorage.getItem("accessToken");
+
+    function init(){
+        if (currentOpenRow) {
+            const table = $('#listRegulations').DataTable();
+
+            // Kiểm tra lại row tồn tại trước khi thao tác
+            if ($.contains(document, currentOpenRow)) {
+                const oldRow = table.row(currentOpenRow);
+
+                if (oldRow && oldRow.child && typeof oldRow.child.hide === "function") {
+                    oldRow.child.hide();
+                }
+
+                $(currentOpenRow).removeClass("row-clicked");
+            }
+
+            currentOpenRow = null;
+        }
+        if (currentOpenRowEndow) {
+            const table = $('#listEndow').DataTable();
+
+            // Kiểm tra lại row tồn tại trước khi thao tác
+            if ($.contains(document, currentOpenRowEndow)) {
+                const oldRow = table.row(currentOpenRowEndow);
+
+                if (oldRow && oldRow.child && typeof oldRow.child.hide === "function") {
+                    oldRow.child.hide();
+                }
+
+                $(currentOpenRowEndow).removeClass("row-clicked");
+            }
+
+            currentOpenRowEndow = null;
+        }
+
+        // Destroy và khởi tạo lại bảng
+        if ($.fn.DataTable.isDataTable('#listRegulations')) {
+            $('#listRegulations').DataTable().destroy();
+        }
+
+        var table = $('#listRegulations').DataTable({
+            processing: true,
+            serverSide: true,
+            paging: true,
+            searching: false,
+            searchDelay: 400,
+            iDisplayLength: 6,
+            bLengthChange: false,
+            language: {
+                info: "Hiển thị _START_ đến _END_ của _TOTAL_ tài khoản",
+                lengthMenu: "Hiển thị _MENU_  tài khoản",
+                processing: "Đang tải dữ liệu...",
+                paginate: {
+                    previous: "Trước",
+                    next: "Tiếp theo",
+                    last: "Cuối"
+                }
+            },
+            ajax: {
+                url: "/admin/regulations/GetAllRegulations",
+                type: "POST",
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                data: function (data) {
+                    var currentPageIndex = Math.ceil(data.start / data.length) + 1;
+                    return JSON.stringify({
+                        PageSize: data.length,
+                        Page: currentPageIndex,
+                        Cutomer: ""
+                    });
+                },
+                dataSrc: function (res) {
+                     console.log(res.listRegu);
+                     return res.success && res.listRegu && res.listRegu.results ? res.listRegu.results : [];
+                    
+                },
+                dataFilter: function (data) {
+                    var page = $.parseJSON(data);
+
+                    page.recordsTotal = page.listRegu.rowCount || 0;
+                    page.recordsFiltered = page.listRegu.rowCount || 0;
+                    return JSON.stringify(page);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu:", error);
+                    showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                }
+            },
+            columns: [
+                {
+                    className: 'dt-control',
+                    orderable: false,
+                    data: null,
+                    defaultContent: ''
+                }, 
+                // { data: null, width: "4%", render: function (data, type, row, meta) { return meta.row + 1; } },
+                { data: "serviceGroupid", width: "20%" },
+                { data: "groupName", width: "15 % " },
+                { data: "price", width: "11%" },
+               
+                {
+                    data: null,
+                    width: "10%",
+                    render: function (data, type, row) {
+                        return `<div class="text-center">
+                  <i id="BtnUpdate" class="fa-solid fa-pen-to-square text-info update-regulations"
+                    style="cursor: pointer;font-size: 1.2rem;" title="Cập nhật" data-id="${row.serviceGroupid}"></i></div>`;
+                    }
+                }
+
+            ],
+            createdRow: function (row, data, dataIndex) {
+                $(row).data("fullData", data); // Lưu toàn bộ dữ liệu vào row
+
+            },
+
+            columnDefs: [{
+                "defaultContent": "-",
+                "targets": "_all"
+            }]
+        });
+
+        if ($.fn.DataTable.isDataTable('#listEndow')) {
+            $('#listEndow').DataTable().destroy();
+        }
+
+        var table = $('#listEndow').DataTable({
+            processing: true,
+            serverSide: true,
+            paging: true,
+            searching: false,
+            searchDelay: 400,
+            iDisplayLength: 6,
+            bLengthChange: false,
+            language: {
+                info: "Hiển thị _START_ đến _END_ của _TOTAL_ tài khoản",
+                lengthMenu: "Hiển thị _MENU_  tài khoản",
+                processing: "Đang tải dữ liệu...",
+                paginate: {
+                    previous: "Trước",
+                    next: "Tiếp theo",
+                    last: "Cuối"
+                }
+            },
+            ajax: {
+                url: "/admin/regulations/GetAllEndow",
+                type: "POST",
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                data: function (data) {
+                    var currentPageIndex = Math.ceil(data.start / data.length) + 1;
+                    return JSON.stringify({
+                        PageSize: data.length,
+                        Page: currentPageIndex,
+                        Cutomer: ""
+                    });
+                },
+                dataSrc: function (res) {
+                    console.log(res.listEndow);
+                    return res.success && res.listEndow && res.listEndow.results ? res.listEndow.results : [];
+                },
+                dataFilter: function (data) {
+                    var page = $.parseJSON(data);
+
+                    page.recordsTotal = page.listEndow.rowCount || 0;
+                    page.recordsFiltered = page.listEndow.rowCount || 0;
+                    return JSON.stringify(page);
+                },
+
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu:", error);
+                    showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                }
+            },
+            columns: [
+                {
+                    className: 'dt-control',
+                    orderable: false,
+                    data: null,
+                    defaultContent: '', width:"12%"
+                },
+                { data: "endowid", width: "15%" },
+                {
+                    data: "startdate",
+                    width: "20%",
+                    render: function (data) {
+                        return data ? new Date(data).toLocaleDateString("vi-VN") : "";
+                    }
+                },
+                {
+                    data: "enddate",
+                    width: "20%",
+                    render: function (data) {
+                        return data ? new Date(data).toLocaleDateString("vi-VN") : "";
+                    }
+                }
+            ],
+            createdRow: function (row, data, dataIndex) {
+                $(row).data("fullData", data); // Lưu toàn bộ dữ liệu vào row
+            },
+
+            columnDefs: [{
+                "defaultContent": "-",
+                "targets": "_all"
+            }]
+        });
+    }
+
+    // Khai báo biến theo dõi hàng mở
+    let currentOpenRow = null;
+
+    // Sự kiện khi nhấp vào cột có class 'dt-control'
+    $('#listRegulations').on('click', 'td.dt-control', function (e) {
+        let tr = $(this).closest('tr');
+        let row = $('#listRegulations').DataTable().row(tr);
+
+        // Nếu hàng đang mở và khác hàng hiện tại, đóng hàng đó
+        if (currentOpenRow && currentOpenRow !== row.node()) {
+            let oldRow = $('#listRegulations').DataTable().row(currentOpenRow);
+            oldRow.child.hide();
+            $(currentOpenRow).removeClass('row-clicked');
+        }
+
+        // Nếu hàng đã mở và là hàng hiện tại, đóng hàng đó
+        if (currentOpenRow === row.node()) {
+            row.child.hide();
+            tr.removeClass('row-clicked');
+            currentOpenRow = null;
+        } else {
+            // Mở hàng mới và đặt hàng mới làm hàng hiện tại
+            row.child(format(row.data())).show();
+            tr.addClass('row-clicked');
+            currentOpenRow = row.node(); // Dùng row.node() thay vì index
+        }
+
+        // Loại bỏ lớp CSS cho các hàng khác
+        $('#listRegulations tbody tr').not(tr).removeClass('row-clicked');
+    });
+
+    function format(data) {
+        let html = `
+            <div class="p-2" data-service-group-id="${data.serviceGroupid}">
+                <strong>Dịch vụ:</strong>
+                <i class="fa-solid fa-square-plus text-info add-service-btn" style="cursor:pointer;padding: 10px;" title="Thêm dịch vụ"></i>
+                <table class="table table-bordered service-table mt-2">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">ID</th>
+                            <th style="width: 70%;">Tên dịch vụ</th>
+                            <th style="width: 10%;">Chỉnh sửa</th>
+                            <th style="width: 10%;">Xoá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        // Nếu không có dịch vụ nào
+        if (!data.serviceTypes || data.serviceTypes.length === 0) {
+            html += `
+                <tr class="text-center text-muted empty-row">
+                    <td colspan="4">Không có dịch vụ nào</td>
+                </tr>
+            `;
+        } else {
+            data.serviceTypes.forEach((service) => {
+                html += `
+                    <tr>
+                        <td>${service.id}</td>
+                        <td>${service.serviceTypeNames}</td>
+                        <td class="text-center">
+                            <i class="fa-solid fa-pencil-alt text-info edit-btn-regulations" style="cursor:pointer;" title="Chỉnh sửa dịch vụ" data-id="${service.id}"></i>
+                        </td>
+                        <td class="text-center">
+                            <i class="fa-solid fa-trash text-danger delete-btn-regulations" style="cursor:pointer;" title="Xóa dịch vụ" data-id="${service.id}"></i>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        return html;
+    }
+
+
+    let currentOpenRowEndow = null;
+
+    // Sự kiện khi nhấp vào cột có class 'dt-control'
+    $('#listEndow').on('click', 'td.dt-control', function (e) {
+        let tr = $(this).closest('tr');
+        let row = $('#listEndow').DataTable().row(tr);
+
+        // Nếu hàng đang mở và khác hàng hiện tại, đóng hàng đó
+        if (currentOpenRowEndow && currentOpenRowEndow !== row.node()) {
+            let oldRow = $('#listEndow').DataTable().row(currentOpenRowEndow);
+            oldRow.child.hide();
+            $(currentOpenRowEndow).removeClass('row-clicked');
+        }
+
+        // Nếu hàng đã mở và là hàng hiện tại, đóng hàng đó
+        if (currentOpenRowEndow === row.node()) {
+            row.child.hide();
+            tr.removeClass('row-clicked');
+            currentOpenRowEndow = null;
+        }
+        else {
+            // Mở hàng mới và đặt hàng mới làm hàng hiện tại
+            row.child(formatEndow(row.data())).show();
+            tr.addClass('row-clicked');
+            currentOpenRowEndow = row.node(); // Dùng row.node() thay vì index
+        }
+
+        // Loại bỏ lớp CSS cho các hàng khác
+        $('#listEndow tbody tr').not(tr).removeClass('row-clicked');
+    });
+
+    function formatEndow(data) {
+        let html = `
+            <div class="p-2">
+                <strong>Chi tiết ưu đãi:</strong>
+                    <table class="table table-bordered  service-table mt-2">
+                    <thead>
+                        <tr>
+                            <th>Loại dịch vụ</th>
+                            <th>Hạn hợp đồng</th>
+                            <th>Giảm giá (%)</th>
+                            <th>Mô tả</th>
+                            <th>Cập nhật</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        const durationText = data.duration ? data.duration : 'Không có yêu cầu';
+        const discountText = data.discount != null ? `${data.discount}%` : '0%';
+        const descriptionText = data.descriptionendow ? data.descriptionendow : 'Không có mô tả';
+
+        html += `
+        <tr data-endowid="${data.endowid}" data-servicegroupid="${data.serviceGroupid}">
+            <td>${data.groupName}</td>
+            <td>${durationText}</td>
+            <td>${discountText}</td>
+            <td>${descriptionText}</td>
+            <td class="text-center">
+                <i class="fa-solid fa-pencil-alt text-info edit-btn-endow" style="cursor:pointer;" title="Chỉnh sửa ưu đãi"></i>
+            </td>
+        </tr>
+    `;
+
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        return html;
+    }
+
+    //thao tác với modal insert 
+    document.getElementById('addServiceType').addEventListener('click', function () {
+        const container = document.getElementById('serviceTypeList');
+
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2';
+
+        div.innerHTML = `
+                <input type="text" class="form-control service-type-input" name="serviceTypeNames[]" placeholder="Nhập tên dịch vụ">
+                <button type="button" class="btn btn-outline-danger removeServiceType">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+
+        container.appendChild(div);
+    });
+
+    document.getElementById('serviceTypeList').addEventListener('click', function (e) {
+        if (e.target.closest('.removeServiceType')) {
+            e.target.closest('.input-group').remove();
+        }
+    });
+    
+    document.getElementById("addServiceBtn").addEventListener("click", function (e) {
+        e.preventDefault(); // Ngăn form submit lại trang
+
+        const myModal = new bootstrap.Modal(document.getElementById('regulationModal'));
+        myModal.show();
+    });
+    
+    document.addEventListener("click", function (e) {
+        if (e.target.closest(".removeServiceType")) {
+            e.target.closest(".input-group").remove();
+        }
+    });
+
+    // thêm nhóm dịch vụ mới
+    function InsertRegulation() {
+        var price = document.getElementById("price").value.trim();
+        var groupName = document.getElementById("groupName").value.trim();
+
+        // Lấy các input dịch vụ
+        const serviceTypeInputs = document.querySelectorAll(".service-type-input");
+
+        const serviceTypeObjects = [];
+        serviceTypeInputs.forEach(input => {
+            const value = input.value.trim();
+            if (value !== "") {
+                serviceTypeObjects.push({ serviceTypeNames: value }); // phải đúng theo DTO
+            }
+        });
+
+        if (serviceTypeObjects.length === 0) {
+            showError("Vui lòng nhập ít nhất 1 dịch vụ.");
+            return;
+        }
+        if (!price || !groupName) {
+            showError("Vui lòng nhập đủ thông tin.");
+            return;
+        }
+        var cValues = {
+            ServiceGroupid: "",
+            GroupName: groupName,
+            Price: parseFloat(price),
+            ServiceTypes: serviceTypeObjects
+        };
+
+        console.log("Lưu nhóm dịch vụ:", cValues);
+        var StaffId = "@User.FindFirst('StaffId')?.Value";
+
+        // 👉 Ẩn modal chính trước khi mở modal xác nhận
+        $('#regulationModal').modal('hide');
+
+        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc chắn muốn thêm nhóm dịch vụ này không?";
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
+
+        $("#confirmButton1").off("click").on("click", function () {
+            modal.hide(); // Đóng modal xác nhận
+
+            $.ajax({
+                url: `/admin/regulations/InsertRegulation?id=${StaffId}`,
+                type: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(cValues),
+                success: function (response) {
+                    if (response.success) {
+                        // Đảm bảo modal success không bị ẩn dưới modal trước
+                        $('#ModalSuccess').modal('show');
+                        // Cập nhật giao diện
+                        document.getElementById("contentModalSuccess").innerHTML = "Thêm dịch vụ thành công";
+                        init(); // Làm mới dữ liệu
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định.";
+                    if (xhr.responseJSON) {
+                        if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message.join("<br>");
+                        } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                    }
+                    $("#contentModalError").html(errorMessage);
+                    $("#ModalError").modal("show");
+
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            });
+        });
+    }
+
+    
+    //click vào update nhóm dịch vụ - bảng chính
+    $(document).on("click", ".update-regulations", function () {
+        const table = $("#listRegulations").DataTable();
+        const tr = $(this).closest('tr');
+        const row = table.row(tr.hasClass('child') ? tr.prev() : tr); // Lấy đúng row
+        const rowData = row.data();
+
+        if (rowData) {
+            // Kiểm tra nếu rowData không phải undefined
+            console.log(rowData);  // Kiểm tra dữ liệu của row đã click
+
+            tr.find("td:eq(2)").html(`<input type="text" class="form-control form-control-sm" value="${rowData.groupName}" />`);
+            tr.find("td:eq(3)").html(`<input type="number" class="form-control form-control-sm" value="${rowData.price}" />`);
+
+            tr.find(".update-regulations").replaceWith(`
+                    <i class="fa-solid fa-floppy-disk text-success save-update-regulations"
+                   style="cursor: pointer;font-size: 1.2rem;" title="Lưu" data-id="${rowData.serviceGroupid}"></i>
+            `);
+        } else {
+            console.error("Không tìm thấy dữ liệu cho dòng này.");
+        }
+    });
+
+    $(document).on("click", ".save-update-regulations", function () {
+        const $icon = $(this);
+        const row = $icon.closest("tr");
+        const table = $("#listRegulations").DataTable();
+        const rowIndex = table.row(row).index();
+        const id = $icon.data("id");
+
+        // Lấy giá trị từ input
+        const groupName = row.find("td:eq(2) input").val();
+        const price = parseFloat(row.find("td:eq(3) input").val());
+        if (!groupName || !price) {
+            showError("Vui lòng không để trống thông tin.");
+            return;
+        }
+        // Gửi dữ liệu mới về server (nếu cần)
+        const updateData = {
+            ServiceGroupid: id,
+            GroupName: groupName,
+            Price: price
+        };
+        var StaffId = "@User.FindFirst("StaffId")?.Value";
+
+        // Gọi API cập nhật nếu cần:
+
+        $.ajax({
+            url: `/admin/regulations/Update?id=${StaffId}`,
+            type: 'POST',
+            headers: {
+                "Authorization": "Bearer " + tokenJWT
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(updateData),
+            success: function (response) {
+                if (response.success) {
+                    const table = $("#listRegulations").DataTable();
+
+                    if (currentOpenRow) {
+                        const table = $("#listRegulations").DataTable();
+
+                        // Kiểm tra xem hàng còn tồn tại trong DataTable không
+                        if ($.contains(document, currentOpenRow)) {
+                            const oldRow = table.row(currentOpenRow);
+
+                            // Chỉ thực hiện nếu row còn trong bảng và có child đang hiện
+                            if (oldRow && oldRow.child && oldRow.child() && oldRow.child.isShown()) {
+                                oldRow.child.hide();
+                            }
+
+                            $(currentOpenRow).removeClass("row-clicked");
+                        }
+
+                        currentOpenRow = null;
+                    }
+
+                    document.getElementById("contentModalSuccess").innerHTML = "Cập nhật thông tin dịch vụ thành công";
+                    $("#ModalSuccess").modal("show");
+
+                    // ⚠️ Lưu ý: nên reset `currentOpenRow = null` trước khi init
+                    init(); // Làm mới bảng
+                }
+
+            },
+            error: function (xhr) {
+                let errorMessage = "Lỗi không xác định.";
+                if (xhr.responseJSON) {
+                    if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                        errorMessage = xhr.responseJSON.message.join("<br>");
+                    } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                }
+                $("#contentModalError").html(errorMessage);
+                $("#ModalError").modal("show");
+
+                document.getElementById("btnCloseModal").addEventListener("click", function () {
+                    $("#ModalError").modal("hide");
+                });
+            }
+        });
+
+        // Nếu không gọi API mà muốn update trực tiếp thì:
+        table.row(rowIndex).data({
+            ...table.row(rowIndex).data(),
+            groupName: groupName,
+            price: price
+        }).draw(false);
+    });
+
+    //click thêm 1 tên dịch vụ mới -- bảng phụ
+    document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("fa-square-plus")) {
+            const container = e.target.closest(".p-2");
+            if (!container) {
+                console.warn("Không tìm thấy container .p-2. Có thể bạn chưa mở hàng chi tiết.");
+                return;
+            }
+
+            const tableBody = container.querySelector(".service-table tbody");
+            if (!tableBody) {
+                console.warn("Không tìm thấy tbody trong bảng dịch vụ.");
+                return;
+            }
+            const emptyRow = tableBody.querySelector(".empty-row");
+            if (emptyRow) emptyRow.remove();
+
+            // Không cho thêm nhiều dòng cùng lúc
+            if (tableBody.querySelector(".new-row")) return;
+
+            const newRow = document.createElement("tr");
+            newRow.classList.add("new-row");
+            newRow.innerHTML = `
+                <td><input type="text" class="form-control" disabled placeholder="Tự động" /></td>
+                <td><input type="text" class="form-control service-name-input" placeholder="Nhập tên dịch vụ" /></td>
+                <td class="text-center">
+                    <i class="fa-solid fa-save text-success save-btn-regulations" style="cursor:pointer;" title="Lưu dịch vụ"></i>
+                </td>
+                <td></td>
+            `;
+            tableBody.appendChild(newRow);
+        }
+    });
+
+        // Gửi AJAX để lưu dịch vụ mới
+    document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("save-btn-regulations")) {
+            const container = e.target.closest(".p-2");
+            const rows = container.querySelectorAll("tr");
+
+            const serviceGroupId = container.getAttribute("data-service-group-id");
+
+            if (!serviceGroupId) {
+                showError("Không tìm thấy ServiceGroupid.");
+                return;
+            }
+
+            let serviceTypes = [];
+            let isValid = true;
+
+            rows.forEach(row => {
+                const nameInput = row.querySelector(".service-name-input");
+                if (nameInput) {
+                    const name = nameInput.value.trim();
+                    if (!name) {
+                        showError("Vui lòng nhập đầy đủ tên các dịch vụ.");
+                        isValid = false;
+                        return;
+                    }
+
+                    serviceTypes.push({
+                        Id: 0, // Mặc định 0, vì đây là thêm mới
+                        ServiceTypeNames: name
+                    });
+                }
+            });
+
+            if (!isValid || serviceTypes.length === 0) 
+            {
+                showError("Vui lòng nhập đủ thông tin.");
+                return;
+            }
+            // Gửi toàn bộ dữ liệu
+            const updateData = {
+                ServiceGroupid: serviceGroupId,
+                GroupName: "", // Nếu cần bạn có thể lấy từ đâu đó
+                Price: 0, // Có thể sửa thành giá thực tế nếu cần
+                ServiceTypes: serviceTypes
+            };
+
+            var StaffId = "@User.FindFirst("StaffId")?.Value";
+
+            $.ajax({
+                url: `/admin/regulations/InsertTypename?id=${ StaffId}`,
+                    type: 'POST',
+                    headers:
+                {
+                    "Authorization": "Bearer " + tokenJWT
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    data: JSON.stringify(updateData),
+                    success: function (response) {
+                        if (response.success) {
+                                document.getElementById("contentModalSuccess").innerHTML = "Thêm loại dịch vụ thành công";
+                                $("#ModalSuccess").modal("show");
+                                init(); // Làm mới dữ liệu
+                            }
+                    },
+
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định.";
+                    if (xhr.responseJSON) {
+                        if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message.join("<br>");
+                        } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                    }
+                    $("#contentModalError").html(errorMessage);
+                    $("#ModalError").modal("show");
+                    // Gán sự kiện đóng modal vào nút "Đóng"
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            });
+        }
+    });
+
+    //click vào chỉnh sửa dịch vụ -- bảng phụ
+    $(document).on("click", ".edit-btn-regulations", function () {
+        const $tr = $(this).closest("tr");
+        const $td = $tr.find("td:eq(1)");
+        const currentName = $td.text().trim();
+        const serviceId = $(this).data("id");
+
+        // Đổi sang input để chỉnh sửa
+        $td.html(`<input type="text" class="form-control form-control-sm service-name-input" value="${currentName}" />`);
+
+        // Đổi icon thành nút lưu
+        $(this).replaceWith(`
+            <i class="fa-solid fa-floppy-disk text-success save-edit-regu"
+               style="cursor: pointer; font-size: 1.2rem;"
+               title="Lưu dịch vụ" data-id="${serviceId}"></i>
+        `);
+    });
+
+    $(document).on("click", ".save-edit-regu", function () {
+        const row = $(this).closest("tr");
+        const serviceName = row.find(".service-name-input").val().trim();
+        const serviceTypeId = $(this).data("id");
+
+        if (!serviceName) {
+            showError("Vui lòng nhập tên dịch vụ.");
+            return;
+        }
+
+        const container = $(this).closest(".p-2");
+        const serviceGroupId = container.attr("data-service-group-id");
+
+        if (!serviceGroupId) {
+            showError("Không tìm thấy ServiceGroupid.");
+
+            return;
+        }
+
+        const updateData = {
+            ServiceGroupid: serviceGroupId,
+            GroupName: "", // Nếu không cập nhật tên nhóm
+            Price: 0,        // Nếu không cập nhật giá
+            ServiceTypes: [
+                {
+                    Id: serviceTypeId, 
+                    ServiceTypeNames: serviceName
+                }
+            ]
+        };
+        var StaffId = "@User.FindFirst("StaffId")?.Value";
+            $.ajax({
+                url: `/admin/regulations/UpdateTypename?id=${StaffId}`,
+                type: 'POST',
+                headers:
+                    {
+                        "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(updateData),
+                success: function(response) {
+                    
+                    if (response.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = "Cập nhật tên dịch vụ thành công";
+                        $("#ModalSuccess").modal("show");
+                        init(); // Làm mới dữ liệu
+                    }
+                },
+            error: function (xhr) {
+                let errorMessage = "Lỗi không xác định.";
+                if (xhr.responseJSON) {
+                    if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                        errorMessage = xhr.responseJSON.message.join("<br>");
+                    } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                }
+                $("#contentModalError").html(errorMessage);
+                $("#ModalError").modal("show");
+                // Gán sự kiện đóng modal vào nút "Đóng"
+                document.getElementById("btnCloseModal").addEventListener("click", function () {
+                    $("#ModalError").modal("hide");
+                });
+            }
+        });
+    });
+
+    //click vào xóa dịch vụ -- bảng phụ
+    $(document).on('click', '.delete-btn-regulations', function () {
+        const serviceId = $(this).data('id'); // Lấy ID của dịch vụ cần xóa
+        const serviceName = $(this).closest('tr').find('td').eq(1).text(); // Lấy tên dịch vụ từ bảng
+
+        const updateData = {
+            ServiceGroupid: "",
+            GroupName: "",
+            Price:0,
+            ServiceTypes: [
+                {
+                    Id: serviceId,  // Đảm bảo sử dụng serviceId ở đây
+                    ServiceTypeNames: serviceName
+                }
+            ]
+        };
+        var StaffId = "@User.FindFirst("StaffId")?.Value";
+
+        // Hiển thị tên dịch vụ trong modal
+        $('#serviceName').text(serviceName);
+        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc chắn muốn xóa dịch vụ này không?";
+
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
+
+        // Lắng nghe sự kiện khi xác nhận xóa
+        $("#confirmButton1").off("click").on("click", function () {
+            modal.hide();
+            // Gọi Ajax để xóa dịch vụ
+            $.ajax({
+                url: `/admin/regulations/DeleteTypename?id=${StaffId}`,  // Đảm bảo cú pháp đúng, không có khoảng trắng sau dấu "="
+                type: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT  // Thêm token JWT nếu cần thiết
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(updateData),
+                success: function (response) {
+                    if (response.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = "Xóa dịch vụ thành công";
+                        $("#ModalSuccess").modal("show");
+                        init(); // Làm mới dữ liệu
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định.";
+                    if (xhr.responseJSON) {
+                        if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message.join("<br>");
+                        } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                    }
+                    $("#contentModalError").html(errorMessage);
+                    $("#ModalError").modal("show");
+                    // Gán sự kiện đóng modal vào nút "Đóng"
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            });
+        });
+    });
+
+    //list service name và insert 
+    $(document).ready(function () {
+        $('#addDiscountBtn').click(function (e) {
+            e.preventDefault();
+            $('#discountModal').modal('show');
+
+            // Gọi AJAX lấy danh sách loại dịch vụ
+            $.ajax({
+
+                url: `/admin/regulations/GetListServiceID`, // Thay URL này bằng URL thật trong backend
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT  // Thêm token JWT nếu cần thiết
+                },
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log("ket qua list dịch vụ dropdown", data);
+                    const select = $('#serviceTypeSelect');
+                    select.empty().append('<option value="">-- Chọn --</option>');
+                    data.listRegu.forEach(function (item) {
+                        select.append(`<option value="${item.serviceGroupid}">${item.groupName}</option>`);
+                    });
+                },
+                error: function () {
+                    alert('Không lấy được danh sách loại dịch vụ!');
+                }
+            });
+        });
+
+        // Xử lý lưu
+        $('#saveDiscountBtn').click(function () {
+            const startDate = $('#startDate').val();
+            const endDate = $('#endDate').val();
+            const serviceGroupid = $('#serviceTypeSelect').val();
+            const duration = $('#contractTerm').val();
+            const discount = $('#discountPercent').val();
+            const description = $('#description').val();
+
+            // Kiểm tra các trường bắt buộc
+            if (!startDate || !endDate || !serviceGroupid || !duration || !discount || !description) {
+                $("#contentModalError").html("Vui lòng nhập đầy đủ thông tin trước khi lưu.");
+                $("#ModalError").modal("show");
+                document.getElementById("btnCloseModal").addEventListener("click", function () {
+                    $("#ModalError").modal("hide");
+                });
+                return; // Không thực hiện tiếp
+            }
+            const payload = {
+                Endowid: "",
+                Startdate: startDate,
+                Enddate: endDate,
+                ServiceGroupid: serviceGroupid,
+                Duration: duration,
+                Discount: discount,
+                Descriptionendow: description,
+                GroupName: ""
+            };
+            var StaffId = "@User.FindFirst("StaffId")?.Value";
+            
+            document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc chắn muốn thêm ưu đãi này không?";
+
+            const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+            modal.show();
+
+            // Lắng nghe sự kiện khi xác nhận xóa
+            $("#confirmButton1").off("click").on("click", function () {
+                modal.hide();
+                // Gọi Ajax để xóa dịch vụ
+                $.ajax({
+
+                    url: `/admin/regulations/InsertEndow?id=${StaffId}`,  // Đảm bảo cú pháp đúng, không có khoảng trắng sau dấu "="
+                    type: 'POST',
+                    headers: {
+                        "Authorization": "Bearer " + tokenJWT  // Thêm token JWT nếu cần thiết
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    data: JSON.stringify(payload),
+                    success: function (response) {
+                        if (response.success) {
+                            document.getElementById("contentModalSuccess").innerHTML = "Thêm ưu đãi thành công";
+                            $("#ModalSuccess").modal("show");
+                            init(); // Làm mới dữ liệu
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMessage = "Lỗi không xác định.";
+                        if (xhr.responseJSON) {
+                            if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                                errorMessage = xhr.responseJSON.message.join("<br>");
+                            } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                        }
+                        $("#contentModalError").html(errorMessage);
+                        $("#ModalError").modal("show");
+                        // Gán sự kiện đóng modal vào nút "Đóng"
+                        document.getElementById("btnCloseModal").addEventListener("click", function () {
+                            $("#ModalError").modal("hide");
+                        });
+                    }
+                });
+            });
+          
+        });
+    });
+    
+    //update ưu đãi
+    $(document).on('click', '.edit-btn-endow', function () {
+        const $icon = $(this);
+        const $row = $icon.closest('tr');
+        const endowid = $row.data('endowid'); // <-- Thêm dòng này
+
+        if ($icon.hasClass('fa-pencil-alt')) {
+            // Chuyển sang chế độ chỉnh sửa
+            const duration = $row.find('td:eq(1)').text().trim();
+            const discount = $row.find('td:eq(2)').text().replace('%', '').trim();
+            const description = $row.find('td:eq(3)').text().trim();
+
+            $row.find('td:eq(1)').html(`<input type="text" class="form-control edit-duration" value="${duration}">`);
+            $row.find('td:eq(2)').html(`<input type="number" class="form-control edit-discount" value="${discount}">`);
+            $row.find('td:eq(3)').html(`<input type="text" class="form-control edit-description" value="${description}">`);
+
+            $icon.removeClass('fa-pencil-alt text-info').addClass('fa-save text-success').attr('title', 'Lưu ưu đãi');
+        } else {
+            // Lưu lại dữ liệu
+            const newDuration = $row.find('.edit-duration').val();
+            const newDiscount = $row.find('.edit-discount').val();
+            const newDescription = $row.find('.edit-description').val();
+            const groupName = $row.find('td:eq(0)').text().trim();
+            var StaffId = "@User.FindFirst("StaffId")?.Value";
+            // Kiểm tra hợp lệ: phải là số dương
+            if (!newDuration || isNaN(newDuration) || Number(newDuration) <= 0) {
+                $("#contentModalError").html("Thời hạn hợp đồng phải là một số lớn hơn 0.");
+                $("#ModalError").modal("show");
+                return;
+            }
+
+            if (!newDiscount || isNaN(newDiscount) || Number(newDiscount) <= 0 || Number(newDiscount) > 100) {
+                $("#contentModalError").html("Phần trăm ưu đãi phải là số từ 0.1 đến 100.");
+                $("#ModalError").modal("show");
+                return;
+            }
+            const payload = {
+                Endowid: endowid,
+                ServiceGroupid: "",
+                Discount: newDiscount,
+                Duration: newDuration,
+                Descriptionendow: newDescription,
+                GroupName: groupName
+            };
+            // Gửi AJAX cập nhật
+            $.ajax({
+                url: `/admin/regulations/UpdateEndow?id=${StaffId}`,  // Đảm bảo cú pháp đúng, không có khoảng trắng sau dấu "="
+                type: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT  // Thêm token JWT nếu cần thiết
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(payload),
+                success: function (res) {
+                    if (res.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = "Cập nhật ưu đãi thành công";
+                        $("#ModalSuccess").modal("show");
+                        init();
+                    }
+                },
+                error: function () {
+                    alert('Cập nhật thất bại!');
+                }
+            });
+        }
+    });
+    
+
+    function showError(message) {
+        document.getElementById("contentModalError").innerText = message;
+
+        // Khởi tạo modal bằng Bootstrap 5
+        var errorModal = new bootstrap.Modal(document.getElementById("ModalError"), {
+            keyboard: true, // Cho phép bấm phím ESC để đóng
+            backdrop: 'static' // Không đóng modal khi bấm ngoài
+        });
+        // Hiển thị modal
+        errorModal.show();
+        // Gán sự kiện đóng modal vào nút "Đóng"
+        document.getElementById("btnCloseModal").addEventListener("click", function () {
+            errorModal.hide();
+        });
+    }
+</script>

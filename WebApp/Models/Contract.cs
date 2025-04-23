@@ -13,7 +13,7 @@ public partial class Contract
 
     public DateTime Enddate { get; set; }
 
-    public int ServiceTypeid { get; set; }
+    public int? ServiceTypeid { get; set; }
 
     public string Customerid { get; set; } = null!;
 
@@ -21,11 +21,9 @@ public partial class Contract
 
     public bool Customertype { get; set; }
 
-    public virtual Company Customer { get; set; } = null!;
-
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual ICollection<Requirement> Requirements { get; set; } = new List<Requirement>();
 
-    public virtual ServiceType ServiceType { get; set; } = null!;
+    public virtual ServiceType? ServiceType { get; set; }
 }
