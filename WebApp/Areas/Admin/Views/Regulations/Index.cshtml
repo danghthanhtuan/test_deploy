@@ -163,14 +163,9 @@
             background-color: #e0e94; /* Màu nền xám cho tiêu đề */
         }
 
-    .modal#ModalSuccess {
-        z-index: 1051 !important; /* Đảm bảo modal success luôn có z-index cao hơn các modal khác */
+    #confirmModal {
+        z-index: 1061 !important;
     }
-
-    .modal-backdrop {
-        z-index: 1050 !important; /* Đảm bảo backdrop không che modal success */
-    }
-
 </style>
 <body>
     <div id="regulationListContainer" class="container-fluid d-flex flex-column vh-100">
@@ -255,7 +250,7 @@
     </div>
 </div>
 <!-- Modal success-->
-<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true" style="z-index: 1062;">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-body text-center bg-green">
@@ -864,18 +859,23 @@
         };
 
         console.log("Lưu nhóm dịch vụ:", cValues);
-        var StaffId = "@User.FindFirst('StaffId')?.Value";
+        var StaffId = "@User.FindFirst("StaffId")?.Value";
 
         // 👉 Ẩn modal chính trước khi mở modal xác nhận
-        $('#regulationModal').modal('hide');
+        // $('#regulationModal').modal('hide');
 
         document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc chắn muốn thêm nhóm dịch vụ này không?";
-        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
-        modal.show();
+        const confirmModal = document.getElementById("confirmModal");
+        confirmModal.classList.add("show");
+        confirmModal.style.display = "block";
+        confirmModal.style.zIndex = "1061"; // cao hơn modal gốc
 
         $("#confirmButton1").off("click").on("click", function () {
-            modal.hide(); // Đóng modal xác nhận
+            // Ẩn confirm modal thủ công
+            confirmModal.classList.remove("show");
+            confirmModal.style.display = "none";
 
+            // Gửi AJAX
             $.ajax({
                 url: `/admin/regulations/InsertRegulation?id=${StaffId}`,
                 type: 'POST',
@@ -887,11 +887,18 @@
                 data: JSON.stringify(cValues),
                 success: function (response) {
                     if (response.success) {
-                        // Đảm bảo modal success không bị ẩn dưới modal trước
+                        // Reset form inside the modal
+                        document.getElementById("price").value = '';
+                        document.getElementById("groupName").value = '';
+                        serviceTypeInputs.forEach(input => input.value = '');
+
+                        // Hiển thị Modal Success
                         $('#ModalSuccess').modal('show');
-                        // Cập nhật giao diện
                         document.getElementById("contentModalSuccess").innerHTML = "Thêm dịch vụ thành công";
+
+                        // Làm mới dữ liệu sau khi thành công
                         init(); // Làm mới dữ liệu
+
                     }
                 },
                 error: function (xhr) {
@@ -906,12 +913,14 @@
                     $("#contentModalError").html(errorMessage);
                     $("#ModalError").modal("show");
 
+                    // Đảm bảo đóng Modal Error khi cần
                     document.getElementById("btnCloseModal").addEventListener("click", function () {
                         $("#ModalError").modal("hide");
                     });
                 }
             });
         });
+
     }
 
     
@@ -1358,13 +1367,17 @@
             var StaffId = "@User.FindFirst("StaffId")?.Value";
             
             document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc chắn muốn thêm ưu đãi này không?";
-
-            const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
-            modal.show();
+            const confirmModal = document.getElementById("confirmModal");
+            confirmModal.classList.add("show");
+            confirmModal.style.display = "block";
+            confirmModal.style.zIndex = "1061"; // cao hơn modal gốc
 
             // Lắng nghe sự kiện khi xác nhận xóa
             $("#confirmButton1").off("click").on("click", function () {
-                modal.hide();
+                // Ẩn confirm modal thủ công
+                confirmModal.classList.remove("show");
+                confirmModal.style.display = "none";
+
                 // Gọi Ajax để xóa dịch vụ
                 $.ajax({
 
@@ -1380,6 +1393,13 @@
                         if (response.success) {
                             document.getElementById("contentModalSuccess").innerHTML = "Thêm ưu đãi thành công";
                             $("#ModalSuccess").modal("show");
+                            
+                            $('#startDate').val('');
+                            $('#endDate').val('');
+                            $('#serviceTypeSelect').val('');
+                            $('#contractTerm').val('');
+                            $('#discountPercent').val('');
+                            $('#description').val('');
                             init(); // Làm mới dữ liệu
                         }
                     },

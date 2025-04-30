@@ -79,6 +79,7 @@ namespace WebApi.Service.Admin
 
         //lấy thông tin cty search để tạo phiếu yêu cầu
         //đã thêm kiểm tra điều kiện hạn hợp đồng còn, vaf  hoat dong.
+        //vì đây là yêu cầu riêng của từng hợp đồng nên để nhiều dòng trùng tên cty 
         public async Task<List<CompanyAccountDTO>> GetAllInfor(string req)
         {
             req = req?.Trim().ToLower();

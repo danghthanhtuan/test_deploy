@@ -372,8 +372,6 @@ namespace WebApi.Service.Admin
                 return memoryStream.ToArray();
             }
         }
-
-
         public async Task<string?> Insert(CompanyAccountDTO CompanyAccountDTO, string id)
         {
             if (CompanyAccountDTO == null)
@@ -534,159 +532,21 @@ namespace WebApi.Service.Admin
             };
             await _emailService.SendEmailAsync(mailRequest);
         }
+        public async Task<List<ServiceTypeDTO2>> GetListServiceID()
+        {
+            // Thực hiện join giữa ServiceGroups và Regulations để lấy thêm thông tin về giá
+            var regulationsWithGroups = await (from serviceGroup in _context.ServiceTypes
+                                               join regulation in _context.Regulations
+                                               on serviceGroup.ServiceGroupid equals regulation.ServiceGroupid
+                                               select new ServiceTypeDTO2
+                                               {
+                                                   ServiceGroupid = serviceGroup.ServiceGroupid,
+                                                   ServiceTypeNames = serviceGroup.ServiceTypename,
+                                                   Price = regulation.Price  
+                                               }).ToListAsync();
 
-
-        //public async Task<string?> Insert(CompanyAccountDTO CompanyAccountDTO, string id)
-        //{
-        //    if (CompanyAccountDTO == null || string.IsNullOrWhiteSpace(id))
-        //    {
-        //        return "Dữ liệu không hợp lệ.";
-        //    }
-
-        //    await using var transaction = await _context.Database.BeginTransactionAsync();
-
-        //    try
-        //    {
-        //        var staff = await _context.Staff.FindAsync(id);
-        //        if (staff == null)
-        //        {
-        //            return $"Nhân viên với mã nhân viên = {id} không tồn tại.";
-        //        }
-
-        //        // Kiểm tra tất cả dữ liệu trùng lặp trong 1 lần truy vấn để tối ưu hiệu suất
-        //        var existingData = await _context.Companies
-        //            .Where(c => c.CPhoneNumber == CompanyAccountDTO.CPhoneNumber
-        //                     || c.CompanyAccount == CompanyAccountDTO.CompanyAccount
-        //                     || c.TaxCode == CompanyAccountDTO.TaxCode
-        //                     || c.ContractNumber == CompanyAccountDTO.ContractNumber)
-        //            .Select(c => new { c.CPhoneNumber, c.CompanyAccount, c.TaxCode, c.ContractNumber })
-        //            .ToListAsync();
-
-        //        var existingAccounts = await _context.Accounts
-        //            .Where(a => a.RPhoneNumber == CompanyAccountDTO.CPhoneNumber
-        //                     || a.RootAccount == CompanyAccountDTO.CompanyAccount)
-        //            .Select(a => new { a.RPhoneNumber, a.RootAccount })
-        //            .ToListAsync();
-
-        //        if (existingData.Any(c => c.CPhoneNumber == CompanyAccountDTO.CPhoneNumber) ||
-        //            existingAccounts.Any(a => a.RPhoneNumber == CompanyAccountDTO.CPhoneNumber))
-        //        {
-        //            return "Số điện thoại đã tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
-        //        }
-
-        //        if (existingData.Any(c => c.CompanyAccount == CompanyAccountDTO.CompanyAccount) ||
-        //            existingAccounts.Any(a => a.RootAccount == CompanyAccountDTO.CompanyAccount))
-        //        {
-        //            return "Email đã tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
-        //        }
-
-        //        if (existingData.Any(c => c.TaxCode == CompanyAccountDTO.TaxCode))
-        //        {
-        //            return "Mã số thuế đã tồn tại trong hệ thống! Vui lòng kiểm tra lại.";
-        //        }
-
-        //        if (existingData.Any(c => c.ContractNumber == CompanyAccountDTO.ContractNumber))
-        //        {
-        //            return "Số hợp đồng đã tồn tại. Vui lòng kiểm tra lại.";
-        //        }
-
-        //        // Sinh mã khách hàng mới
-        //        var lastCustomer = await _context.Companies
-        //            .Where(c => c.CustomerId.StartsWith("IT030300"))
-        //            .OrderByDescending(c => c.CustomerId)
-        //            .FirstOrDefaultAsync();
-
-        //        int nextNumber = lastCustomer != null ? int.Parse(lastCustomer.CustomerId.Substring(8)) + 1 : 1;
-        //        string newCustomerID = $"IT030300{nextNumber:D2}";
-
-        //        var newCompany = new Company
-        //        {
-        //            CustomerId = newCustomerID,
-        //            CompanyName = CompanyAccountDTO.CompanyName,
-        //            TaxCode = CompanyAccountDTO.TaxCode,
-        //            CompanyAccount = CompanyAccountDTO.CompanyAccount,
-        //            AccountIssuedDate = CompanyAccountDTO.AccountIssuedDate,
-        //            CPhoneNumber = CompanyAccountDTO.CPhoneNumber,
-        //            CAddress = CompanyAccountDTO.CAddress,
-        //            CustomerType = CompanyAccountDTO.CustomerType,
-        //            ServiceType = CompanyAccountDTO.ServiceType,
-        //            ContractNumber = CompanyAccountDTO.ContractNumber,
-        //        };
-
-        //        var newAccount = new Account
-        //        {
-        //            CustomerId = newCustomerID,
-        //            RootAccount = CompanyAccountDTO.RootAccount,
-        //            RootName = CompanyAccountDTO.RootName,
-        //            RPhoneNumber = CompanyAccountDTO.RPhoneNumber,
-        //            OperatingStatus = CompanyAccountDTO.OperatingStatus,
-        //            DateOfBirth = CompanyAccountDTO.DateOfBirth,
-        //            Gender = CompanyAccountDTO.Gender,
-        //        };
-
-        //        _context.Companies.Add(newCompany);
-        //        _context.Accounts.Add(newAccount);
-
-        //        await _context.SaveChangesAsync();
-        //        await transaction.CommitAsync();
-
-        //        // **BƯỚC 2: Gửi email sau khi commit**
-        //        try
-        //        {
-        //            string resetToken = GenerateResetToken(CompanyAccountDTO.RootAccount);
-        //            var db = _redis.GetDatabase();
-        //            await db.StringSetAsync($"reset_password:{resetToken}", CompanyAccountDTO.RootAccount, TimeSpan.FromMinutes(30));
-
-        //            string resetLink = $"https://yourwebsite.com/reset-password?token={resetToken}";
-        //            await SendResetPasswordEmail(CompanyAccountDTO.RootAccount, resetLink);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError($"Lỗi gửi email hoặc lưu token vào Redis: {ex.Message}");
-        //        }
-
-        //        return newCustomerID;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await transaction.RollbackAsync();
-        //        _logger.LogError($"Lỗi hệ thống: {ex.Message}");
-        //        return "Lỗi hệ thống, vui lòng thử lại sau.";
-        //    }
-        //}
-
-
-        //private string GenerateResetToken(string email)
-        //{
-        //    var tokenHandler = new JwtSecurityTokenHandler();
-        //    var key = Encoding.ASCII.GetBytes("your_secret_key_here");
-
-        //    var tokenDescriptor = new SecurityTokenDescriptor
-        //    {
-        //        Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, email) }),
-        //        Expires = DateTime.UtcNow.AddMinutes(30), // Hết hạn sau 30 phút
-        //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        //    };
-
-        //    var token = tokenHandler.CreateToken(tokenDescriptor);
-        //    return tokenHandler.WriteToken(token);
-        //}
-
-        //private async Task SendResetPasswordEmail(string email, string resetLink)
-        //{
-        //    string subject = "Thiết lập mật khẩu tài khoản";
-        //    string body = $"Vui lòng nhấn vào <a href='{resetLink}'>đây</a> để đặt lại mật khẩu.";
-
-        //    var mailRequest = new MailRequest
-        //    {
-        //        ToEmail = email,
-        //        Subject = subject,
-        //        Body = body
-        //    };
-
-        //    await _emailService.SendEmailAsync(mailRequest);
-        //}
-
+            return regulationsWithGroups;
+        }
 
     }
 }

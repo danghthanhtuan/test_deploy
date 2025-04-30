@@ -251,7 +251,17 @@ namespace WebApi.Service.Admin
                     {
                         return $"Loại dịch vụ '{CompanyAccountDTO.ServiceType}' không tồn tại.";
                     }
+                    // ✅ Kiểm tra khách hàng đã có dịch vụ này chưa
+                    var existingContract = _context.Contracts
+                        .Where(c => c.Customerid == CompanyAccountDTO.CustomerId
+                                 && c.ServiceTypeid == serviceType.Id
+                                 && c.Enddate >= DateTime.Now)
+                        .FirstOrDefault();
 
+                    if (existingContract != null)
+                    {
+                        return $"Khách hàng đã có hợp đồng với loại dịch vụ '{CompanyAccountDTO.ServiceType}' đang còn hiệu lực.";
+                    }
                     var newContract = new Contract
                     {
                         Contractnumber = newContractNumber,
@@ -349,6 +359,63 @@ namespace WebApi.Service.Admin
                 }
             }
         }
+        public async Task<List<Endow>> GetListEndow(string id)
+        {
+            var endowList = await (from endow in _context.Endows
+                                   where endow.ServiceGroupid == id
+                                   select new Endow
+                                   {
+                                       Endowid = endow.Endowid,
+                                       ServiceGroupid = endow.ServiceGroupid,
+                                       Discount = endow.Discount,
+                                       Startdate = endow.Startdate,
+                                       Enddate = endow.Enddate,
+                                       Duration = endow.Duration,
+                                   }).ToListAsync();
+            return endowList;
+        }
 
+        //lấy thông tin cty search để tạo phiếu yêu cầu
+        //đã thêm kiểm tra điều kiện hạn hợp đồng còn, vaf  hoat dong.
+        //vì ở đây chỉ lấy thông tin cty để insert nên không cần lấy theo nhiều loại dịch vụ hợp đồng. 
+        public async Task<List<CompanyAccountDTO>> GetAllInfor(string req)
+        {
+            req = req?.Trim().ToLower();
+
+            var query = from c in _context.Companies
+                        join a in _context.Accounts on c.Customerid equals a.Customerid
+                        join h in _context.Contracts
+                        on c.Customerid equals h.Customerid
+                        join q in _context.ServiceTypes on h.ServiceTypeid equals q.Id
+                        where (
+                             (string.IsNullOrEmpty(req) ||
+                              c.Customerid.ToLower().Contains(req) ||
+                              c.Companyname.ToLower().Contains(req) ||
+                              c.Taxcode.ToLower().Contains(req))
+                              && c.Operatingstatus == true
+                              && h.Enddate >= DateTime.Now
+                         )
+                         group new { c, a } by c.Customerid into g
+                        select new CompanyAccountDTO
+                        {
+                            CustomerId = g.First().c.Customerid,
+                            CompanyName = g.First().c.Companyname,
+                            TaxCode = g.First().c.Taxcode,
+                            CompanyAccount = g.First().c.Companyaccount,
+                            //AccountIssuedDate = c.Accountissueddate,
+                            CPhoneNumber = g.First().c.Cphonenumber,
+                            CAddress = g.First().c.Caddress,
+                            //CustomerType = h.Customertype,
+                            //ServiceType = q.ServiceTypename,
+                            //ContractNumber = h.Contractnumber,
+                            RootAccount = g.First().a.Rootaccount,
+                            RootName = g.First().a.Rootname,
+                            RPhoneNumber = g.First().a.Rphonenumber,
+                            Gender = g.First().a.Gender,
+                            DateOfBirth = g.First().a.Dateofbirth,
+                        };
+
+            return await query.ToListAsync();
+        }
     }
 }

@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using WebApp.DTO;
+using WebApp.Models;
 
 namespace WebApp.Areas.Admin.Controllers
 {
@@ -200,6 +201,72 @@ namespace WebApp.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau" });
+            }
+        }
+
+        [HttpGet]
+        [Route("GetListEndow")]
+        public async Task<IActionResult> GetListEndow([FromQuery] string id)
+        {
+            try
+            {
+                if (!Request.Headers.ContainsKey("Authorization"))
+                    return Unauthorized(new { success = false, message = "Thiếu token" });
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return Unauthorized(new { success = false, message = "Token không hợp lệ" });
+                }
+
+                List<Endow> endow = new List<Endow>();
+
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Contract/GetListEndow?id={id}");
+
+                if(response.IsSuccessStatusCode)
+                {
+                    var responseData = await response.Content.ReadAsStringAsync();
+
+                    var responseObject = JsonConvert.DeserializeObject<List<Endow>>(responseData);
+                    return Ok(new { success = true, listendow = responseObject }); 
+                    
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = errorMessage }); 
+                }
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
+            }
+        }
+        [HttpGet]
+        [Route("GetAllInfor")]
+        public async Task<IActionResult> GetAllInfor([FromQuery] string customerID)
+        {
+            try
+            {
+                List<CompanyAccountDTO> listRequest = new List<CompanyAccountDTO>();
+
+                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Contract/GetAllInfor?req={customerID}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<List<CompanyAccountDTO>>(responseData);
+                    return Ok(new { success = true, listRequest = responseObject });
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
             }
         }
     }

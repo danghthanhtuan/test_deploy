@@ -112,5 +112,20 @@ namespace WebApi.Controllers.Admin
             }
 
         }
+
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpGet]
+        public async Task<ActionResult<Endow>> GetListEndow([FromQuery]  string id)
+        {
+            var endow = await _contractService.GetListEndow(id);
+            return Ok(endow);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<CompanyAccountDTO>> GetAllInfor([FromQuery] string req)
+        {
+            var company = await _contractService.GetAllInfor(req);
+            return Ok(company);
+        }
     }
 }

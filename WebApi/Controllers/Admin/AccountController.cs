@@ -129,6 +129,14 @@ namespace WebApi.Controllers
             }
         }
 
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpGet]
+        public async Task<ActionResult<ServiceTypeDTO2>> GetListServiceID()
+        {
+            var regu = await _accountService.GetListServiceID();
+            return Ok(regu);
+        }
+
         //[HttpGet("reset-password")]
         //public async Task<IActionResult> ResetPassword(string token)
         //{

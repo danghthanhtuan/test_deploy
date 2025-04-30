@@ -81,6 +81,7 @@
 
 </style>
 <body>
+    <!--trang chủ-->
     <div id="companyListContainer" class="container-fluid d-flex flex-column vh-100">
         <!-- Mục lọc -->
         <div class="row flex-shrink-0">
@@ -231,7 +232,7 @@
                             </select>
                         </div>
                         
-                        <div class="form-group d-flex align-items-center">
+                       @*  <div class="form-group d-flex align-items-center">
                             <label class="w-25">Loại dịch vụ:</label>
                             <select class="form-control w-75" id="serviceType2">
                                 <option value="dau-so-thoai">Đầu số thoại</option>
@@ -252,6 +253,11 @@
                                 <option value="hop-dong-hop-tac">Hợp đồng hợp tác</option>
                                 <option value="dich-vu-truyen-hinh">Dịch vụ truyền hình</option>
                                 <option value="doi-tac">Đối tác</option>
+                            </select>
+                        </div> *@
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Loại dịch vụ:</label>
+                            <select class="form-control w-75" id="serviceType2">
                             </select>
                         </div>
                         <div class="form-group d-flex align-items-center">
@@ -403,7 +409,7 @@
                             <label class="w-25">Số hợp đồng: <span class="text-danger">*</span></label>
                             <input type="text" class="form-control w-75" id="ContractNumber" readonly>
                         </div>
-                        <div class="form-group d-flex align-items-center">
+                        @* <div class="form-group d-flex align-items-center">
                             <label class="w-25">Loại dịch vụ:</label>
                             <select class="form-control w-75" id="serviceType" disabled>
                                 <option value="dau-so-thoai">Đầu số thoại</option>
@@ -425,7 +431,16 @@
                                 <option value="dich-vu-truyen-hinh">Dịch vụ truyền hình</option>
                                 <option value="doi-tac">Đối tác</option>
                             </select>
+                        </div> *@
+
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Loại dịch vụ:</label>
+                            <input type="text" class="form-control w-75" id="serviceType" disabled>
                         </div>
+
+                        <input type="hidden" id="unitPriceHidden" value="0">
+                        <input type="hidden" id="unitIDHidden" value="0">
+
 
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Trạng thái:</label>
@@ -543,7 +558,7 @@
                             <label class="w-25">Số hợp đồng: <span class="text-danger">*</span></label>
                             <input type="text" class="form-control w-75" id="ContractNumber3" readonly>
                         </div>
-                        <div class="form-group d-flex align-items-center">
+                        @* <div class="form-group d-flex align-items-center">
                             <label class="w-25">Loại dịch vụ:</label>
                             <select class="form-control w-75" id="serviceType3" disabled>
                                 <option value="dau-so-thoai">Đầu số thoại</option>
@@ -565,7 +580,14 @@
                                 <option value="dich-vu-truyen-hinh">Dịch vụ truyền hình</option>
                                 <option value="doi-tac">Đối tác</option>
                             </select>
+                        </div> *@
+                        <div class="form-group d-flex align-items-center">
+                            <label class="w-25">Loại dịch vụ:</label>
+                            <input type="text" class="form-control w-75" id="serviceType3" disabled>
                         </div>
+
+                        <input type="hidden" id="unitPriceHidden3" value="0">
+                        <input type="hidden" id="unitIDHidden3" value="0">
 
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Trạng thái:</label>
@@ -643,6 +665,7 @@
         </div>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     let initialEndDate = null; // lưu lại ngày endDate ban đầu khi còn hạn
@@ -830,6 +853,7 @@
             }
         });
 
+        //nâng cấp
         document.addEventListener("click", function (event) {
             if (event.target.classList.contains("upgrade-btn")) {
                 event.preventDefault();
@@ -852,6 +876,41 @@
             extendContractContainer.classList.add("hidden");
             createContractContainer.classList.remove("hidden");
             upgradeContractContainer.classList.add("hidden");
+            
+            $.ajax({
+                url: `/admin/account/GetListServiceID`, // Thay URL này bằng URL thật trong backend
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT  // Thêm token JWT nếu cần thiết
+                },
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log("List dịch vụ ở form tạo hợp đồng", data);
+                    const select = $('#serviceType2'); // sửa ID cho đúng
+
+                    select.empty().append('<option value="">-- Chọn --</option>');
+
+                    data.listRegu.forEach(function (item) {
+                        select.append(`<option value="${item.serviceGroupid}" data-price="${item.price}">${item.serviceTypeNames}</option>`);
+                    });
+
+                    select.change(function () {
+                        const selectedOption = $(this).find("option:selected");
+                        const price = selectedOption.data("price");
+                        const totalPriceElement = $('#totalPrice');
+
+                        if (price) {
+                            totalPriceElement.text(`Tổng tiền: ${price} VNĐ`);
+                        } else {
+                            totalPriceElement.text('Tổng tiền: 0 VNĐ');
+                        }
+                    });
+
+                },
+                error: function () {
+                    alert('Không lấy được danh sách loại dịch vụ!');
+                }
+            });
            // refresh();
         });
     });
@@ -1030,73 +1089,6 @@
             }]
         });
     }
-    $("#listCompany").on("click", ".update-btn", function () {
-        var rowData = $(this).closest("tr").data("fullData"); // Lấy dữ liệu từ hàng
-        if (rowData) {
-            $("#cName").val(rowData.companyName);
-            $("#cId").val(rowData.customerId.trim());
-            $("#cTaxCode").val(rowData.taxCode);
-            $("#cEmail").val(rowData.companyAccount);
-            $("#cPhone").val(rowData.cPhoneNumber || "");
-            $("#cAddress").val(rowData.cAddress || "");
-            $("#cType").val(rowData.customerType ? "vip" : "normal");
-            
-            $("#ContractNumber").val(rowData.ContractNumber);
-
-            // Gán giá trị cho dropdown ServiceType
-            let foundValue = "doi-tac"; // Giá trị mặc định
-            $("#serviceType option").each(function () {
-                if ($(this).text().trim() === rowData.serviceType.trim()) {
-                    foundValue = $(this).val();
-                    return false; // Thoát vòng lặp nếu tìm thấy
-                }
-            });
-            $("#serviceType").val(foundValue);
-            $("#aStatus").val(rowData.operatingStatus ? "1" : "0");
-            $("#startDate").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
-            $("#endDate").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
-        }
-    });
-
-    $("#listCompany").on("click", ".upgrade-btn", function () {
-        var rowData = $(this).closest("tr").data("fullData"); // Lấy dữ liệu từ hàng
-        if (rowData) {
-            // Kiểm tra customerType
-            if (rowData.customerType === true) {
-                // Nếu customerType là true, hiển thị thông báo và không chuyển đến form nâng cấp
-                showErrorModal("Tài khoản VIP không cần nâng cấp.");
-                // Gán sự kiện đóng modal vào nút "Đóng"
-                document.getElementById("btnCloseModal").addEventListener("click", function () {
-                    $("#ModalError").modal("hide");
-                });
-                return; // Ngừng ngay lập tức, không tiếp tục với các thao tác dưới đây
-            }
-            else {
-                $("#cName3").val(rowData.companyName);
-                $("#cId3").val(rowData.customerId.trim());
-                $("#cTaxCode3").val(rowData.taxCode);
-                $("#cEmail3").val(rowData.companyAccount);
-                $("#cPhone3").val(rowData.cPhoneNumber || "");
-                $("#cAddress3").val(rowData.cAddress || "");
-                $("#cType3").val(rowData.customerType ? "vip" : "normal");
-
-                $("#ContractNumber3").val(rowData.ContractNumber);
-
-                // Gán giá trị cho dropdown ServiceType
-                let foundValue = "doi-tac"; // Giá trị mặc định
-                $("#serviceType3 option").each(function () {
-                    if ($(this).text().trim() === rowData.serviceType.trim()) {
-                        foundValue = $(this).val();
-                        return false; // Thoát vòng lặp nếu tìm thấy
-                    }
-                });
-                $("#serviceType3").val(foundValue);
-                $("#aStatus3").val(rowData.operatingStatus ? "1" : "0");
-                $("#startDate3").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
-                $("#endDate3").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
-            }
-        }
-    });
 
     $(document).ready(function () {
         $("#searchBtn2").click(function () {
@@ -1111,10 +1103,11 @@
             }
 
             $.ajax({
-                url: `/admin/request/GetAllInfor?customerID=${cusid}`,
+                url: `/admin/contract/GetAllInfor?customerID=${cusid}`,
                 type: "GET",
                 contentType: "application/json; charset=utf-8",
                 success: function (res) {
+                    console.log("Ket qua cua search contract show modal cong ty: ", res.listRequest);
                     if (res.success && Array.isArray(res.listRequest) && res.listRequest.length > 0) {
                         var tbody = $("#companyTableBody");
                         tbody.empty(); // Xóa danh sách cũ
@@ -1185,74 +1178,373 @@
             }
         });
     });
+    //tạo tài khoản 
+    function updateTongTien2() {
+        const timeSelect = document.getElementById("timeGiahan2");
+        const serviceType = document.getElementById("serviceType2");
+        const contractType = document.getElementById("cType2"); 
 
-    const serviceGroupMap = {
-        'Đầu số thoại': 'SER0001',
-        'Kênh truyền': 'SER0001',
-        'Tổng đài': 'SER0001',
-        'Hội nghị truyền hình': 'SER0001',
-        'Tin nhắn': 'SER0001',
-        'Dịch vụ truyền hình': 'SER0001',
+        if (!timeSelect || !serviceType || !contractType) return;
 
-        'Cloud partner': 'SER0002',
-        'Điện toán đám mây': 'SER0002',
-        'Dịch vụ điện tử': 'SER0002',
-        'Dịch vụ phần mềm (SaaS)': 'SER0002',
+        const selectedTimeValue = timeSelect.value; // ví dụ "3month"
+        const selectedOption = serviceType.options[serviceType.selectedIndex];
+        const unitPrice = parseFloat(selectedOption.getAttribute('data-price')) || 0; // Lấy giá từ data-price
+        const unitID =selectedOption.getAttribute('value') || ""; // Lấy giá từ data-price
 
-        'An toàn thông tin': 'SER0003',
-        'Giám sát': 'SER0003',
-        'Trung tâm dữ liệu': 'SER0003',
-        'Thiết bị': 'SER0003',
-        'Hỗ trợ CNTT': 'SER0003',
+        const selectedContractType = contractType.value;
 
-        'Hợp đồng tích hợp/dự án': 'SER0004',
-        'Hợp đồng hợp tác': 'SER0004',
-        'Đối tác': 'SER0004'
-    };
+        if (!selectedTimeValue ||!unitID) {
+            document.getElementById("amount2").value = "Vui lòng chọn thời gian";
+            return;
+        }
 
-    const servicePrice = {
-        'SER0001': 1000000,
-        'SER0002': 1500000,
-        'SER0003': 1800000,
-        'SER0004': 1200000
-    };
+        const months = parseInt(selectedTimeValue.replace("month", ""));
+        let total = unitPrice * months;
+        
+        if (selectedContractType === "vip") {
+            total *= 1.3;
+        }
+        $.ajax({
+            url: `/admin/contract/GetListEndow?id=${unitID}`,
+            headers: {
+                "Authorization": "Bearer " + tokenJWT
+            },
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                console.log("Ưu đãi lấy được:", response);
+
+                let bestDiscount = 0;
+                let bestDuration = -1; // để phân biệt ưu đãi null và 0 tháng
+
+                if (Array.isArray(response.listendow) && response.listendow.length > 0) {
+                    const now = new Date();
+                    response.listendow.forEach(function (item) {
+                        const start = new Date(item.startdate);
+                        const end = new Date(item.enddate);
+                        const duration = item.duration; // có thể null
+
+                        if (now >= start && now <= end) {
+                            // Nếu duration == null => hợp lệ cho mọi tháng
+                            if (duration == null || months >= duration) {
+                                if (
+                                    duration == null || // ưu tiên duration null nếu chưa có ưu đãi nào
+                                    duration > bestDuration ||
+                                    (duration === bestDuration && item.discount > bestDiscount)
+                                ) {
+                                    bestDuration = duration ?? 0; // null thì gán 0
+                                    bestDiscount = item.discount;
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Áp dụng giảm giá nếu tìm được ưu đãi phù hợp
+                if (bestDiscount > 0) {
+                    total = total * (1 - bestDiscount / 100);
+                }
+
+                document.getElementById("amount2").value = formatMoney(total);
+            },
+            error: function () {
+                console.error("Không lấy được ưu đãi.");
+                document.getElementById("amount2").value = formatMoney(total);
+            }
+        });
+
+    }
+    // Gắn sự kiện onchange
+    document.getElementById("cType2").addEventListener("change", updateTongTien2);
+    document.getElementById("timeGiahan2").addEventListener("change", updateTongTien2);
+    document.getElementById("serviceType2").addEventListener("change", updateTongTien2);
+
+    function SaveContract() {
+        var cId = document.getElementById("cId2").value.trim();
+
+        var cName = document.getElementById("cName2").value;
+        var cTaxCode = document.getElementById("cTaxCode2").value;
+        var cEmail = document.getElementById("cEmail2").value;
+        var cPhone = document.getElementById("cPhone2").value;
+        var cAddress = document.getElementById("cAddress2").value;
+        var cType = document.getElementById("cType2").value;
+        var ContractNumber = document.getElementById("ContractNumber2").value.trim();
+        //var serviceType = document.getElementById("serviceType2").value.trim();
+        var aEmail = document.getElementById("aEmail2").value;
+        var aName = document.getElementById("aName2").value;
+        var aPhone = document.getElementById("aPhone2").value;
+        var aStatus = document.getElementById("aStatus2").value;
+        var aDate = document.getElementById("aDate2").value;
+        var aGender = document.getElementById("aGender2").value;
+        var startDate = document.getElementById("startDate2").value;
+        var endDate = document.getElementById("endDate2").value;
+        var amount = document.getElementById("amount2").value.trim();
+
+        var serviceTypeElement = document.getElementById("serviceType2");
+        var serviceTypeText = serviceTypeElement.options[serviceTypeElement.selectedIndex].text; // Lấy nội dung hiển thị
+        var normalizedAmount = parseFloat(amount.replace(/[^\d]/g, ''));
+
+        var timeGiahanElement = document.getElementById("timeGiahan2");
+        var chooseMonthRaw = timeGiahanElement ? timeGiahanElement.value : "";
+
+        if (!chooseMonthRaw) {
+            showError("Vui lòng chọn thời gian gia hạn.");
+            return;
+
+        }
+        var cValues = {
+            CustomerId: cId || "AUTO_GENERATED_ID",
+            CompanyName: cName,
+            TaxCode: cTaxCode,
+            CompanyAccount: cEmail,
+            AccountIssuedDate: new Date().toISOString(),
+            CPhoneNumber: cPhone,
+            CAddress: cAddress,
+            CustomerType: cType.toLowerCase() === "vip",
+            ContractNumber: ContractNumber,
+            ServiceType: serviceTypeText, // Lưu tên hiển thị thay vì ID
+            RootAccount: aEmail,
+            RootName: aName,
+            RPhoneNumber: aPhone,
+            OperatingStatus: aStatus.trim() === "1",
+            DateOfBirth: aDate ? new Date(aDate).toISOString() : null,
+            Gender: aGender === "nu",
+            Startdate: startDate,
+            EndDate: endDate,
+            Amount: normalizedAmount
+        };
+
+
+        var phoneRegex = /^(0\d{9,10})$/; // Số điện thoại bắt đầu bằng số 0, có 10 hoặc 11 chữ số
+        // Biểu thức chính quy kiểm tra email hợp lệ
+        var emailRegex = @Html.Raw("/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/");
+
+        // Kiểm tra mã số thuế (9 chữ số)
+        var taxCodeRegex = /^[a-zA-Z0-9]{9}$/;
+
+        // Kiểm tra độ dài ContractNumber (tối đa 10 ký tự)
+
+        if (!phoneRegex.test(cValues.CPhoneNumber)) {
+            showError("Số điện thoại khách hàng không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
+            return;
+        }
+
+        if (!phoneRegex.test(cValues.RPhoneNumber)) {
+            showError("Số điện thoại người đại diện không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
+            return;
+        }
+
+        // Kiểm tra định dạng email
+        if (!emailRegex.test(cValues.CompanyAccount)) {
+            showError("Email khách hàng không hợp lệ.");
+            return;
+        }
+
+        if (!emailRegex.test(cValues.RootAccount)) {
+            showError("Email người đại diện không hợp lệ.");
+            return;
+        }
+
+        // Kiểm tra mã số thuế
+        if (!taxCodeRegex.test(cValues.TaxCode)) {
+            showError("Mã số thuế không hợp lệ. Phải có đúng 9 kí tự.");
+            return;
+        }
+        if (startDate >= endDate) {
+            showError("Kiểm tra lại ngày tháng của hợp đồng: Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+            return;
+        }
+        if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber || !cValues.Amount) {
+
+            showError("Vui lòng nhập đầy đủ thông tin.");
+            return;
+        }
+        var StaffId = "@User.FindFirst("StaffId")?.Value";
+
+        // Xác định Insert hay Update
+
+        var url = `/admin/Contract/InsertContract?id=${StaffId}`;
+        var confirmText = "Bạn có chắc muốn thêm hợp đồng không?";
+
+        document.getElementById("contentModalConfirm").innerHTML = confirmText;
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
+
+        $("#confirmButton1").off("click").on("click", function () {
+            modal.hide();
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(cValues),
+                success: function (response) {
+                    if (response.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = "Thêm tài khoản thành công";
+                        $("#ModalSuccess").modal("show");
+                        refresh();
+                        var keyword = $('input[type="text"]').val();
+                        var category = $('select').val();
+                        init(keyword, category);
+                        // Gọi sự kiện "Quay lại" để trở về danh sách
+                        backBtn.click();
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định.";
+                    if (xhr.responseJSON) {
+                        if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message.join("<br>");
+                        } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                    }
+                    $("#contentModalError").html(errorMessage);
+                    $("#ModalError").modal("show");
+                    // Gán sự kiện đóng modal vào nút "Đóng"
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            });
+        });
+    }
+
+    let listServiceData = []; // Biến toàn cục để lưu danh sách dịch vụ
+
+    // Khi click nút "Gia hạn"
+    $("#listCompany").on("click", ".update-btn", function () {
+        var rowData = $(this).closest("tr").data("fullData"); // Lấy dữ liệu từ hàng
+
+        if (rowData) {
+            $("#cName").val(rowData.companyName);
+            $("#cId").val(rowData.customerId.trim());
+            $("#cTaxCode").val(rowData.taxCode);
+            $("#cEmail").val(rowData.companyAccount);
+            $("#cPhone").val(rowData.cPhoneNumber || "");
+            $("#cAddress").val(rowData.cAddress || "");
+            $("#cType").val(rowData.customerType ? "vip" : "normal");
+
+            $("#ContractNumber").val(rowData.contractNumber);
+
+            $("#serviceType").val(rowData.serviceType || "");
+            $("#aStatus").val(rowData.operatingStatus ? "1" : "0");
+            $("#startDate").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
+            $("#endDate").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
+
+            const serviceTypeOfCompany = rowData.serviceType; // Lưu serviceType của công ty
+
+            // Gọi API lấy danh sách dịch vụ
+            $.ajax({
+                url: `/admin/account/GetListServiceID`,
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log("List dịch vụ ở form gia hạn", data);
+
+                    listServiceData = data.listRegu || [];
+
+                    const matchedService = listServiceData.find(function (service) {
+                        return service.serviceTypeNames === rowData.serviceType;
+                    });
+
+                    if (matchedService) {
+                        $("#serviceType").val(matchedService.serviceTypeNames);
+                        $("#unitPriceHidden").val(matchedService.price);
+                        $("#unitIDHidden").val(matchedService.serviceGroupid);
+                    } else {
+                        alert("Không tìm thấy dịch vụ phù hợp");
+                    }
+
+                    updateTongTien();
+                },
+                error: function () {
+                    alert('Không lấy được danh sách loại dịch vụ!');
+                }
+            });
+        }
+    });
 
     function updateTongTien() {
         const timeSelect = document.getElementById("timeGiahan");
-        const serviceType = document.getElementById("serviceType");
+        const unitPriceHidden = document.getElementById("unitPriceHidden");
+        const unitIDHidden = document.getElementById("unitIDHidden");
+        const cType = document.getElementById("cType"); 
 
-        if (!timeSelect || !serviceType) return;
+        if (!timeSelect || !unitPriceHidden || !unitIDHidden || !cType ) return;
 
         const selectedTimeValue = timeSelect.value; // ví dụ "3month"
-        const selectedText = timeSelect.options[timeSelect.selectedIndex].text; // ví dụ "3 tháng"
-        const selectedService = serviceType.options[serviceType.selectedIndex].text;
+        const unitPrice = parseFloat(unitPriceHidden.value) || 0; // Lấy giá từ input ẩn
+        const unitID = unitIDHidden.value || "";
+        const selectedContractType = cType.value;
 
-        if (!selectedTimeValue) {
+        if (!selectedTimeValue || !selectedContractType) {
             document.getElementById("amount").value = "Vui lòng chọn thời gian";
             return;
         }
 
         const months = parseInt(selectedTimeValue.replace("month", ""));
-        const group = serviceGroupMap[selectedService];
-        const unitPrice = servicePrice[group] || 0;
-
         let total = unitPrice * months;
 
-        // Áp dụng giảm giá
-        if (months >= 12) {
-            total *= 0.9; // giảm 10%
-        } else if (months >= 6) {
-            total *= 0.95; // giảm 5%
+        // Áp dụng cộng thêm 30% nếu là vip
+        if (selectedContractType === "vip") {
+            total *= 1.3;
         }
+        $.ajax({
+            url: `/admin/contract/GetListEndow?id=${unitID}`,
+            headers: {
+                "Authorization": "Bearer " + tokenJWT
+            },
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                console.log("Ưu đãi lấy được:", response);
 
-        document.getElementById("amount").value = formatMoney(total);
+                let bestDiscount = 0;
+                let bestDuration = -1;
+
+                if (Array.isArray(response.listendow) && response.listendow.length > 0) {
+                    const now = new Date();
+                    response.listendow.forEach(function (item) {
+                        const start = new Date(item.startdate);
+                        const end = new Date(item.enddate);
+                        const duration = item.duration; // có thể null
+
+                        if (now >= start && now <= end) {
+                            if (duration == null || months >= duration) {
+                                if (
+                                    duration == null ||
+                                    duration > bestDuration ||
+                                    (duration === bestDuration && item.discount > bestDiscount)
+                                ) {
+                                    bestDuration = duration ?? 0;
+                                    bestDiscount = item.discount;
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Áp dụng giảm giá nếu tìm được
+                if (bestDiscount > 0) {
+                    total = total * (1 - bestDiscount / 100);
+                }
+
+                document.getElementById("amount").value = formatMoney(total);
+            },
+            error: function () {
+                console.error("Không lấy được ưu đãi.");
+                document.getElementById("amount").value = formatMoney(total);
+            }
+        });
     }
-
-    // Hàm định dạng tiền
-    function formatMoney(number) {
-        return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-    }
-
+    
     // Gắn sự kiện onchange
     document.getElementById("timeGiahan").addEventListener("change", updateTongTien);
 
@@ -1263,8 +1555,7 @@
         var startDate = document.getElementById("startDate").value;
         var endDate = document.getElementById("endDate").value;
 
-        var serviceTypeElement = document.getElementById("serviceType");
-        var serviceTypeText = serviceTypeElement.options[serviceTypeElement.selectedIndex].text; // Lấy nội dung hiển thị
+        var serviceTypeText = document.getElementById("serviceType").value; // Lấy trực tiếp giá trị từ input
 
         var timeGiahanElement = document.getElementById("timeGiahan");
         var chooseMonthRaw = timeGiahanElement ? timeGiahanElement.value : "";
@@ -1340,207 +1631,86 @@
         });
     }
     
-    function SaveContract() {
-        var cId = document.getElementById("cId2").value.trim();
+    //nâng cấp
+    let listServiceData3 = [];
+    $("#listCompany").on("click", ".upgrade-btn", function () {
+        var rowData = $(this).closest("tr").data("fullData"); // Lấy dữ liệu từ hàng
 
-        var cName = document.getElementById("cName2").value;
-        var cTaxCode = document.getElementById("cTaxCode2").value;
-        var cEmail = document.getElementById("cEmail2").value;
-        var cPhone = document.getElementById("cPhone2").value;
-        var cAddress = document.getElementById("cAddress2").value;
-        var cType = document.getElementById("cType2").value;
-        var ContractNumber = document.getElementById("ContractNumber2").value.trim();
-        //var serviceType = document.getElementById("serviceType2").value.trim();
-        var aEmail = document.getElementById("aEmail2").value;
-        var aName = document.getElementById("aName2").value;
-        var aPhone = document.getElementById("aPhone2").value;
-        var aStatus = document.getElementById("aStatus2").value;
-        var aDate = document.getElementById("aDate2").value;
-        var aGender = document.getElementById("aGender2").value;
-        var startDate = document.getElementById("startDate2").value;
-        var endDate = document.getElementById("endDate2").value;
-        var amount = document.getElementById("amount2").value.trim();
+        if (rowData) {
+            $("#cName3").val(rowData.companyName);
+            $("#cId3").val(rowData.customerId.trim());
+            $("#cTaxCode3").val(rowData.taxCode);
+            $("#cEmail3").val(rowData.companyAccount);
+            $("#cPhone3").val(rowData.cPhoneNumber || "");
+            $("#cAddress3").val(rowData.cAddress || "");
+            $("#cType3").val(rowData.customerType ? "vip" : "normal");
 
-        var serviceTypeElement = document.getElementById("serviceType2");
-        var serviceTypeText = serviceTypeElement.options[serviceTypeElement.selectedIndex].text; // Lấy nội dung hiển thị
-        var normalizedAmount = parseFloat(amount.replace(/[^\d]/g, ''));
+            $("#ContractNumber3").val(rowData.contractNumber);
 
-        var timeGiahanElement = document.getElementById("timeGiahan2");
-        var chooseMonthRaw = timeGiahanElement ? timeGiahanElement.value : "";
+            $("#serviceType3").val(rowData.serviceType || "");
+            $("#aStatus3").val(rowData.operatingStatus ? "1" : "0");
+            $("#startDate3").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
+            $("#endDate3").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
 
-        if (!chooseMonthRaw) {
-            showError("Vui lòng chọn thời gian gia hạn.");
-            return;
+            const serviceTypeOfCompany = rowData.serviceType3; // Lưu serviceType của công ty
 
-        }
-        var cValues = {
-            CustomerId: cId || "AUTO_GENERATED_ID",
-            CompanyName: cName,
-            TaxCode: cTaxCode,
-            CompanyAccount: cEmail,
-            AccountIssuedDate: new Date().toISOString(),
-            CPhoneNumber: cPhone,
-            CAddress: cAddress,
-            CustomerType: cType.toLowerCase() === "vip",
-            ContractNumber: ContractNumber,
-            ServiceType: serviceTypeText, // Lưu tên hiển thị thay vì ID
-            RootAccount: aEmail,
-            RootName: aName,
-            RPhoneNumber: aPhone,
-            OperatingStatus: aStatus.trim() === "1",
-            DateOfBirth: aDate ? new Date(aDate).toISOString() : null,
-            Gender: aGender === "nu",
-            Startdate: startDate,
-            EndDate: endDate,
-            Amount: normalizedAmount
-        };
-       
-       
-        var phoneRegex = /^(0\d{9,10})$/; // Số điện thoại bắt đầu bằng số 0, có 10 hoặc 11 chữ số
-        // Biểu thức chính quy kiểm tra email hợp lệ
-        var emailRegex = @Html.Raw("/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/");
-
-        // Kiểm tra mã số thuế (9 chữ số)
-        var taxCodeRegex = /^[a-zA-Z0-9]{9}$/;
-
-        // Kiểm tra độ dài ContractNumber (tối đa 10 ký tự)
-
-        if (!phoneRegex.test(cValues.CPhoneNumber)) {
-            showError("Số điện thoại khách hàng không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
-            return;
-        }
-
-        if (!phoneRegex.test(cValues.RPhoneNumber)) {
-            showError("Số điện thoại người đại diện không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
-            return;
-        }
-
-        // Kiểm tra định dạng email
-        if (!emailRegex.test(cValues.CompanyAccount)) {
-            showError("Email khách hàng không hợp lệ.");
-            return;
-        }
-
-        if (!emailRegex.test(cValues.RootAccount)) {
-            showError("Email người đại diện không hợp lệ.");
-            return;
-        }
-
-        // Kiểm tra mã số thuế
-        if (!taxCodeRegex.test(cValues.TaxCode)) {
-            showError("Mã số thuế không hợp lệ. Phải có đúng 9 kí tự.");
-            return;
-        }
-        if (startDate >= endDate) {
-            showError("Kiểm tra lại ngày tháng của hợp đồng: Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
-            return;
-        }
-        if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber || !cValues.Amount) {
-
-            showError("Vui lòng nhập đầy đủ thông tin.");
-            return;
-        }
-        var StaffId = "@User.FindFirst("StaffId")?.Value";
-
-        // Xác định Insert hay Update
-      
-        var url = `/admin/Contract/InsertContract?id=${StaffId}`;
-        var confirmText = "Bạn có chắc muốn thêm hợp đồng không?";
-
-        document.getElementById("contentModalConfirm").innerHTML = confirmText;
-        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
-        modal.show();
-
-        $("#confirmButton1").off("click").on("click", function () {
-            modal.hide();
+            // Gọi API lấy danh sách dịch vụ
             $.ajax({
-                url: url,
-                type: 'POST',
+                url: `/admin/account/GetListServiceID`,
                 headers: {
                     "Authorization": "Bearer " + tokenJWT
                 },
+                type: "GET",
                 contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                data: JSON.stringify(cValues),
-                success: function (response) {
-                    if (response.success) {
-                        document.getElementById("contentModalSuccess").innerHTML =  "Thêm tài khoản thành công";
-                        $("#ModalSuccess").modal("show");
-                        refresh();
-                        var keyword = $('input[type="text"]').val();
-                        var category = $('select').val();
-                        init(keyword, category);
-                        // Gọi sự kiện "Quay lại" để trở về danh sách
-                        backBtn.click();
-                    }
-                },
-                error: function (xhr) {
-                    let errorMessage = "Lỗi không xác định.";
-                    if (xhr.responseJSON) {
-                        if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
-                            errorMessage = xhr.responseJSON.message.join("<br>");
-                        } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
-                    }
-                    $("#contentModalError").html(errorMessage);
-                    $("#ModalError").modal("show");
-                    // Gán sự kiện đóng modal vào nút "Đóng"
-                    document.getElementById("btnCloseModal").addEventListener("click", function () {
-                        $("#ModalError").modal("hide");
+                success: function (data) {
+                    console.log("List dịch vụ ở form nâng cấp", data);
+
+                    listServiceData3 = data.listRegu || [];
+
+                    const matchedService = listServiceData3.find(function (service) {
+                        return service.serviceTypeNames === rowData.serviceType;
                     });
+
+                    if (matchedService) {
+                        $("#serviceType3").val(matchedService.serviceTypeNames);
+                        $("#unitPriceHidden3").val(matchedService.price);
+                        $("#unitIDHidden3").val(matchedService.serviceGroupid);
+
+                    } else {
+                        alert("Không tìm thấy dịch vụ phù hợp");
+                    }
+
+                    updateTongTien3();
+                },
+                error: function () {
+                    alert('Không lấy được danh sách loại dịch vụ!');
                 }
             });
-        });
-    }
-
-    function updateTongTien2() {
-        const timeSelect = document.getElementById("timeGiahan2");
-        const serviceType = document.getElementById("serviceType2");
-
-        if (!timeSelect || !serviceType) return;
-
-        const selectedTimeValue = timeSelect.value; // ví dụ "3month"
-        const selectedText = timeSelect.options[timeSelect.selectedIndex].text; // ví dụ "3 tháng"
-        const selectedService = serviceType.options[serviceType.selectedIndex].text;
-
-        if (!selectedTimeValue) {
-            document.getElementById("amount2").value = "Vui lòng chọn thời gian";
-            return;
         }
-
-        const months = parseInt(selectedTimeValue.replace("month", ""));
-        const group = serviceGroupMap[selectedService];
-        const unitPrice = servicePrice[group] || 0;
-
-        let total = unitPrice * months;
-
-        // Áp dụng giảm giá
-        if (months >= 12) {
-            total *= 0.9; // giảm 10%
-        } else if (months >= 6) {
-            total *= 0.95; // giảm 5%
-        }
-
-        document.getElementById("amount2").value = formatMoney(total);
-    }
-
+    });
+    
     function updateTongTien3() {
-        const serviceTypeEl = document.getElementById("serviceType3");
+        const unitPriceHidden3 = document.getElementById("unitPriceHidden3");
+        const unitIDHidden3 = document.getElementById("unitIDHidden3");
+
         const endDateEl = document.getElementById("endDate3");
         const customerTypeEl = document.getElementById("cType3");
         const amountEl = document.getElementById("amount3");
 
-        if (!serviceTypeEl || !endDateEl || !customerTypeEl || !amountEl ) return;
+        if (!endDateEl || !customerTypeEl || !amountEl || !unitPriceHidden3 || !unitIDHidden3) return;
 
-        const selectedServiceText = serviceTypeEl.options[serviceTypeEl.selectedIndex].text;
-        const group = serviceGroupMap[selectedServiceText];
-        const unitPrice = servicePrice[group] || 0;
+        // Kiểm tra loại tài khoản
+        const customerType = customerTypeEl.value; // 'normal' hoặc 'vip'
+
+        if (customerType !== "vip") {
+            amountEl.value = ""; // Nếu chưa chọn VIP thì không tính tiền
+            return;
+        }
 
         const endDate = new Date(endDateEl.value);
         const today = new Date();
 
-        if ( isNaN(endDate)) {
+        if (isNaN(endDate)) {
             amountEl.value = "Vui lòng chọn ngày hợp lệ";
             return;
         }
@@ -1553,16 +1723,64 @@
             return;
         }
 
-        let total = unitPrice * remainingMonths * 0.3; // Tính chi phí cho VIP, mức phụ phí 30%
+        const unitPrice3 = parseFloat(unitPriceHidden3.value);
+        const unitID3 = unitIDHidden3.value || "";
 
-        // Áp dụng giảm giá
-        if (remainingMonths >= 12) {
-            total -= unitPrice * remainingMonths * 0.1; // Giảm 10% nếu >= 12 tháng
-        } else if (remainingMonths >= 6) {
-            total -= unitPrice * remainingMonths * 0.05; // Giảm 5% nếu >= 6 tháng
+        if (isNaN(unitPrice3)) {
+            amountEl.value = "Không có giá dịch vụ hợp lệ";
+            return;
         }
 
-        amountEl.value = formatMoney(total);
+        let total = unitPrice3 * remainingMonths * 0.3; // Áp dụng 30% phụ phí
+
+      
+        $.ajax({
+            url: `/admin/contract/GetListEndow?id=${unitID3}`,
+            headers: {
+                "Authorization": "Bearer " + tokenJWT
+            },
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                console.log("Ưu đãi lấy được:", response);
+
+                let bestDiscount = 0;
+                let bestDuration = -1;
+
+                if (Array.isArray(response.listendow) && response.listendow.length > 0) {
+                    const now = new Date();
+                    response.listendow.forEach(function (item) {
+                        const start = new Date(item.startdate);
+                        const end = new Date(item.enddate);
+                        const duration = item.duration; // có thể null
+
+                        if (now >= start && now <= end) {
+                            if (duration == null || months >= duration) {
+                                if (
+                                    duration == null ||
+                                    duration > bestDuration ||
+                                    (duration === bestDuration && item.discount > bestDiscount)
+                                ) {
+                                    bestDuration = duration ?? 0;
+                                    bestDiscount = item.discount;
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Áp dụng giảm giá nếu tìm được
+                if (bestDiscount > 0) {
+                    total = total * (1 - bestDiscount / 100);
+                }
+
+                document.getElementById("amount3").value = formatMoney(total);
+            },
+            error: function () {
+                console.error("Không lấy được ưu đãi.");
+                document.getElementById("amount3").value = formatMoney(total);
+            }
+        });
     }
 
     function Saveupgrade() {
@@ -1632,10 +1850,7 @@
             });
         });
     }
-
-    // Gắn sự kiện onchange
-    document.getElementById("timeGiahan2").addEventListener("change", updateTongTien2);
-    document.getElementById("serviceType2").addEventListener("change", updateTongTien2);
+    
     function showError(message) {
         document.getElementById("contentModalError").innerText = message;
 
@@ -1650,6 +1865,10 @@
         document.getElementById("btnCloseModal").addEventListener("click", function () {
             errorModal.hide();
         });
+    }
+    // Hàm định dạng tiền
+    function formatMoney(number) {
+        return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
     }
     function refresh() {
         document.getElementById("cId").value = "";
@@ -1710,5 +1929,36 @@
     function showErrorModal(message) {
         $("#contentModalError").text(message);
         $("#ModalError").modal("show");
-    }
+    }  
+    
+    // const serviceGroupMap = {
+    //     'Đầu số thoại': 'SER0001',
+    //     'Kênh truyền': 'SER0001',
+    //     'Tổng đài': 'SER0001',
+    //     'Hội nghị truyền hình': 'SER0001',
+    //     'Tin nhắn': 'SER0001',
+    //     'Dịch vụ truyền hình': 'SER0001',
+
+    //     'Cloud partner': 'SER0002',
+    //     'Điện toán đám mây': 'SER0002',
+    //     'Dịch vụ điện tử': 'SER0002',
+    //     'Dịch vụ phần mềm (SaaS)': 'SER0002',
+
+    //     'An toàn thông tin': 'SER0003',
+    //     'Giám sát': 'SER0003',
+    //     'Trung tâm dữ liệu': 'SER0003',
+    //     'Thiết bị': 'SER0003',
+    //     'Hỗ trợ CNTT': 'SER0003',
+
+    //     'Hợp đồng tích hợp/dự án': 'SER0004',
+    //     'Hợp đồng hợp tác': 'SER0004',
+    //     'Đối tác': 'SER0004'
+    // };
+
+    // const servicePrice = {
+    //     'SER0001': 1000000,
+    //     'SER0002': 1500000,
+    //     'SER0003': 1800000,
+    //     'SER0004': 1200000
+    // };
 </script>

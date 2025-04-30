@@ -32,4 +32,12 @@
         public string GroupName { get; set; } 
 
     }
+
+    public class ServiceTypeDTO2
+    {
+        public string ServiceGroupid { get; set; }
+        public string ServiceTypeNames { get; set; }
+        public decimal Price { get; set; }
+
+    }
 }

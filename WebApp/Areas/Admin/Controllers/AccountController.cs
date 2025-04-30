@@ -249,10 +249,38 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
-        //public ActionResult CreateAcc()
-        //{
-        //    return View();
-        //}
+        [HttpGet]
+        [Route("GetListServiceID")]
+        public async Task<IActionResult> GetListServiceID()
+        {
+            try
+            {
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
+                if (string.IsNullOrEmpty(token))
+                    return Unauthorized(new { success = false, message = "Thiếu token." });
+
+                List<ServiceTypeDTO2> listRegu = new List<ServiceTypeDTO2>();
+
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + "/account/GetListServiceID");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<List<ServiceTypeDTO2>>(responseData);
+                    return Ok(new { success = true, listRegu = responseObject });
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
+            }
+        }
     }
 }
