@@ -407,9 +407,9 @@ namespace WebApi.Service.Admin
                     }
 
                     var lastCustomer = _context.Companies
-                        .Where(c => c.Customerid.StartsWith("IT030300"))
-                        .OrderByDescending(c => c.Customerid)
-                        .FirstOrDefault();
+    .Where(c => c.Customerid.StartsWith("IT030300"))
+    .OrderByDescending(c => c.Customerid)
+    .FirstOrDefault();
 
                     int nextNumber = lastCustomer != null ? int.Parse(lastCustomer.Customerid.Substring(8)) + 1 : 1;
                     string newCustomerID = $"IT030300{nextNumber:D2}";

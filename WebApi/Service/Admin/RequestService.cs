@@ -182,6 +182,30 @@ namespace WebApi.Service.Admin
                     {
                         return $"Khách hàng với mã hợp đồng không tồn tại";
                     }
+                    // Lấy tháng và năm từ chính ngày được yêu cầu (được nhập)
+                    if (!Req.DateOfRequest.HasValue)
+                    {
+                        return "Ngày yêu cầu không hợp lệ.";
+                    }
+
+                    var requestDate = Req.DateOfRequest.Value;
+                    int requestMonth = requestDate.Month;
+                    int requestYear = requestDate.Year;
+
+                    var currentMonthCount = _context.Requirements
+    .Count(r => r.Contractnumber == Req.ContractNumber &&
+                r.Dateofrequest.HasValue &&
+                r.Dateofrequest.Value.Month == requestMonth &&
+                r.Dateofrequest.Value.Year == requestYear);
+
+
+                    bool isVip = contractNumber.Customertype == true;
+                    int limit = isVip ? 7 : 5;
+
+                    if (currentMonthCount >= limit)
+                    {
+                        return $"Khách hàng đã đạt giới hạn {limit} yêu cầu dịch vụ trong tháng {requestMonth}/{requestYear}.";
+                    }
 
                     var lastCustomer = _context.Requirements
                         .Where(c => c.Requirementsid.StartsWith("RS00"))

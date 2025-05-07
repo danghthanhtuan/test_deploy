@@ -180,6 +180,7 @@ builder.Services.AddTransient<RequestService>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<ContractService>();
 builder.Services.AddTransient<RegulationsService>();
+builder.Services.AddTransient<StaffService>();
 
 
 builder.Services.AddTransient<IEmailService, EmailService>(); // Thay EmailService bằng class thực tế của bạn

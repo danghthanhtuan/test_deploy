@@ -11,6 +11,12 @@ public partial class Staff
 
     public string Staffname { get; set; } = null!;
 
+    public DateTime? Staffdate { get; set; }
+
+    public bool? Staffgender { get; set; }
+
+    public string? Staffaddress { get; set; }
+
     public string Staffphone { get; set; } = null!;
 
     public string Department { get; set; } = null!;
