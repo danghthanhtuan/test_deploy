@@ -128,9 +128,9 @@ namespace WebApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult CheckEmailRegister(string phoneNumber, int otp)
+        public IActionResult CheckEmailRegister(string phoneNumber, string otp)
         {
-            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Login/CheckEMmail_Register/{phoneNumber}/{otp}").Result;
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Login/CheckEmail_Register/{phoneNumber}/{otp}").Result;
 
             if (response.IsSuccessStatusCode)
             {

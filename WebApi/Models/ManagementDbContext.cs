@@ -31,6 +31,8 @@ public partial class ManagementDbContext : DbContext
 
     public virtual DbSet<Loginclient> Loginclients { get; set; }
 
+    public virtual DbSet<Passwordresettoken> Passwordresettokens { get; set; }
+
     public virtual DbSet<Payment> Payments { get; set; }
 
     public virtual DbSet<Regulation> Regulations { get; set; }
@@ -328,6 +330,25 @@ public partial class ManagementDbContext : DbContext
                 .HasPrincipalKey<Company>(p => p.Customerid)
                 .HasForeignKey<Loginclient>(d => d.Customerid)
                 .HasConstraintName("FK__LOGINCLIE__CUSTO__4222D4EF");
+        });
+
+        modelBuilder.Entity<Passwordresettoken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PASSWORD__3214EC27B88243BD");
+
+            entity.ToTable("PASSWORDRESETTOKEN");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .HasColumnName("EMAIL");
+            entity.Property(e => e.Expirytime)
+                .HasColumnType("datetime")
+                .HasColumnName("EXPIRYTIME");
+            entity.Property(e => e.Isused).HasColumnName("ISUSED");
+            entity.Property(e => e.Otp)
+                .HasMaxLength(10)
+                .HasColumnName("OTP");
         });
 
         modelBuilder.Entity<Payment>(entity =>

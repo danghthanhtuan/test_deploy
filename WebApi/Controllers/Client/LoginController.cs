@@ -101,55 +101,14 @@ namespace WebApi.Controllers.Client
                 });
             }
         }
-        //[HttpGet("{otp}")]
-        //public async Task<IActionResult> CheckEMmail_Register(int otp)
-        //{
-        //    try
-        //    {
-        //        if (otp != 0)
-        //        {
-        //            if (_loginService.CheckEMmail_Register(otp))
-        //            {
-        //                return Ok(new APIResponse<object>()
-        //                {
-        //                    Success = true,
-        //                    Message = "Xác thực thành công!",
-        //                    Data = null
-        //                });
-        //            }
-        //            else
-        //            {
-        //                return Ok(new APIResponse<object>()
-        //                {
-        //                    Success = false,
-        //                    Message = "Mã OTP sai!!!",
-        //                    Data = null
-        //                });
-        //            }
-        //        }
-        //        else
-        //        {
-        //            return Ok(new APIResponse<object>()
-        //            {
-        //                Success = false,
-        //                Message = "Mã OTP không hợp lệ!",
-        //                Data = null
-        //            });
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return BadRequest(e.Message);
-        //    }
 
-        //}
 
         [HttpGet("{phoneNumber}/{otp}")]
-        public async Task<IActionResult> CheckEMmail_Register(string phoneNumber, int otp)
+        public async Task<IActionResult> CheckEmail_Register(string phoneNumber, string otp)
         {
             try
             {
-                var result = await _loginService.CheckEMmail_Register(phoneNumber, otp);
+                var result = await _loginService.CheckEmail_Register(phoneNumber, otp);
 
                 if (result == "OTP hợp lệ!")
                 {
