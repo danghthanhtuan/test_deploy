@@ -14,7 +14,6 @@ namespace WebApi.Controllers.Client
         private readonly ManagementDbContext _context;
         private readonly JwtService _jwtService;
         private readonly LoginService _loginService;
-        private static int OTP_email;
 
         public LoginController(ManagementDbContext context, JwtService jwtService, LoginService loginService)
         {

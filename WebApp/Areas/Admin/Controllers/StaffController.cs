@@ -26,7 +26,7 @@ namespace WebApp.Areas.Admin.Controllers
         [Route("")]
         public IActionResult Index()
         {
-            if (User.IsInRole("QuanLy"))
+            if (User.IsInRole("HanhChinh") || User.IsInRole("KyThuat"))
             {
                 return RedirectToAction("Index", "phanquyen");
             }

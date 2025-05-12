@@ -28,28 +28,52 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminPolicy", policy =>
     {
-        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
         policy.AuthenticationSchemes.Add("AdminCookie");
-
-        // Yêu cầu người dùng phải được xác thực
         policy.RequireAuthenticatedUser();
-
-        // Có thể thêm các yêu cầu khác nếu cần
-        policy.RequireRole("Admin"); 
+        policy.RequireRole("Admin");
     });
 
-    options.AddPolicy("QuanLy", policy =>
+    options.AddPolicy("HanhChinhPolicy", policy =>
     {
         policy.AuthenticationSchemes.Add("AdminCookie");
-
-        // Yêu cầu người dùng phải được xác thực
         policy.RequireAuthenticatedUser();
-
-        // Có thể thêm các yêu cầu khác nếu cần
-        policy.RequireRole("QuanLy");
+        policy.RequireRole("HanhChinh");
     });
 
+    options.AddPolicy("KyThuatPolicy", policy =>
+    {
+        policy.AuthenticationSchemes.Add("AdminCookie");
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("KyThuat");
+    });
 });
+
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.AddPolicy("AdminPolicy", policy =>
+//    {
+//        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
+//        policy.AuthenticationSchemes.Add("AdminCookie");
+
+//        // Yêu cầu người dùng phải được xác thực
+//        policy.RequireAuthenticatedUser();
+
+//        // Có thể thêm các yêu cầu khác nếu cần
+//        policy.RequireRole("Admin"); 
+//    });
+
+//    options.AddPolicy("QuanLy", policy =>
+//    {
+//        policy.AuthenticationSchemes.Add("AdminCookie");
+
+//        // Yêu cầu người dùng phải được xác thực
+//        policy.RequireAuthenticatedUser();
+
+//        // Có thể thêm các yêu cầu khác nếu cần
+//        policy.RequireRole("QuanLy");
+//    });
+
+//});
 builder.Services.AddScoped<AuthorizeTokenAttribute>();
 
 // Thêm dịch vụ sử dụng Session

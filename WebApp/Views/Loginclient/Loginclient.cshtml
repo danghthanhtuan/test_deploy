@@ -1,8 +1,4 @@
-﻿@* @{
-    ViewBag.Title = "Đăng nhập client";
-    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
-} *@
-@{
+﻿@{
     ViewBag.Title = "Đăng nhập";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutLogin.cshtml";
 }
@@ -171,6 +167,7 @@
             window.location.href = '/home/Index';
         }
     });
+
     document.getElementById("togglePassword").addEventListener("click", function () {
         var passwordField = document.getElementById("password");
         passwordField.type = passwordField.type === "password" ? "text" : "password";
@@ -180,7 +177,6 @@
         const keyCode = evt.keyCode;
         return ((keyCode >= 48 && keyCode <= 57) || (keyCode >= 96 && keyCode <= 105) || keyCode === 8 || keyCode === 46 || keyCode === 9 || (keyCode >= 37 && keyCode <= 40));
     }
-
 
     function login() {
         var username = document.getElementById("username").value.trim();

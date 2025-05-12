@@ -22,13 +22,25 @@ namespace WebApp.Areas.Admin.Controllers
             _client = new HttpClient();
             _client.BaseAddress = baseAddress;
         }
-
         [AuthorizeToken]
         [Route("")]
         public IActionResult Index()
         {
-            return View();
+            if (User.IsInRole("HanhChinh") || User.IsInRole("KyThuat"))
+            {
+                return RedirectToAction("Index", "phanquyen");
+            }
+            else
+            {
+                return View();
+            }
         }
+        //[AuthorizeToken]
+        //[Route("")]
+        //public IActionResult Index()
+        //{
+        //    return View();
+        //}
 
         [HttpPost]
         [Route("GetAllRequest")]

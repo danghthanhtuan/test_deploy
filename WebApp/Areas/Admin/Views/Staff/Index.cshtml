@@ -7,7 +7,6 @@
     <div class="container-fluid pt-4">
         <div class="row">
 
-            <!-- Sách và Thông tin độc giả -->
             <div class="col-6" style="height: 80vh;">
                 <div class="card" style="height: 100%;">
                     <div class="card-header">
@@ -32,10 +31,9 @@
                                     <input type="text" class="form-control" id="hoTen" name="hoTen">
                                 </div>
 
-                                <!--Số điện thoại-->
                                 <div class="form-group col">
-                                    <label for="soDienThoai">Số điện thoại:</label>
-                                    <input type="text" class="form-control" id="soDienThoai" name="soDienThoai" onkeydown="validateInput(event, soDienThoai)">
+                                    <label class="w-25">Email: <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" pattern="@(@"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")" required>
                                 </div>
                             </div>
 
@@ -55,6 +53,11 @@
                                         <option value="Nu"> Nữ </option>
                                     </select>
                                 </div>
+                                <!--Số điện thoại-->
+                                <div class="form-group col">
+                                    <label for="soDienThoai">Số điện thoại:</label>
+                                    <input type="text" class="form-control" id="soDienThoai" name="soDienThoai" onkeydown="validateInput(event, soDienThoai)">
+                                </div>
                             </div>
 
                             <div class="form-row">
@@ -70,32 +73,31 @@
                                     <select class="form-control" id="chucVu" name="chucVu">
                                         <option>Chọn chức vụ</option>
                                         <option value="Admin">Admin</option>
-                                        <option value="QuanLyKho">Quản lý kho</option>
-                                        <option value="ThuThu">Thủ thư</option>
+                                        <option value="HanhChinh">Hành chính</option>
+                                        <option value="KyThuat">Kỹ thuật</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="form-row">
+                            @* <div class="form-row">
                                 <!--Username-->
-                                <div class="form-group col">
+                                 <div class="form-group col">
                                     <label for="username">Username:</label>
                                     <input type="text" class="form-control" id="username" name="username">
-                                </div>
+                                </div> 
 
                                 <!-- Password -->
                                 <div class="form-group col">
                                     <label for="password">Password:</label>
                                     <input type="text" class="form-control" id="password" name="password">
-                                </div>
-                            </div>
+                                </div> 
+                            </div> *@
 
                         </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Sách và Thông tin độc giả -->
             <div class="col-6">
                 <div class="card">
                     <div class="card-header">
@@ -192,6 +194,11 @@
                         <label for="soDienThoaiModal">Số điện thoại:</label>
                         <input type="text" class="form-control" id="soDienThoaiModal" name="soDienThoaiModal" onkeydown="validateInput(event, soDienThoaiModal)">
                     </div>
+
+                    <div class="form-group col">
+                        <label class="w-25">Email: <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="emailModal" pattern="@(@"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")" required>
+                    </div>
                 </div>
 
                 <div class="form-row">
@@ -206,25 +213,11 @@
                         <label for="chucVuModal">Chức vụ:</label>
                         <select class="form-control" id="chucVuModal" name="chucVuModal">
                             <option value="Admin">Admin</option>
-                            <option value="QuanLyKho">Quản lý kho</option>
-                            <option value="ThuThu">Thủ thư</option>
+                            <option value="HanhChinh">Hành chính</option>
+                            <option value="KyThuat">Kỹ thuật</option>
                         </select>
                     </div>
                 </div>
-
-                @* <div class="form-row">
-                    <!--Username-->
-                    <div class="form-group col">
-                        <label for="usernameModal">Username:</label>
-                        <input type="text" class="form-control" id="usernameModal" name="usernameModal">
-                    </div>
-
-                    <!-- Password -->
-                    <div class="form-group col">
-                        <label for="passwordModal">Password:</label>
-                        <input type="text" class="form-control" id="passwordModal" name="passwordModal">
-                    </div>
-                </div> *@
             </form>
 
             <!-- Footer -->
@@ -277,6 +270,7 @@
         </div>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     const tokenJWT = localStorage.getItem("accessToken");
@@ -345,7 +339,23 @@
                     render += '<td>' + item.staffid + '</td>';
                     render += '<td>' + item.staffname + '</td>';
                     render += '<td>' + item.staffphone + '</td>';
-                    render += '<td>' + item.department + '</td>';
+                    //render += '<td>' + item.department + '</td>';
+                    let departmentText;
+                    switch (item.department) {
+                        case 'HanhChinh':
+                            departmentText = 'Hành chính';
+                            break;
+                        case 'KyThuat':
+                            departmentText = 'Kỹ thuật';
+                            break;
+                        case 'Admin':
+                            departmentText = 'Admin';
+                            break;
+                        default:
+                            departmentText = item.department; // phòng trường hợp khác
+                    }
+
+                    render += '<td>' + departmentText + '</td>';
                 });
 
                 let danhSachNhanVien = document.getElementById("thongTinNhanVien");
@@ -382,13 +392,12 @@
                         console.log("Thông tin NhanVien: ", nv);
 
                         document.getElementById("maNhanVienModal").value = nv.staffid;
-                        document.getElementById("gioiTinhModal").value = nv.staffgender;
+                        document.getElementById("gioiTinhModal").value = nv.staffgender ? "Nu": "Nam";
                         document.getElementById("tenNhanVienModal").value = nv.staffname;
                         document.getElementById("soDienThoaiModal").value = nv.staffphone;
+                        document.getElementById("emailModal").value = nv.staffemail;
                         document.getElementById("diaChiModal").value = nv.staffaddress;
                         document.getElementById("chucVuModal").value = nv.department;
-                        //document.getElementById("usernameModal").value = nv.usernamead;
-                        //document.getElementById("passwordModal").value = nv.passwordad;
 
                         var ngaySinhStr = nv.staffdate;
 
@@ -418,19 +427,21 @@
         var gioiTinh = document.getElementById('gioiTinh').value;
         var ngaySinh = document.getElementById('ngaySinh').value;
         var diaChi = document.getElementById('diaChi').value;
+        var email = document.getElementById('email').value;
         var chucVu = document.getElementById('chucVu').value;
-        var username = document.getElementById('username').value;
-        var password = document.getElementById('password').value;
+        //var username = document.getElementById('username').value;
+       // var password = document.getElementById('password').value;
         var svalues = {
             Staffid: "",
             Staffname: hoTen,
+            Staffemail: email,
             Staffphone: soDienThoai,
             Staffgender: gioiTinh === "Nu" ? true : gioiTinh === "Nam" ? false : null,
     Staffdate: new Date(ngaySinh).toISOString(),
             Staffaddress: diaChi,
             Department: chucVu,
-            Usernamead: username,
-            Passwordad: password,
+            //Usernamead: username,
+            //Passwordad: password,
         }
 
         console.log("Gia tri insert nhan vien la", svalues);
@@ -440,7 +451,7 @@
             $("#ModalError").modal("show");
         }
 
-        if (!hoTen || !soDienThoai || !diaChi || !ngaySinh || gioiTinh === "Chọn giới tính" || chucVu === "Chọn chức vụ" || !username || !password) {
+        if (!hoTen || !soDienThoai || !diaChi || !ngaySinh || gioiTinh === "Chọn giới tính" || chucVu === "Chọn chức vụ" || !email) {
             showError("Hãy điền đầy đủ thông tin!");
             return;
         }
@@ -455,10 +466,10 @@
             return;
         }
 
-        if (!isValidUsername(username)) {
-            showError("Username không chứa ký tự đặc biệt, viết hoa, và từ 3 -> 20 ký tự!");
-            return;
-        }
+        // if (!isValidUsername(username)) {
+        //     showError("Username không chứa ký tự đặc biệt, viết hoa, và từ 3 -> 20 ký tự!");
+        //     return;
+        // }
 
         // Hiển thị modal xác nhận
         document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn thêm nhân viên mới không?";
@@ -487,12 +498,13 @@
 
                         document.getElementById('hoTen').value = "";
                         document.getElementById('soDienThoai').value = "";
+                        document.getElementById('email').value = "";
                         document.getElementById('gioiTinh').value = "Chọn giới tính";
-                        document.getElementById('ngaySinh').value = "yyyy-MM-dd";
+                        document.getElementById('ngaySinh').value = ""; 
                         document.getElementById('diaChi').value = "";
                         document.getElementById('chucVu').value = "Chọn chức vụ";
-                        document.getElementById('username').value = "";
-                        document.getElementById('password').value = "";
+                        //document.getElementById('username').value = "";
+                        //document.getElementById('password').value = "";
 
                     } else {
                         console.log("data: ", data)
@@ -510,6 +522,7 @@
         var gioiTinh = document.getElementById("gioiTinhModal").value;
         var hoTen = document.getElementById("tenNhanVienModal").value;
         var soDienThoai = document.getElementById("soDienThoaiModal").value;
+        var email = document.getElementById("emailModal").value;
         var diaChi = document.getElementById("diaChiModal").value;
         var chucVu = document.getElementById("chucVuModal").value;
         //var username = document.getElementById("usernameModal").value;
@@ -519,14 +532,15 @@
         var values = {
             Staffid: maNV,
             Staffname: hoTen,
+            Staffemail: email,
             Staffphone: soDienThoai,
             Staffgender: gioiTinh === "Nu" ? true : gioiTinh === "Nam" ? false : null,
            // Staffgender: gioiTinh,
             Staffdate: new Date(ngaySinh).toISOString(),
             Staffaddress: diaChi,
             Department: chucVu,
-            Usernamead: "",
-            Passwordad: "",
+            //Usernamead: "",
+            //Passwordad: "",
         }
         // Hàm kiểm tra và hiển thị lỗi
         function showError(message) {
@@ -534,7 +548,7 @@
             $("#ModalError").modal("show");
         }
 
-        if (!hoTen || !soDienThoai || !diaChi || !ngaySinh || gioiTinh === "Chọn giới tính" || chucVu === "Chọn chức vụ" ) {
+        if (!hoTen || !soDienThoai || !diaChi || !ngaySinh || gioiTinh === "Chọn giới tính" || chucVu === "Chọn chức vụ" || !email) {
             showError("Hãy điền đầy đủ thông tin!");
             return;
         }

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+using WebApi.Service.Client;
 
 namespace WebApi.Controllers
 {
@@ -123,83 +124,76 @@ namespace WebApi.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SendEmail_OTP([FromBody] JsonElement infoUser)
+        {
+            try
+            {
+                if (infoUser.ValueKind == JsonValueKind.Object)
+                {
+                    string phoneNumber = infoUser.GetProperty("phoneNumber").GetString();
+                    string userEmail = infoUser.GetProperty("userEmail").GetString();
 
-        //[HttpGet("validate-token")]
-        //public IActionResult ValidateToken()
-        //{
-        //    try
-        //    {
-        //        var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-        //        if (string.IsNullOrEmpty(token))
-        //        {
-        //            return Unauthorized(new { message = "Token is required" });
-        //        }
+                    var result = await _homeService.SendEmail_OTP(phoneNumber, userEmail);
 
-        //        var tokenHandler = new JwtSecurityTokenHandler();
-        //        var key = Encoding.UTF8.GetBytes(_configuration["JwtConfig:Key"]!);
+                    return Ok(new APIResponse<object>
+                    {
+                        Success = result == "Ok",
+                        Message = result,
+                        Data = null
+                    });
+                }
 
-        //        var validationParameters = new TokenValidationParameters
-        //        {
-        //            ValidateIssuerSigningKey = true,
-        //            IssuerSigningKey = new SymmetricSecurityKey(key),
-        //            ValidateIssuer = true,
-        //            ValidIssuer = _configuration["JwtConfig:Issuer"],
-        //            ValidateAudience = true,
-        //            ValidAudience = _configuration["JwtConfig:Audience"],
-        //            ValidateLifetime = true, // Kiểm tra token hết hạn
-        //            ClockSkew = TimeSpan.Zero // Không cho phép thời gian trễ
-        //        };
+                return BadRequest(new APIResponse<object>
+                {
+                    Success = false,
+                    Message = "Dữ liệu không hợp lệ.",
+                    Data = null
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new APIResponse<object>
+                {
+                    Success = false,
+                    Message = e.Message,
+                    Data = null
+                });
+            }
+        }
 
-        //        var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
 
-        //        // Nếu token hết hạn, trả về 401
-        //        if (validatedToken.ValidTo < DateTime.UtcNow)
-        //        {
-        //            return Unauthorized(new { message = "Token has expired" });
-        //        }
+        [HttpGet("{phoneNumber}/{otp}")]
+        public async Task<IActionResult> CheckEmail_Register(string phoneNumber, string otp)
+        {
+            try
+            {
+                var result = await _homeService.CheckEmail_Register(phoneNumber, otp);
 
-        //        return Ok(); // Token hợp lệ
-        //    }
-        //    catch (SecurityTokenExpiredException)
-        //    {
-        //        return Unauthorized(new { message = "Token has expired" });
-        //    }
-        //    catch (SecurityTokenException)
-        //    {
-        //        return Unauthorized(new { message = "Invalid token" });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
+                if (result == "OTP hợp lệ!")
+                {
+                    return Ok(new APIResponse<object> { Success = true, Message = result });
+                }
 
-        //[HttpGet]
-        //public IActionResult CheckToken()
-        //{
-        //    var authHeader = Request.Headers["Authorization"].ToString();
-        //    if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-        //    {
-        //        return Unauthorized("Missing token");
-        //    }
+                return Ok(new APIResponse<object> { Success = false, Message = result });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
-        //    var token = authHeader.Substring(7);
-        //    var handler = new JwtSecurityTokenHandler();
 
-        //    try
-        //    {
-        //        var jwtToken = handler.ReadJwtToken(token);
-        //        if (jwtToken.ValidTo < DateTime.UtcNow)
-        //        {
-        //            return Unauthorized("Token expired");
-        //        }
-        //        return Ok("Token valid");
-        //    }
-        //    catch
-        //    {
-        //        return Unauthorized("Invalid token");
-        //    }
-        //}
+        [HttpPost]
+        public async Task<IActionResult> UpdatePassword([FromBody] LoginRequesta model)
+        {
+            var result = await _homeService.UpdatePassword(model);
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.Message });
+            }
 
+            return Ok(new { success = true, message = result.Message });
+        }
     }
 }

@@ -9,6 +9,8 @@ public partial class Staff
 
     public string Staffid { get; set; } = null!;
 
+    public string Staffemail { get; set; } = null!;
+
     public string Staffname { get; set; } = null!;
 
     public DateTime? Staffdate { get; set; }
