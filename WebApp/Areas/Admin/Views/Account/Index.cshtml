@@ -897,13 +897,7 @@
                     `;
                     }
                 },
-                // {
-                //     data: null,
-                //     width: "20%",
-                //     render: function (data, type, row) {
-                //         return `<button id="BtnUpdate" class="btn btn-sm btn-primary update-btn" data-id="${row.customerId}"">Cập nhật</button>`;
-                //     }
-                // }
+               
                 {
                     data: null,
                     width: "10%",
@@ -1112,10 +1106,6 @@
             $("#aDate2").val(rowData.dateOfBirth ? rowData.dateOfBirth.substring(0,10):"");
             $("#aGender2").val(rowData.gender ? "nu" : "nam");
             $("#accountIssuedDate").val(rowData.accountIssuedDate ? rowData.accountIssuedDate.substring(0, 10) : "");
-
-           // $("#startDate2").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
-            //$("#endDate2").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
-           // $("#amount2").val(formatMoney(rowData.amount) || "");
         }
     });
     // Hàm định dạng tiền

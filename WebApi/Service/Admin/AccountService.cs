@@ -201,11 +201,7 @@ namespace WebApi.Service.Admin
                     //existingCompany.Accountissueddate = CompanyAccountDTO.AccountIssuedDate;
                     existingCompany.Cphonenumber = CompanyAccountDTO.CPhoneNumber;
                     existingCompany.Caddress = CompanyAccountDTO.CAddress;
-                    //existingCompany.Customertype = CompanyAccountDTO.CustomerType;
-                    //existingCompany.Operatingstatus = CompanyAccountDTO.OperatingStatus;
-
-                    //existingCompany.ServiceType = CompanyAccountDTO.ServiceType;
-                    // existingCompany.ContractNumber = CompanyAccountDTO.ContractNumber;
+                    
                     _context.Companies.Update(existingCompany);
                     _context.SaveChanges();
 
@@ -482,6 +478,7 @@ namespace WebApi.Service.Admin
                         ServiceTypeid = serviceType.Id,
                         Customerid = newCustomerID,
                         Customertype = CompanyAccountDTO.CustomerType,
+                        Constatus = "Đã hoàn tất",
                     };
                     var newPayment = new Payment
                     {

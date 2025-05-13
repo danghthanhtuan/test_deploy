@@ -21,6 +21,10 @@ public partial class Contract
 
     public bool Customertype { get; set; }
 
+    public string? Constatus { get; set; }
+
+    public virtual ICollection<ContractFile> ContractFiles { get; set; } = new List<ContractFile>();
+
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual ICollection<Requirement> Requirements { get; set; } = new List<Requirement>();

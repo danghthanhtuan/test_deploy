@@ -160,6 +160,19 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const username = document.getElementById("username");
+        const password = document.getElementById("password");
+
+        [username, password].forEach(function (input) {
+            input.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    login();
+                }
+            });
+        });
+    });
+    document.addEventListener("DOMContentLoaded", function () {
         var token = '@Model';
 
         if (token) {

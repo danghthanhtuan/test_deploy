@@ -22,7 +22,7 @@ namespace WebApi.Controllers
             _accountService = accountService;
         }
 
-        [Authorize(Policy = "AdminPolicy")]
+        [Authorize(Roles = "Admin,HanhChinh")]
         [HttpPost]
         public async Task<ActionResult<CompanyAccountDTO>> GetAllCompany([FromBody] GetListCompanyPaging req)
         {
