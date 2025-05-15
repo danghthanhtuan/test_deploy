@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
 using WebApi.Helper;
 using WebApi.Service.Client;
+using System.Net.Mail;
+using System.Net;
 
 namespace WebApi.Service.Client
 {
@@ -23,25 +25,36 @@ namespace WebApi.Service.Client
             Console.WriteLine($"Port: {_emailSettings.Port}");
         }
 
+        public Task SendEmailAsync(MailRequest mailRequest)
+        {
+            throw new NotImplementedException();
+        }
 
-        public async Task SendEmailAsync(MailRequest mailRequest)
+        public async Task SendContractEmail(string toEmail, string companyName, string signingLink)
         {
             var email = new MimeMessage();
-            email.From.Add(new MailboxAddress(_emailSettings.Displayname, _emailSettings.Email));
-            email.To.Add(new MailboxAddress("", mailRequest.ToEmail));
-            email.Subject = mailRequest.Subject;
+            email.Sender = MailboxAddress.Parse(_emailSettings.Email);
+            email.From.Add(MailboxAddress.Parse(_emailSettings.Email));
+            email.To.Add(MailboxAddress.Parse(toEmail));
+            email.Subject = "Yêu cầu ký hợp đồng dịch vụ";
 
-            var bodyBuilder = new BodyBuilder
-            {
-                HtmlBody = mailRequest.Body
-            };
-            email.Body = bodyBuilder.ToMessageBody();
+            var builder = new BodyBuilder();
+            builder.HtmlBody = $@"
+        <p>Chào <strong>{companyName}</strong>,</p>
+        <p>Hệ thống đã tạo hợp đồng dịch vụ cho công ty của bạn.</p>
+        <p>Vui lòng nhấn vào liên kết sau để xem và ký hợp đồng:</p>
+        <p><a href='{signingLink}'>Ký hợp đồng tại đây</a></p>
+        <br/>
+        <p>Trân trọng,<br/>{_emailSettings.Displayname}</p>";
 
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(_emailSettings.Host, _emailSettings.Port, SecureSocketOptions.StartTls);
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new MailKit.Net.Smtp.SmtpClient();
+            await smtp.ConnectAsync(_emailSettings.Host, _emailSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
             await smtp.AuthenticateAsync(_emailSettings.Email, _emailSettings.Password);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
+
     }
 }

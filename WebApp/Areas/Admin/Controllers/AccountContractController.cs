@@ -13,14 +13,14 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace WebApp.Areas.Admin.Controllers
 {
     [Area("admin")]
-    [Route("admin/account")]
+    [Route("admin/accountcontract")]
     [Authorize(AuthenticationSchemes = "AdminCookie")]
-    public class AccountController : Controller
+    public class AccountContractController : Controller
     {
         Uri baseAddress = new Uri("https://localhost:7190/api/admin");
         private readonly HttpClient _client;
 
-        public AccountController()
+        public AccountContractController()
         {
             _client = new HttpClient();
             _client.BaseAddress = baseAddress;
@@ -56,7 +56,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Account/GetAllCompany", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/AccountContract/GetAllCompany", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -93,7 +93,7 @@ namespace WebApp.Areas.Admin.Controllers
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Gửi request đến API backend với đường dẫn đúng
-                HttpResponseMessage response = await _client.PutAsync(_client.BaseAddress + "/Account/UpdateStatus", httpContent);
+                HttpResponseMessage response = await _client.PutAsync(_client.BaseAddress + "/AccountContract/UpdateStatus", httpContent);
                 if (response.IsSuccessStatusCode)
                 {
                     var responseData = response.Content.ReadAsStringAsync();
@@ -135,7 +135,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(companyAccountDTO), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/account/Insert?id={id}", jsonContent);
+                var response = await _client.PostAsync(_client.BaseAddress + $"/AccountContract/Insert?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -185,7 +185,7 @@ namespace WebApp.Areas.Admin.Controllers
                 // Gửi request với token
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _client.PostAsync(_client.BaseAddress + $"/account/Update?id={id}", jsonContent);
+                var response = await _client.PostAsync(_client.BaseAddress + $"/AccountContract/Update?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
 
@@ -208,27 +208,6 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
-        //[HttpPost("ExportToCsv")]
-        //public async Task<IActionResult> ExportToCsv([FromBody] ExportRequestDTO request)
-        //{
-        //    var reqJson = JsonConvert.SerializeObject(request);
-        //    var jsonContent = new StringContent(reqJson, Encoding.UTF8, "application/json");
-
-        //    var response = await _client.PostAsync(_client.BaseAddress + "/account/ExportToCsv", jsonContent);
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var result = await response.Content.ReadAsStringAsync();
-        //        var jsonResponse = JsonConvert.DeserializeObject<dynamic>(result);
-
-        //        if (jsonResponse != null && jsonResponse.fileUrl != null)
-        //        {
-        //            return Ok(new { success = true, fileUrl = "https://localhost:7190"+jsonResponse.fileUrl.ToString() });
-        //        }
-        //    }
-
-        //    return BadRequest("Xuất file thất bại");
-        //}
         [HttpPost("ExportToCsv")]
         public async Task<IActionResult> ExportToCsv([FromBody] ExportRequestDTO request)
         {
@@ -237,7 +216,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var reqJson = JsonConvert.SerializeObject(request);
                 var jsonContent = new StringContent(reqJson, Encoding.UTF8, "application/json");
 
-                var response = await _client.PostAsync(_client.BaseAddress + "/account/ExportToCsv", jsonContent);
+                var response = await _client.PostAsync(_client.BaseAddress + "/accountcontract/ExportToCsv", jsonContent);
                 if (!response.IsSuccessStatusCode)
                 {
                     return BadRequest(new { success = false, message = "Xuất file thất bại!" });
@@ -262,7 +241,7 @@ namespace WebApp.Areas.Admin.Controllers
                 List<ServiceTypeDTO2> listRegu = new List<ServiceTypeDTO2>();
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + "/account/GetListServiceID");
+                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + "/accountcontract/GetListServiceID");
 
                 if (response.IsSuccessStatusCode)
                 {

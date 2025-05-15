@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using DinkToPdf.Contracts;
+using DinkToPdf;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -144,11 +146,11 @@ builder.Services.AddTransient<RequestService>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<ContractService>();
 builder.Services.AddTransient<RegulationsService>();
+builder.Services.AddTransient<AccountContractService>();
 builder.Services.AddTransient<StaffService>();
+builder.Services.AddTransient<PdfService>();
 
-
-builder.Services.AddTransient<IEmailService, EmailService>(); // Thay EmailService bằng class thực tế của bạn
-
+builder.Services.AddTransient<IEmailService, EmailService>(); 
 
 //var app = builder.Build();
 
@@ -176,6 +178,7 @@ builder.Services.AddTransient<IEmailService, EmailService>(); // Thay EmailServi
 //    endpoints.MapControllers();
 //});
 //app.Run();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
