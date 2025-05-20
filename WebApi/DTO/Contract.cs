@@ -11,6 +11,11 @@
         public int chooseMonth { get; set; }
         public bool Customertype { get; set; }
 
+    }
 
+    public class SignContractRequest
+    {
+        public string Email { get; set; }
+        public string FileName { get; set; }
     }
 }

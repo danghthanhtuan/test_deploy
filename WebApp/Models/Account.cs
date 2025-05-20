@@ -17,5 +17,7 @@ public partial class Account
 
     public bool Gender { get; set; }
 
+    public bool? IsActive { get; set; }
+
     public virtual Company Customer { get; set; } = null!;
 }

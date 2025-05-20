@@ -38,7 +38,7 @@ namespace WebApi.Service.Admin
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
-                        group new {c,a,h} by new
+                        group new {c,a,h,b} by new
                         {
                             c.Customerid,
                             c.Companyname, 
@@ -52,7 +52,7 @@ namespace WebApi.Service.Admin
                             a.Rootaccount,
                             a.Rootname,
                             a.Rphonenumber,
-                            c.Operatingstatus,
+                            b.IsActive,
                             a.Dateofbirth,
                             a.Gender,
                         } into g
@@ -71,7 +71,7 @@ namespace WebApi.Service.Admin
                             RootAccount = g.Key.Rootaccount,
                             RootName = g.Key.Rootname,
                             RPhoneNumber = g.Key.Rphonenumber,
-                            OperatingStatus = g.Key.Operatingstatus,
+                            IsActive = g.Key.IsActive,
                             DateOfBirth = g.Key.Dateofbirth,
                             Gender = g.Key.Gender,
                         };
@@ -295,7 +295,8 @@ namespace WebApi.Service.Admin
         {
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
-                        group new { c, a } by new
+                        join b in _context.Contracts on c.Customerid equals b.Customerid
+                        group new { c, a, b } by new
                         {
                             c.Customerid,
                             c.Companyname,
@@ -303,7 +304,7 @@ namespace WebApi.Service.Admin
                             c.Taxcode,
                             c.Companyaccount,
                             c.Accountissueddate,
-                            c.Operatingstatus,
+                            b.IsActive,
                             a.Rootname,
                             a.Rootaccount,
                             a.Rphonenumber,
@@ -318,7 +319,7 @@ namespace WebApi.Service.Admin
                             TaxCode = g.Key.Taxcode,
                             CompanyAccount = g.Key.Companyaccount,
                             AccountIssuedDate = g.Key.Accountissueddate,
-                            OperatingStatus = g.Key.Operatingstatus,
+                            IsActive = g.Key.IsActive,
                             RootName = g.Key.Rootname,
                             RootAccount = g.Key.Rootaccount,
                             RPhoneNumber = g.Key.Rphonenumber,
@@ -353,7 +354,7 @@ namespace WebApi.Service.Admin
                     string ngayCap = item.AccountIssuedDate?.ToString("dd/MM/yyyy") ?? "";
                     string ngaySinh = item.DateOfBirth?.ToString("dd/MM/yyyy") ?? "";
 
-                    string trangThai = item.OperatingStatus ? "Hoạt động" : "Không hoạt động";
+                    string trangThai = item.IsActive ? "Hoạt động" : "Không hoạt động";
 
                     string gioiTinh = item.Gender ? "Nam" : "Nữ";
                     // Thêm dấu ' trước số để giữ 0 đầu trong Excel
@@ -419,7 +420,7 @@ namespace WebApi.Service.Admin
                         Accountissueddate = CompanyAccountDTO.AccountIssuedDate,
                         Cphonenumber = CompanyAccountDTO.CPhoneNumber,
                         Caddress = CompanyAccountDTO.CAddress,
-                        Operatingstatus = CompanyAccountDTO.OperatingStatus,
+                        //Operatingstatus = CompanyAccountDTO.OperatingStatus,
                     };
 
                     _context.Companies.Add(newCompany);
@@ -479,6 +480,7 @@ namespace WebApi.Service.Admin
                         Customerid = newCustomerID,
                         Customertype = CompanyAccountDTO.CustomerType,
                         Constatus = "Đã hoàn tất",
+                        IsActive = true,
                     };
                     var newPayment = new Payment
                     {

@@ -32,14 +32,17 @@ namespace WebApi.Service.Client
 
         public async Task SendContractEmail(string toEmail, string companyName, string signingLink)
         {
-            var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(_emailSettings.Email);
-            email.From.Add(MailboxAddress.Parse(_emailSettings.Email));
-            email.To.Add(MailboxAddress.Parse(toEmail));
-            email.Subject = "Yêu cầu ký hợp đồng dịch vụ";
+            try
+            {
+                var email = new MimeMessage();
+                email.Sender = MailboxAddress.Parse(_emailSettings.Email);
+                email.From.Add(MailboxAddress.Parse(_emailSettings.Email));
+                email.To.Add(MailboxAddress.Parse(toEmail)); // 💥 Nếu toEmail sai format, lỗi ở đây
 
-            var builder = new BodyBuilder();
-            builder.HtmlBody = $@"
+                email.Subject = "Yêu cầu ký hợp đồng dịch vụ";
+
+                var builder = new BodyBuilder();
+                builder.HtmlBody = $@"
         <p>Chào <strong>{companyName}</strong>,</p>
         <p>Hệ thống đã tạo hợp đồng dịch vụ cho công ty của bạn.</p>
         <p>Vui lòng nhấn vào liên kết sau để xem và ký hợp đồng:</p>
@@ -47,13 +50,51 @@ namespace WebApi.Service.Client
         <br/>
         <p>Trân trọng,<br/>{_emailSettings.Displayname}</p>";
 
-            email.Body = builder.ToMessageBody();
+                email.Body = builder.ToMessageBody();
 
-            using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            await smtp.ConnectAsync(_emailSettings.Host, _emailSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
-            await smtp.AuthenticateAsync(_emailSettings.Email, _emailSettings.Password);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                await smtp.ConnectAsync(_emailSettings.Host, _emailSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync(_emailSettings.Email, _emailSettings.Password);
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Lỗi gửi email: {ex.Message}");
+                throw;
+            }
+        }
+        public async Task SendAdminNotificationEmail(string adminEmail, string signerEmail, string contractUrl)
+        {
+            try
+            {
+                var email = new MimeMessage();
+                email.Sender = MailboxAddress.Parse(_emailSettings.Email);
+                email.From.Add(MailboxAddress.Parse(_emailSettings.Email));
+                email.To.Add(MailboxAddress.Parse(adminEmail));
+
+                email.Subject = "Thông báo hợp đồng đã được ký";
+
+                var builder = new BodyBuilder();
+                builder.HtmlBody = $@"
+<p><strong>{signerEmail}</strong> đã ký hợp đồng.</p>
+<p>Bạn có thể xem hợp đồng tại: <a href='{contractUrl}'>Xem hợp đồng</a></p>
+<br/>
+<p>Trân trọng,<br/>{_emailSettings.Displayname}</p>";
+
+                email.Body = builder.ToMessageBody();
+
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                await smtp.ConnectAsync(_emailSettings.Host, _emailSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync(_emailSettings.Email, _emailSettings.Password);
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Lỗi gửi email thông báo admin: {ex.Message}");
+                throw;
+            }
         }
 
     }

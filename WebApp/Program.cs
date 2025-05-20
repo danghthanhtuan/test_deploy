@@ -4,6 +4,11 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379"; // địa chỉ Redis
+});
+
 // thêm dịch vụ authentication
 builder.Services.AddAuthentication(option =>
 {
@@ -48,32 +53,7 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("AdminPolicy", policy =>
-//    {
-//        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
-//        policy.AuthenticationSchemes.Add("AdminCookie");
 
-//        // Yêu cầu người dùng phải được xác thực
-//        policy.RequireAuthenticatedUser();
-
-//        // Có thể thêm các yêu cầu khác nếu cần
-//        policy.RequireRole("Admin"); 
-//    });
-
-//    options.AddPolicy("QuanLy", policy =>
-//    {
-//        policy.AuthenticationSchemes.Add("AdminCookie");
-
-//        // Yêu cầu người dùng phải được xác thực
-//        policy.RequireAuthenticatedUser();
-
-//        // Có thể thêm các yêu cầu khác nếu cần
-//        policy.RequireRole("QuanLy");
-//    });
-
-//});
 builder.Services.AddScoped<AuthorizeTokenAttribute>();
 
 // Thêm dịch vụ sử dụng Session
@@ -85,6 +65,8 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 

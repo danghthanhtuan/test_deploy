@@ -21,7 +21,7 @@ public partial class Company
 
     public string Caddress { get; set; } = null!;
 
-    public bool Operatingstatus { get; set; }
+    public bool? IsActive { get; set; }
 
     public virtual Account? Account { get; set; }
 

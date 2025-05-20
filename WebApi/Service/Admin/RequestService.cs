@@ -94,7 +94,7 @@ namespace WebApi.Service.Admin
                               c.Customerid.ToLower().Contains(req) ||
                               c.Companyname.ToLower().Contains(req) ||
                               c.Taxcode.ToLower().Contains(req))
-                              && c.Operatingstatus == true
+                              && h.IsActive == true
                               && h.Enddate >= DateTime.Now
                          )
                         select new CompanyAccountDTO
@@ -154,7 +154,7 @@ namespace WebApi.Service.Admin
                             Department = b.Department,
                             Startdate = h.Startdate, 
                             Enddate = h.Enddate,
-                            Operatingstatus = c.Operatingstatus
+                            Operatingstatus = h.IsActive
                         };
 
             return await query.ToListAsync();
@@ -292,7 +292,7 @@ namespace WebApi.Service.Admin
                                    join c in _context.Companies
                                    on h.Customerid equals c.Customerid
                                    where r.Requirementsid == historyReq.Requirementsid
-                                   select c.Operatingstatus).FirstOrDefault();
+                                   select h.IsActive).FirstOrDefault();
 
                 if (isOperating == false)
                 {

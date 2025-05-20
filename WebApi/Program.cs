@@ -133,7 +133,6 @@ builder.Services.AddHttpContextAccessor();
 
 
 // Đăng ký các dịch vụ
-// Đăng ký dịch vụ cho IMapper
 builder.Services.AddScoped<IMapper, Mapper>();
 builder.Services.AddScoped<RegisterService>();
 builder.Services.AddTransient<HomeService>();
@@ -150,34 +149,8 @@ builder.Services.AddTransient<AccountContractService>();
 builder.Services.AddTransient<StaffService>();
 builder.Services.AddTransient<PdfService>();
 
-builder.Services.AddTransient<IEmailService, EmailService>(); 
-
-//var app = builder.Build();
-
-//// Cấu hình middleware
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-
-//}
-
-//app.UseHttpsRedirection();
-
-//app.UseStaticFiles();
-//app.UseRouting();
-
-//app.UseAuthentication();
-//app.UseMiddleware<JwtMiddleware>();
-
-//app.UseAuthorization();
-
-
-//app.UseEndpoints(endpoints =>
-//{
-//    endpoints.MapControllers();
-//});
-//app.Run();
+builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddMemoryCache(); // Cho IMemoryCache
 
 var app = builder.Build();
 
@@ -185,17 +158,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    //app.UseSwaggerUI(c =>
-    //{
-    //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API v1");
-    //    c.RoutePrefix = string.Empty; // Để Swagger UI mở ngay tại `/`
-    //});
+
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
 app.UseAuthentication();  // ✅ Xác thực trước middleware JWT
 //app.UseMiddleware<TokenValidationMiddleware>(); // Đăng ký Middleware
 app.UseAuthorization();   // ✅ Ủy quyền sau khi đã xác thực

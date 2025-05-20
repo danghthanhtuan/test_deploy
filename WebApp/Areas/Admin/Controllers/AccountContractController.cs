@@ -23,6 +23,7 @@ namespace WebApp.Areas.Admin.Controllers
         public AccountContractController()
         {
             _client = new HttpClient();
+            _client.Timeout = TimeSpan.FromMinutes(5); // Thêm dòng này
             _client.BaseAddress = baseAddress;
         }
 
@@ -260,5 +261,38 @@ namespace WebApp.Areas.Admin.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
             }
         }
+
+        [HttpPost]
+        [Route("GenerateContractAndSendMail")]
+        public async Task<IActionResult> GenerateContractAndSendMail([FromBody] CompanyAccountDTO dto, [FromQuery] string id)
+        {
+            try
+            {
+                // Lấy token từ header để truyền qua API service
+                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+                var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _client.PostAsync(_client.BaseAddress + $"/accountcontract/GenerateContractLink?id={id}", content);
+                var result = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Có thể trả về success + link để frontend xử lý
+                    return Ok(new { success = true, message = "Hợp đồng đã được tạo và gửi email.", data = JsonConvert.DeserializeObject(result) });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = result });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+
     }
 }

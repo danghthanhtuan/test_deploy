@@ -29,7 +29,7 @@ namespace WebApi.Service.Admin
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
-                        group new { c, a, h } by new
+                        group new { c, a, b, h } by new
                         {
                             c.Customerid,
                             c.Companyname,
@@ -43,7 +43,7 @@ namespace WebApi.Service.Admin
                             a.Rootaccount,
                             a.Rootname,
                             a.Rphonenumber,
-                            c.Operatingstatus,
+                            b.IsActive,
                             a.Dateofbirth,
                             a.Gender,
                         } into g
@@ -62,7 +62,7 @@ namespace WebApi.Service.Admin
                             RootAccount = g.Key.Rootaccount,
                             RootName = g.Key.Rootname,
                             RPhoneNumber = g.Key.Rphonenumber,
-                            OperatingStatus = g.Key.Operatingstatus,
+                            IsActive = g.Key.IsActive,
                             DateOfBirth = g.Key.Dateofbirth,
                             Gender = g.Key.Gender,
                         };
@@ -286,7 +286,8 @@ namespace WebApi.Service.Admin
         {
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
-                        group new { c, a } by new
+                        join b in _context.Contracts on c.Customerid equals b.Customerid
+                        group new { c, a, b } by new
                         {
                             c.Customerid,
                             c.Companyname,
@@ -294,7 +295,7 @@ namespace WebApi.Service.Admin
                             c.Taxcode,
                             c.Companyaccount,
                             c.Accountissueddate,
-                            c.Operatingstatus,
+                            b.IsActive,
                             a.Rootname,
                             a.Rootaccount,
                             a.Rphonenumber,
@@ -309,7 +310,7 @@ namespace WebApi.Service.Admin
                             TaxCode = g.Key.Taxcode,
                             CompanyAccount = g.Key.Companyaccount,
                             AccountIssuedDate = g.Key.Accountissueddate,
-                            OperatingStatus = g.Key.Operatingstatus,
+                            IsActive = g.Key.IsActive,
                             RootName = g.Key.Rootname,
                             RootAccount = g.Key.Rootaccount,
                             RPhoneNumber = g.Key.Rphonenumber,
@@ -344,7 +345,7 @@ namespace WebApi.Service.Admin
                     string ngayCap = item.AccountIssuedDate?.ToString("dd/MM/yyyy") ?? "";
                     string ngaySinh = item.DateOfBirth?.ToString("dd/MM/yyyy") ?? "";
 
-                    string trangThai = item.OperatingStatus ? "Hoạt động" : "Không hoạt động";
+                    string trangThai = item.IsActive ? "Hoạt động" : "Không hoạt động";
 
                     string gioiTinh = item.Gender ? "Nam" : "Nữ";
                     // Thêm dấu ' trước số để giữ 0 đầu trong Excel
@@ -410,10 +411,11 @@ namespace WebApi.Service.Admin
                         Accountissueddate = CompanyAccountDTO.AccountIssuedDate,
                         Cphonenumber = CompanyAccountDTO.CPhoneNumber,
                         Caddress = CompanyAccountDTO.CAddress,
-                        Operatingstatus = CompanyAccountDTO.OperatingStatus,
+                        //IsActive = CompanyAccountDTO.IsActive,
                     };
-
+                   
                     _context.Companies.Add(newCompany);
+
                     _context.SaveChanges();
 
                     // Tạo mật khẩu ngẫu nhiên
@@ -470,6 +472,7 @@ namespace WebApi.Service.Admin
                         Customerid = newCustomerID,
                         Customertype = CompanyAccountDTO.CustomerType,
                         Constatus = "Đã hoàn tất",
+                        IsActive = true,
                     };
                     var newPayment = new Payment
                     {
@@ -534,6 +537,159 @@ namespace WebApi.Service.Admin
                                                }).ToListAsync();
 
             return regulationsWithGroups;
+        }
+        public async Task<string?> SaveContractStatusAsync(CompanyContractDTOs dto)
+        {
+            if (dto == null)
+            {
+                return "Dữ liệu không hợp lệ.";
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == dto.ChangedBy);
+                    if (staff == null)
+                    {
+                        return $"Nhân viên với mã nhân viên = {dto.ChangedBy} không tồn tại";
+                    }
+
+                    if (_context.Companies.Any(s => s.Cphonenumber == dto.CPhoneNumber) ||
+                        _context.Accounts.Any(a => a.Rphonenumber == dto.CPhoneNumber))
+                    {
+                        return "Số điện thoại đã tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
+                    }
+
+                    if (_context.Companies.Any(s => s.Companyaccount == dto.CompanyAccount) ||
+                        _context.Accounts.Any(a => a.Rootaccount == dto.CompanyAccount))
+                    {
+                        return "Email đã tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
+                    }
+
+                    if (_context.Companies.Any(s => s.Taxcode == dto.TaxCode))
+                    {
+                        return "Mã số thuế đã tồn tại trong hệ thống! Vui lòng kiểm tra lại.";
+                    }
+
+                    if (_context.Companies.Any(s => s.Cphonenumber == dto.RPhoneNumber) ||
+                        _context.Accounts.Any(a => a.Rphonenumber == dto.RPhoneNumber))
+                    {
+                        return "Số điện thoại đã tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
+                    }
+
+                    if (_context.Companies.Any(s => s.Companyaccount == dto.RootAccount) ||
+                        _context.Accounts.Any(a => a.Rootaccount == dto.RootAccount))
+                    {
+                        return "Email đã tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
+                    }
+                    var lastCustomer = _context.Companies
+    .Where(c => c.Customerid.StartsWith("IT030300"))
+    .OrderByDescending(c => c.Customerid)
+    .FirstOrDefault();
+
+                    int nextNumber = lastCustomer != null ? int.Parse(lastCustomer.Customerid.Substring(8)) + 1 : 1;
+                    string newCustomerID = $"IT030300{nextNumber:D2}";
+
+                    var newCompany = new Company
+                    {
+                        Customerid = newCustomerID,
+                        Companyname = dto.CompanyName,
+                        Taxcode = dto.TaxCode,
+                        Companyaccount = dto.CompanyAccount,
+                        Accountissueddate = dto.AccountIssuedDate,
+                        Cphonenumber = dto.CPhoneNumber,
+                        Caddress = dto.CAddress,
+                        IsActive = false,
+                    };
+
+                    _context.Companies.Add(newCompany);
+
+                    var newAccount = new Account
+                    {
+                        Customerid = newCustomerID,
+                        Rootaccount = dto.RootAccount,
+                        Rootname = dto.RootName,
+                        Rphonenumber = dto.RPhoneNumber,
+                        Dateofbirth = (DateTime)dto.DateOfBirth!,
+                        Gender = dto.Gender,
+                        IsActive = false,
+                    };
+                    _context.Accounts.Add(newAccount);
+
+
+                    var lastContract = _context.Contracts
+                .OrderByDescending(c => c.Contractnumber)
+                .FirstOrDefault();
+                    if (!_context.ServiceTypes.Any(s => s.ServiceTypename == dto.ServiceType))
+                    {
+                        return "Loại dịch vụ không tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
+                    }
+
+                    int nextContractNumber = lastContract != null ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1 : 1;
+                    string newContractNumber = $"SV{nextContractNumber:D4}";
+
+                    var serviceType = _context.ServiceTypes
+    .FirstOrDefault(st => st.ServiceTypename == dto.ServiceType);
+
+                    if (serviceType == null)
+                    {
+                        return $"Loại dịch vụ '{dto.ServiceType}' không tồn tại.";
+                    }
+
+                    var newContract = new Contract
+                    {
+                        Contractnumber = newContractNumber,
+                        Startdate = (DateTime)dto.Startdate!,
+                        Enddate = (DateTime)dto.Enddate!,
+                        ServiceTypeid = serviceType.Id,
+                        Customerid = newCustomerID,
+                        Customertype = dto.CustomerType,
+                        IsActive = false,
+                        Constatus = "Chưa ký"
+                    };
+                    var newPayment = new Payment
+                    {
+                        //Customerid = newCustomerID,
+                        Contractnumber = newContractNumber,
+                        Amount = dto.Amount,
+                        Paymentstatus = false,
+                    };
+                    _context.Payments.Add(newPayment);
+                    _context.Contracts.Add(newContract);
+
+                    var newContractfile = new ContractFile
+                    {
+                        Contractnumber = newContractNumber,
+                        ConfileName = dto.ConfileName, 
+                        FilePath = dto.FilePath,
+                        UploadedAt = DateTime.Now,
+                        FileStatus = "Chưa ký",
+                    };
+
+                    var newContractStatusHistory = new ContractStatusHistory
+                    {
+                        Contractnumber = newContractNumber,
+                        OldStatus ="",
+                        NewStatus = "Chưa ký", 
+                        ChangedAt = DateTime.Now,
+                        ChangedBy = dto.ChangedBy,
+                    };
+                    _context.ContractFiles.Add(newContractfile);
+                    _context.ContractStatusHistories.Add(newContractStatusHistory);
+
+                    _context.SaveChanges();
+                    transaction.Commit();
+
+                    return newCustomerID;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                    return "Lỗi hệ thống, vui lòng thử lại sau.";
+                }
+            }
         }
 
     }

@@ -5,7 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using WebApi.DTO;
 using WebApi.Models;
 using WebApi.Service.Admin;
-
+using WebApi.Service.Client;
+using Microsoft.Extensions.Caching.Memory;
+using static Org.BouncyCastle.Math.EC.ECCurve;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.EntityFrameworkCore;
 namespace WebApi.Controllers.Admin
 {
     [Route("api/admin/[controller]/[action]")]
@@ -15,11 +20,29 @@ namespace WebApi.Controllers.Admin
         private readonly AccountContractService _accountContractService;
         private readonly ManagementDbContext _context;
         private readonly IMapper _mapper;
-        public AccountContractController(IMapper mapper, ManagementDbContext context, AccountContractService accountContractService)
+        private readonly PdfService _pdfService;
+        private readonly IWebHostEnvironment _env;
+        private readonly EmailService _emailService;
+        private readonly IConfiguration _config;
+        //private readonly IMemoryCache _contractCache;
+
+        //public AccountContractController(IMapper mapper, ManagementDbContext context, AccountContractService accountContractService)
+        //{
+        //    _context = context;
+        //    _mapper = mapper;
+        //    _accountContractService = accountContractService;
+
+        //}
+        public AccountContractController(IMapper mapper, ManagementDbContext context, AccountContractService accountContractService, PdfService pdfService, IWebHostEnvironment env, EmailService emailService, IConfiguration config)
         {
             _context = context;
             _mapper = mapper;
             _accountContractService = accountContractService;
+            _pdfService = pdfService;
+            _env = env;
+            _emailService = emailService;
+            _config = config;
+          
         }
 
         [Authorize(Roles = "Admin,HanhChinh")]
@@ -136,5 +159,75 @@ namespace WebApi.Controllers.Admin
             var regu = await _accountContractService.GetListServiceID();
             return Ok(regu);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> GenerateContractLink([FromBody] CompanyAccountDTO dto, [FromQuery] string id)
+        {
+            try
+            {
+                string contractId = Guid.NewGuid().ToString();
+
+                // 1. Tạo file PDF gốc chưa ký
+                byte[] pdfBytes = _pdfService.GenerateContractPdf(dto);
+
+                // 2. Gọi hàm ký số file PDF (trả về file PDF đã ký)
+                byte[] signedPdfBytes = _pdfService.SignPdfWithAdminCertificate(pdfBytes, id);
+
+                // 3. Lưu file PDF đã ký
+                string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp-pdfs");
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                string fileName = $"{contractId}.pdf";
+                string fullPath = Path.Combine(folderPath, fileName);
+                await System.IO.File.WriteAllBytesAsync(fullPath, signedPdfBytes);
+
+                // 4. Tạo link xem file PDF
+                string razorDomain = _config["App:RazorBaseUrl"] ?? "https://localhost:7176";
+                string viewLink = $"{razorDomain}/SeeContract/Index?fileName={fileName}&email={dto.RootAccount}";
+
+                // 5. Lưu thông tin hợp đồng, trạng thái file đã ký vào DB
+                var result = await _accountContractService.SaveContractStatusAsync(new CompanyContractDTOs
+                {
+                    CustomerId = dto.CustomerId,
+                    CompanyName = dto.CompanyName,
+                    TaxCode = dto.TaxCode,
+                    CompanyAccount = dto.CompanyAccount,
+                    AccountIssuedDate = dto.AccountIssuedDate,
+                    CPhoneNumber = dto.CPhoneNumber,
+                    CAddress = dto.CAddress,
+                    RootAccount = dto.RootAccount,
+                    RootName = dto.RootName,
+                    RPhoneNumber = dto.RPhoneNumber,
+                    DateOfBirth = dto.DateOfBirth,
+                    Gender = dto.Gender,
+                    ContractNumber = dto.ContractNumber,
+                    Startdate = dto.Startdate,
+                    Enddate = dto.Enddate,
+                    CustomerType = dto.CustomerType,
+                    ServiceType = dto.ServiceType,
+                    ConfileName = fileName,
+                    FilePath = fullPath,
+                    ChangedBy = id,
+                    Amount = dto.Amount,
+                    Original = dto.Original,
+                });
+
+                if (result == null || result.StartsWith("Lỗi") || result.Contains("không tồn tại") || result.Contains("đã tồn tại"))
+                {
+                    return BadRequest(new { success = false, message = result });
+                }
+
+                // 6. Gửi mail hợp đồng đã ký số tới khách hàng
+                await _emailService.SendContractEmail(dto.RootAccount, dto.CompanyName, viewLink);
+
+                return Ok(new { success = true, viewLink });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi gửi email hoặc tạo hợp đồng: {ex.Message}");
+            }
+        }
+
     }
 }

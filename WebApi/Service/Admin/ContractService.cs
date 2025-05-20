@@ -36,7 +36,7 @@ namespace WebApi.Service.Admin
                             RootAccount = a.Rootaccount,
                             RootName = a.Rootname,
                             RPhoneNumber = a.Rphonenumber,
-                            OperatingStatus = c.Operatingstatus,
+                            IsActive = b.IsActive,
                             DateOfBirth = a.Dateofbirth,
                             Gender = a.Gender,
                             Startdate = b.Startdate,
@@ -84,7 +84,7 @@ namespace WebApi.Service.Admin
                     RootAccount = g.First().RootAccount,
                     RootName = g.First().RootName,
                     RPhoneNumber = g.First().RPhoneNumber,
-                    OperatingStatus = g.First().OperatingStatus,
+                    IsActive = g.First().IsActive,
                     DateOfBirth = g.First().DateOfBirth,
                     Gender = g.First().Gender,
                     Startdate = g.Min(x => x.Startdate), // Lấy nhỏ nhất trong các lần gia hạn
@@ -393,7 +393,7 @@ namespace WebApi.Service.Admin
                               c.Customerid.ToLower().Contains(req) ||
                               c.Companyname.ToLower().Contains(req) ||
                               c.Taxcode.ToLower().Contains(req))
-                              && c.Operatingstatus == true
+                              && h.IsActive == true
                               && h.Enddate >= DateTime.Now
                          )
                          group new { c, a } by c.Customerid into g
