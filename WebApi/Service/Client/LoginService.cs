@@ -18,14 +18,12 @@ namespace WebApi.Service.Client
         private readonly IEmailService _emailService;
 
         private readonly ManagementDbContext _context;
-        private readonly IDistributedCache _cache;
         private static int OTP_email;
 
-        public LoginService(ManagementDbContext context, IEmailService emailService, IDistributedCache cache)
+        public LoginService(ManagementDbContext context, IEmailService emailService)
         {
             _context = context;
             _emailService = emailService;
-            _cache = cache;
         }
         public Account LoginAsync( string username, string password)
         {

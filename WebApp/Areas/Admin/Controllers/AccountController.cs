@@ -208,27 +208,6 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
-        //[HttpPost("ExportToCsv")]
-        //public async Task<IActionResult> ExportToCsv([FromBody] ExportRequestDTO request)
-        //{
-        //    var reqJson = JsonConvert.SerializeObject(request);
-        //    var jsonContent = new StringContent(reqJson, Encoding.UTF8, "application/json");
-
-        //    var response = await _client.PostAsync(_client.BaseAddress + "/account/ExportToCsv", jsonContent);
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var result = await response.Content.ReadAsStringAsync();
-        //        var jsonResponse = JsonConvert.DeserializeObject<dynamic>(result);
-
-        //        if (jsonResponse != null && jsonResponse.fileUrl != null)
-        //        {
-        //            return Ok(new { success = true, fileUrl = "https://localhost:7190"+jsonResponse.fileUrl.ToString() });
-        //        }
-        //    }
-
-        //    return BadRequest("Xuất file thất bại");
-        //}
         [HttpPost("ExportToCsv")]
         public async Task<IActionResult> ExportToCsv([FromBody] ExportRequestDTO request)
         {

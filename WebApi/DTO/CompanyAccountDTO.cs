@@ -87,6 +87,15 @@
         public string ChangedBy { get; set; }
         public decimal Amount { get; set; }
         public string? Original { get; set; }
+        public string? Constatus { get; set; }
 
     }
+    public class SignAdminRequest
+    {
+        public string StaffId { get; set; }
+        public string FilePath { get; set; }
+        public string ContractNumber { get; set; }
+
+    }
+
 }

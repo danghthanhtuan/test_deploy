@@ -1,10 +1,113 @@
 ﻿@{
     var fileName = Context.Request.Query["fileName"];
     var email = Context.Request.Query["email"];
-    var apiDomain = "https://localhost:7190"; 
+    var apiDomain = "https://localhost:7190"; // Địa chỉ API
     var pdfUrl = $"{apiDomain}/temp-pdfs/{fileName}";
 }
 
 <h2>Xem hợp đồng</h2>
+
 <embed id="pdfViewer" src="@pdfUrl" type="application/pdf" width="100%" height="600px" />
 
+<br />
+
+<!-- Nút tải xuống -->
+<a href="@pdfUrl" download class="btn btn-primary">Tải hợp đồng về</a>
+
+<!-- Upload file đã ký -->
+<form id="uploadForm" enctype="multipart/form-data">
+    <input type="hidden" name="email" value="@email" /> 
+    <input type="hidden" id="originalFileName" name="originalFileName" value="@fileName" />
+    <input type="file" name="signedFile" accept=".pdf" required />
+    <button type="submit" class="btn btn-success">Gửi file hợp đồng đã ký</button>
+</form>
+
+<!-- Thông báo kết quả -->
+<div id="uploadResult" style="margin-top: 10px;"></div>
+<!-- Modal thông báo lỗi -->
+<div class="modal fade" id="ModalError" tabindex="-1" aria-labelledby="ModalErrorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="ModalErrorLabel">Lỗi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="contentModalError"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-green">
+                <span id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+
+            // Lấy file upload
+            const file = formData.get("signedFile");
+
+            // Lấy email
+            const email = formData.get("email");
+
+            // Lấy tên file gốc chưa ký từ hidden input (đặt trong form nếu chưa có)
+            const originalFileName = document.getElementById("originalFileName")?.value;
+            if (!originalFileName) {
+                document.getElementById("contentModalError").innerText = "⚠️ Không tìm thấy tên file gốc!";
+                const modal = new bootstrap.Modal(document.getElementById('ModalError'));
+                modal.show();
+                return;
+            }
+
+            // Kiểm tra file đã chọn chưa
+            if (!file || file.size === 0) {
+                document.getElementById("contentModalError").innerText = "⚠️ Vui lòng chọn file để upload!";
+                const modal = new bootstrap.Modal(document.getElementById('ModalError'));
+                modal.show();
+                return;
+            }
+
+            // Gửi thêm originalFileName vào formData
+            formData.append("originalFileName", originalFileName);
+
+            console.log("Email gửi đi:", email);
+            console.log("Tên file mới (signedFile):", file.name);
+            console.log("Tên file gốc cần xóa:", originalFileName);
+
+            // Gửi qua Ajax
+            $.ajax({
+                url: "/SeeContract/UploadSignedFile",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    const message = response.message || "Tải lên thành công!";
+                    document.getElementById("contentModalSuccess").innerText = message;
+                    const modal = new bootstrap.Modal(document.getElementById('ModalSuccess'));
+                    modal.show();
+                },
+                error: function (xhr) {
+                    document.getElementById("contentModalError").innerText = `Lỗi khi gửi dữ liệu: ${xhr.statusText}`;
+                    const modal = new bootstrap.Modal(document.getElementById('ModalError'));
+                    modal.show();
+                }
+            });
+        });
+    </script>
+}

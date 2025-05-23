@@ -29,12 +29,12 @@ builder.Services.AddDbContext<ManagementDbContext>(options =>
 // đăng ký AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 //đăng ký redis để restart cũng không mất mã otp
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = "localhost:6379"; // Redis chạy trên localhost
-    options.InstanceName = "SampleInstance";
+//builder.Services.AddStackExchangeRedisCache(options =>
+//{
+//    options.Configuration = "localhost:6379"; // Redis chạy trên localhost
+//    options.InstanceName = "SampleInstance";
 
-});
+//});
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -148,6 +148,8 @@ builder.Services.AddTransient<RegulationsService>();
 builder.Services.AddTransient<AccountContractService>();
 builder.Services.AddTransient<StaffService>();
 builder.Services.AddTransient<PdfService>();
+builder.Services.AddTransient<SeeContract_SignService>();
+//builder.Services.AddTransient<TextLocationStrategy>();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddMemoryCache(); // Cho IMemoryCache

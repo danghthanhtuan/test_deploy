@@ -64,6 +64,7 @@ namespace WebApi.Service.Client
                 throw;
             }
         }
+        
         public async Task SendAdminNotificationEmail(string adminEmail, string signerEmail, string contractUrl)
         {
             try

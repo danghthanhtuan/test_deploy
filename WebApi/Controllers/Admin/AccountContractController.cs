@@ -9,8 +9,8 @@ using WebApi.Service.Client;
 using Microsoft.Extensions.Caching.Memory;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Ocsp;
 namespace WebApi.Controllers.Admin
 {
     [Route("api/admin/[controller]/[action]")]
@@ -24,15 +24,7 @@ namespace WebApi.Controllers.Admin
         private readonly IWebHostEnvironment _env;
         private readonly EmailService _emailService;
         private readonly IConfiguration _config;
-        //private readonly IMemoryCache _contractCache;
-
-        //public AccountContractController(IMapper mapper, ManagementDbContext context, AccountContractService accountContractService)
-        //{
-        //    _context = context;
-        //    _mapper = mapper;
-        //    _accountContractService = accountContractService;
-
-        //}
+        
         public AccountContractController(IMapper mapper, ManagementDbContext context, AccountContractService accountContractService, PdfService pdfService, IWebHostEnvironment env, EmailService emailService, IConfiguration config)
         {
             _context = context;
@@ -85,35 +77,7 @@ namespace WebApi.Controllers.Admin
                 Console.WriteLine("Lỗi cập nhật: " + ex.Message);
                 return BadRequest(ex.Message);
             }
-        }
-
-        [Authorize(Policy = "AdminPolicy")]
-        [HttpPost]
-        public async Task<IActionResult> Insert([FromBody] CompanyAccountDTO companyAccountDTO, [FromQuery] string id)
-        {
-            if (companyAccountDTO == null || string.IsNullOrEmpty(id))
-            {
-                Console.WriteLine("Dữ liệu đầu vào không hợp lệ.");
-                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
-            }
-
-            var result = await _accountContractService.Insert(companyAccountDTO, id);
-
-            if (result?.StartsWith("IT030300") == true)  // Kiểm tra null trước
-            {
-                return Ok(new
-                {
-                    success = true,
-                    message = "Đăng ký tài khoản thành công",
-                    companyID = result
-                });
-            }
-            else
-            {
-                return BadRequest(new { success = false, message = result ?? "Lỗi không xác định." });
-            }
-
-        }
+        }       
 
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost]
@@ -160,6 +124,7 @@ namespace WebApi.Controllers.Admin
             return Ok(regu);
         }
 
+        //tạo file cho client ký
         [HttpPost]
         public async Task<IActionResult> GenerateContractLink([FromBody] CompanyAccountDTO dto, [FromQuery] string id)
         {
@@ -171,7 +136,7 @@ namespace WebApi.Controllers.Admin
                 byte[] pdfBytes = _pdfService.GenerateContractPdf(dto);
 
                 // 2. Gọi hàm ký số file PDF (trả về file PDF đã ký)
-                byte[] signedPdfBytes = _pdfService.SignPdfWithAdminCertificate(pdfBytes, id);
+                //byte[] signedPdfBytes = _pdfService.SignPdfWithAdminCertificate(pdfBytes, id);
 
                 // 3. Lưu file PDF đã ký
                 string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp-pdfs");
@@ -180,7 +145,8 @@ namespace WebApi.Controllers.Admin
 
                 string fileName = $"{contractId}.pdf";
                 string fullPath = Path.Combine(folderPath, fileName);
-                await System.IO.File.WriteAllBytesAsync(fullPath, signedPdfBytes);
+                //await System.IO.File.WriteAllBytesAsync(fullPath, signedPdfBytes);
+                await System.IO.File.WriteAllBytesAsync(fullPath, pdfBytes);
 
                 // 4. Tạo link xem file PDF
                 string razorDomain = _config["App:RazorBaseUrl"] ?? "https://localhost:7176";
@@ -229,5 +195,90 @@ namespace WebApi.Controllers.Admin
             }
         }
 
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpPost]
+        public async Task<ActionResult<CompanyContractDTOs>> GetListPending([FromBody] GetListCompanyPaging req)
+        {
+            var regu = await _accountContractService.GetListPending(req);
+            return Ok(regu);
+        }
+
+        //admin kí
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpPost]
+        public async Task<IActionResult> SignPdfWithAdminCertificate([FromBody] SignAdminRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.FilePath) || string.IsNullOrEmpty(request.StaffId) || string.IsNullOrEmpty(request.ContractNumber))
+                    return BadRequest(new { success = false, message = "Thiếu thông tin file, mã hợp đồng hoặc nhân viên." });
+
+                if (!System.IO.File.Exists(request.FilePath))
+                    return NotFound(new { success = false, message = "File hợp đồng không tồn tại." });
+
+                // Đọc file gốc
+                byte[] originalPdfBytes = await System.IO.File.ReadAllBytesAsync(request.FilePath);
+
+                // Ký file
+                byte[] signedPdfBytes = _pdfService.SignPdfWithAdminCertificate(originalPdfBytes, request.StaffId);
+
+                // Ghi đè lại file gốc đã ký
+                await System.IO.File.WriteAllBytesAsync(request.FilePath, signedPdfBytes);
+
+                // Gọi hàm cập nhật DB (không lưu file nữa, chỉ cập nhật trạng thái, lịch sử, ContractFile)
+                string fileName = Path.GetFileName(request.FilePath);
+
+                string result = await _accountContractService.UploadSignedContract(request);
+
+                // Trả về phản hồi thành công nếu update cũng thành công
+                if (result.Contains("thành công") || result.EndsWith(".pdf"))
+                {
+                    string relativePath = request.FilePath.Replace(Directory.GetCurrentDirectory(), "").Replace("\\", "/");
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Đã ký thành công và cập nhật dữ liệu.",
+                        signedFilePath = relativePath
+                    });
+                }
+
+                // Nếu UploadSignedContract trả về lỗi
+                return StatusCode(500, new { success = false, message = result });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi ký hợp đồng: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống khi ký file." });
+            }
+        }
+
+        //admin duyệt
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpPost]
+        public async Task<IActionResult> Insert([FromBody] SignAdminRequest request)
+        {
+            if (request == null )
+            {
+                Console.WriteLine("Dữ liệu đầu vào không hợp lệ.");
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+            }
+
+            var result = await _accountContractService.Insert(request);
+
+            if (result?.StartsWith("IT030300") == true)  // Kiểm tra null trước
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đăng ký tài khoản thành công",
+                    companyID = result
+                });
+            }
+            else
+            {
+                return BadRequest(new { success = false, message = result ?? "Lỗi không xác định." });
+            }
+
+        }
     }
 }

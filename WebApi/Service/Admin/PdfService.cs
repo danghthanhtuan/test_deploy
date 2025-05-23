@@ -6,16 +6,14 @@ using iText.Kernel.Pdf;
 using iText.Signatures;
 using iText.Kernel.Geom;
 using Org.BouncyCastle.Pkcs;
-using Org.BouncyCastle.X509;
-using Org.BouncyCastle.Security;
 using iText.Bouncycastle.X509;
 using iText.Bouncycastle.Crypto;
-using System.Security.Cryptography.X509Certificates;
 using iText.Commons.Bouncycastle.Cert;
 using Org.BouncyCastle.Crypto;
-using System.IO;
-using Org.BouncyCastle.Crypto.Digests;
-using iText.Kernel.Crypto;
+using iText.Forms;
+using iText.Forms.Fields;
+using iText.Forms;
+using iText.Kernel.Pdf.Canvas.Parser;
 
 namespace WebApi.Service.Admin
 {
@@ -65,11 +63,11 @@ namespace WebApi.Service.Admin
                             row.RelativeItem().Text("Đại diện Bên B").AlignCenter();
                         });
 
-                        column.Item().Height(100); // khoảng trống để ký
+                        // Tạo ô ký vẽ bằng khung viền
                         column.Item().Row(row =>
                         {
-                            row.RelativeItem().Text("(Ký, ghi rõ họ tên)").AlignCenter();
-                            row.RelativeItem().Text("(Ký, ghi rõ họ tên)").AlignCenter();
+                            row.RelativeItem().Element(c => c.Border(1).Height(100).AlignCenter().Padding(5).Text("(Ký, ghi rõ họ tên)").AlignCenter());
+                            row.RelativeItem().Element(c => c.Border(1).Height(100).AlignCenter().Padding(5).Text("(Ký, ghi rõ họ tên)").AlignCenter());
                         });
                     });
 
@@ -111,18 +109,29 @@ namespace WebApi.Service.Admin
             var signer = new PdfSigner(reader, signedPdfStream, new StampingProperties());
 
             // Vị trí chữ ký (tọa độ tính từ bottom-left)
-            Rectangle rect = new Rectangle(100, 100, 200, 100);
+            //Rectangle rect = new Rectangle(100, 100, 200, 100);
+            (string keyword, float offsetY) = ("Đại diện Bên B", 60f);
+            var (textRect, page) = FindTextPosition(originalPdfBytes, keyword);
+
+            // Tọa độ mới
+            Rectangle rect = new Rectangle(
+                textRect.GetX(),
+                textRect.GetY() - offsetY,
+                200,
+                60
+            );
             var appearance = signer.GetSignatureAppearance();
             // Set thông tin và định dạng chữ ký
             appearance
                 .SetPageRect(rect)
-                .SetPageNumber(1)
+                //.SetPageNumber(1) //vị trí cố định trang cố định
+                .SetPageNumber(page)
                 .SetLocation("Hệ thống")
                 .SetReason("Ký bởi Admin")
                 .SetLayer2Text($"Ký bởi {staffId}\nNgày: {DateTime.Now:dd/MM/yyyy}")
                 .SetRenderingMode(PdfSignatureAppearance.RenderingMode.DESCRIPTION);
 
-            signer.SetFieldName("Signature1"); // field name mới được tạo nếu chưa có
+            signer.SetFieldName("Signature2"); // field name mới được tạo nếu chưa có
 
             IExternalSignature externalSignature = new PrivateKeySignature(iPrivateKey, DigestAlgorithms.SHA256);
             IExternalDigest digest = new BouncyCastleDigest();
@@ -131,5 +140,26 @@ namespace WebApi.Service.Admin
 
             return signedPdfStream.ToArray();
         }
+
+        private (Rectangle rect, int page) FindTextPosition(byte[] pdfBytes, string keyword)
+        {
+            using var pdfReader = new PdfReader(new MemoryStream(pdfBytes));
+            using var pdfDoc = new PdfDocument(pdfReader);
+
+            for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
+            {
+                var strategy = new TextLocationStrategy(keyword);
+                var processor = new PdfCanvasProcessor(strategy);
+                processor.ProcessPageContent(pdfDoc.GetPage(i));
+
+                if (strategy.Locations.Any())
+                {
+                    return (strategy.Locations.First(), i);
+                }
+            }
+
+            throw new Exception($"Không tìm thấy từ khóa '{keyword}' trong PDF.");
+        }
+
     }
 }

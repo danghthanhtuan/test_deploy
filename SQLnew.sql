@@ -85,7 +85,7 @@ CREATE TABLE CONTRACTS (
     FOREIGN KEY (SERVICE_TYPEID) REFERENCES SERVICE_TYPE(ID),
     FOREIGN KEY (CUSTOMERID) REFERENCES COMPANY(CUSTOMERID),
 	IS_ACTIVE BIT NOT NULL, -- 0 NGỪNG HOẠT ĐỘNG, 1 HOẠT ĐỘNG
-	CONSTATUS NVARCHAR(50) --0: CHƯA KÝ, 1: Đã ký, 2 : Đã duyệt (chính thức),3: Gia hạn, 4: Bị từ chối  
+	CONSTATUS NVARCHAR(50) --0: CHƯA KÝ, 1: Đã ký, 2 :Kyhoantat  3.Đã duyệt (chính thức),4: Gia hạn, 5: Bị từ chối  
 	--cHỈ LẤY CÁI MỚI NHẤT TỪ CONTRACTFILE CHO HỢP ĐỒNG ĐÓ
 );
 
@@ -97,7 +97,7 @@ CREATE TABLE CONTRACT_FILES (
     CONFILE_NAME NVARCHAR(255) NOT NULL,
     FILE_PATH NVARCHAR(500) NOT NULL,
     UPLOADED_AT DATETIME DEFAULT GETDATE(),
-    FILE_STATUS  NVARCHAR(50),  --0: CHƯA KÝ, 1: Đã ký, 2 : Đã duyệt (chính thức),3: Gia hạn, 4: Bị từ chối
+    FILE_STATUS  NVARCHAR(50), --0: CHƯA KÝ, 1: Đã ký, 2 :Kyhoantat  3.Đã duyệt (chính thức),4: Gia hạn, 5: Bị từ chối  
     FOREIGN KEY (CONTRACTNUMBER) REFERENCES CONTRACTS(CONTRACTNUMBER)
 );
 

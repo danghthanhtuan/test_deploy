@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Ocsp;
 using System.Text;
 using WebApi.Content;
 using WebApi.DTO;
@@ -22,13 +24,14 @@ namespace WebApi.Service.Admin
             _logger = logger;
         }
 
+        //lấy những công ty đã chính thức isactive = true
         public async Task<PagingResult<CompanyAccountDTO>> GetAllCompany(GetListCompanyPaging req)
         {
 
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
-                        join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
+                        join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id where c.IsActive == true
                         group new { c, a, b, h } by new
                         {
                             c.Customerid,
@@ -107,8 +110,6 @@ namespace WebApi.Service.Admin
                 PageCount = pageCount
             };
         }
-
-
         public bool UpdateStatus(bool Tinhtrang, string CustomerID)
         {
             try
@@ -249,20 +250,7 @@ namespace WebApi.Service.Admin
                     {
                         return "Tài khoản khách hàng với mã khách hàng không tồn tại";
                     }
-                    //  var serviceType = _context.ServiceTypes
-                    // .FirstOrDefault(st => st.ServiceTypename == CompanyAccountDTO.ServiceType);
-                    //
-                    // if (serviceType == null)
-                    // {
-                    //    return $"Loại dịch vụ '{CompanyAccountDTO.ServiceType}' không tồn tại.";
-                    // }
-
-                    // Gán thông tin mới cho hợp đồng
-                    // existingContracts.ServiceTypeid = serviceType.Id; 
-                    //existingContracts.Startdate = CompanyAccountDTO.Startdate;
-                    // existingContracts.Enddate = CompanyAccountDTO.Enddate;
-
-                    // _context.Contracts.Update(existingContracts);
+                   
                     _context.SaveChanges();
 
                     transaction.Commit();
@@ -282,11 +270,14 @@ namespace WebApi.Service.Admin
                 }
             }
         }
+
+        //xuất những công ty đã chính thức
         public async Task<byte[]> ExportToCsv(ExportRequestDTO req)
         {
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
+                        where c.IsActive == true
                         group new { c, a, b } by new
                         {
                             c.Customerid,
@@ -360,169 +351,6 @@ namespace WebApi.Service.Admin
                 return memoryStream.ToArray();
             }
         }
-        public async Task<string?> Insert(CompanyAccountDTO CompanyAccountDTO, string id)
-        {
-            if (CompanyAccountDTO == null)
-            {
-                return "Dữ liệu không hợp lệ.";
-            }
-
-            using (var transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == id);
-                    if (staff == null)
-                    {
-                        return $"Nhân viên với mã nhân viên = {id} không tồn tại";
-                    }
-
-                    if (_context.Companies.Any(s => s.Cphonenumber == CompanyAccountDTO.CPhoneNumber) ||
-                        _context.Accounts.Any(a => a.Rphonenumber == CompanyAccountDTO.CPhoneNumber))
-                    {
-                        return "Số điện thoại đã tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
-                    }
-
-                    if (_context.Companies.Any(s => s.Companyaccount == CompanyAccountDTO.CompanyAccount) ||
-                        _context.Accounts.Any(a => a.Rootaccount == CompanyAccountDTO.CompanyAccount))
-                    {
-                        return "Email đã tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
-                    }
-
-                    if (_context.Companies.Any(s => s.Taxcode == CompanyAccountDTO.TaxCode))
-                    {
-                        return "Mã số thuế đã tồn tại trong hệ thống! Vui lòng kiểm tra lại.";
-                    }
-
-                    var lastCustomer = _context.Companies
-    .Where(c => c.Customerid.StartsWith("IT030300"))
-    .OrderByDescending(c => c.Customerid)
-    .FirstOrDefault();
-
-                    int nextNumber = lastCustomer != null ? int.Parse(lastCustomer.Customerid.Substring(8)) + 1 : 1;
-                    string newCustomerID = $"IT030300{nextNumber:D2}";
-
-                    var newCompany = new Company
-                    {
-                        Customerid = newCustomerID,
-                        Companyname = CompanyAccountDTO.CompanyName,
-                        Taxcode = CompanyAccountDTO.TaxCode,
-                        Companyaccount = CompanyAccountDTO.CompanyAccount,
-                        Accountissueddate = CompanyAccountDTO.AccountIssuedDate,
-                        Cphonenumber = CompanyAccountDTO.CPhoneNumber,
-                        Caddress = CompanyAccountDTO.CAddress,
-                        //IsActive = CompanyAccountDTO.IsActive,
-                    };
-                   
-                    _context.Companies.Add(newCompany);
-
-                    _context.SaveChanges();
-
-                    // Tạo mật khẩu ngẫu nhiên
-                    string generatedPassword = GenerateRandomPassword();
-                    string hashedPassword = HashPassword(generatedPassword);
-
-                    var newAccount = new Account
-                    {
-                        Customerid = newCustomerID,
-                        Rootaccount = CompanyAccountDTO.RootAccount,
-                        Rootname = CompanyAccountDTO.RootName,
-                        Rphonenumber = CompanyAccountDTO.RPhoneNumber,
-                        //OperatingStatus = CompanyAccountDTO.OperatingStatus,
-                        Dateofbirth = (DateTime)CompanyAccountDTO.DateOfBirth!,
-                        Gender = CompanyAccountDTO.Gender,
-                    };
-                    _context.Accounts.Add(newAccount);
-                    _context.SaveChanges();
-
-                    var newLogin = new Loginclient
-                    {
-                        Customerid = newCustomerID,
-                        Username = CompanyAccountDTO.RPhoneNumber,
-                        Passwordclient = hashedPassword
-                    };
-                    _context.Loginclients.Add(newLogin);
-                    _context.SaveChanges();
-
-                    var lastContract = _context.Contracts
-                .OrderByDescending(c => c.Contractnumber)
-                .FirstOrDefault();
-                    if (!_context.ServiceTypes.Any(s => s.ServiceTypename == CompanyAccountDTO.ServiceType))
-                    {
-                        return "Loại dịch vụ không tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
-                    }
-
-                    int nextContractNumber = lastContract != null ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1 : 1;
-                    string newContractNumber = $"SV{nextContractNumber:D4}";
-
-                    var serviceType = _context.ServiceTypes
-    .FirstOrDefault(st => st.ServiceTypename == CompanyAccountDTO.ServiceType);
-
-                    if (serviceType == null)
-                    {
-                        return $"Loại dịch vụ '{CompanyAccountDTO.ServiceType}' không tồn tại.";
-                    }
-
-                    var newContract = new Contract
-                    {
-                        Contractnumber = newContractNumber,
-                        Startdate = (DateTime)CompanyAccountDTO.Startdate!,
-                        Enddate = (DateTime)CompanyAccountDTO.Enddate!,
-                        ServiceTypeid = serviceType.Id,
-                        Customerid = newCustomerID,
-                        Customertype = CompanyAccountDTO.CustomerType,
-                        Constatus = "Đã hoàn tất",
-                        IsActive = true,
-                    };
-                    var newPayment = new Payment
-                    {
-                        //Customerid = newCustomerID,
-                        Contractnumber = newContractNumber,
-                        Amount = CompanyAccountDTO.Amount,
-                        Paymentstatus = false,
-                    };
-                    _context.Payments.Add(newPayment);
-                    _context.Contracts.Add(newContract);
-                    _context.SaveChanges();
-
-                    transaction.Commit();
-
-                    // Gửi email với mật khẩu
-                    await SendPasswordEmail(CompanyAccountDTO.RootAccount, generatedPassword);
-
-                    return newCustomerID;
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
-                    return "Lỗi hệ thống, vui lòng thử lại sau.";
-                }
-            }
-        }
-        private string GenerateRandomPassword()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*!";
-            return new string(Enumerable.Repeat(chars, 10)
-                .Select(s => s[new Random().Next(s.Length)]).ToArray());
-        }
-
-        private string HashPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.HashPassword(password);
-        }
-
-        private async Task SendPasswordEmail(string email, string password)
-        {
-            var emailSender = new SendEmailRegister();
-            MailRequest mailRequest = new MailRequest
-            {
-                ToEmail = email,
-                Subject = "Tài khoản đăng nhập hệ thống",
-                Body = emailSender.SendEmail_pass(password, email)
-            };
-            await _emailService.SendEmailAsync(mailRequest);
-        }
         public async Task<List<ServiceTypeDTO2>> GetListServiceID()
         {
             // Thực hiện join giữa ServiceGroups và Regulations để lấy thêm thông tin về giá
@@ -538,6 +366,8 @@ namespace WebApi.Service.Admin
 
             return regulationsWithGroups;
         }
+        
+        //Lưu thông tin công ty tạm thời. chờ client ký. 
         public async Task<string?> SaveContractStatusAsync(CompanyContractDTOs dto)
         {
             if (dto == null)
@@ -597,7 +427,7 @@ namespace WebApi.Service.Admin
                         Companyname = dto.CompanyName,
                         Taxcode = dto.TaxCode,
                         Companyaccount = dto.CompanyAccount,
-                        Accountissueddate = dto.AccountIssuedDate,
+                        //Accountissueddate = dto.AccountIssuedDate,
                         Cphonenumber = dto.CPhoneNumber,
                         Caddress = dto.CAddress,
                         IsActive = false,
@@ -650,7 +480,6 @@ namespace WebApi.Service.Admin
                     };
                     var newPayment = new Payment
                     {
-                        //Customerid = newCustomerID,
                         Contractnumber = newContractNumber,
                         Amount = dto.Amount,
                         Paymentstatus = false,
@@ -690,6 +519,241 @@ namespace WebApi.Service.Admin
                     return "Lỗi hệ thống, vui lòng thử lại sau.";
                 }
             }
+        }
+        
+        //Danh sách chờ admin ký
+        public async Task<PagingResult<CompanyContractDTOs>> GetListPending(GetListCompanyPaging req)
+        {
+            var latestFiles = from f in _context.ContractFiles
+                                group f by f.Contractnumber into g
+                                select new
+                                {
+                                    Contractnumber = g.Key,
+                                    LatestTime = g.Max(x => x.UploadedAt)
+                                };
+
+            var fileJoin = from h in _context.ContractFiles
+                            join lf in latestFiles
+                            on new { h.Contractnumber, h.UploadedAt } equals new { lf.Contractnumber, UploadedAt = lf.LatestTime }
+                            select h;
+
+            var query = from c in _context.Companies
+                        join a in _context.Accounts on c.Customerid equals a.Customerid
+                        join b in _context.Contracts on c.Customerid equals b.Customerid
+                        join h in fileJoin on b.Contractnumber equals h.Contractnumber
+                        where c.IsActive == false &&
+                                (b.Constatus == "Đã ký" || b.Constatus == "Ký hoàn tất")
+                        select new CompanyContractDTOs
+                        {
+                            ContractNumber = b.Contractnumber,
+                            CustomerId = c.Customerid,
+                            CompanyName = c.Companyname,
+                            TaxCode = c.Taxcode,
+                            CompanyAccount = c.Companyaccount,
+                            AccountIssuedDate = c.Accountissueddate,
+                            CPhoneNumber = c.Cphonenumber,
+                            CAddress = c.Caddress,
+                            RootAccount = a.Rootaccount,
+                            RootName = a.Rootname,
+                            RPhoneNumber = a.Rphonenumber,
+                            DateOfBirth = a.Dateofbirth,
+                            Gender = a.Gender,
+                            FilePath = h.FilePath,
+                            ConfileName = h.ConfileName,
+                            Constatus = b.Constatus
+                        };
+
+            var totalRow = await query.CountAsync();
+            var pagedResult = await query
+                .OrderByDescending(c => c.CustomerId)
+                .Skip((req.Page - 1) * req.PageSize)
+                .Take(req.PageSize)
+                .ToListAsync();
+
+            var pageCount = (int)Math.Ceiling(totalRow / (double)req.PageSize);
+
+            return new PagingResult<CompanyContractDTOs>
+            {
+                Results = pagedResult,
+                CurrentPage = req.Page,
+                RowCount = totalRow,
+                PageSize = req.PageSize,
+                PageCount = pageCount
+            };
+
+        }
+
+        //Admin ký 
+        public async Task<string> UploadSignedContract(SignAdminRequest request)
+        {
+            try
+            {
+                var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Contractnumber == request.ContractNumber);
+                if (contract == null)
+                    return "Không tìm thấy hợp đồng tương ứng";
+
+                var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Customerid == contract.Customerid);
+
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // Lưu trạng thái cũ để lưu vào lịch sử
+                    var oldStatus = contract.Constatus;
+
+                    // Cập nhật trạng thái hợp đồng
+                    contract.Constatus = "Ký hoàn tất";
+                    _context.Contracts.Update(contract);
+
+                    // Thêm thông tin file (không lưu file nữa, chỉ lưu tên và đường dẫn hiện tại)
+                    var newContractFile = new ContractFile
+                    {
+                        Contractnumber = request.ContractNumber,
+                        ConfileName = Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
+                        FilePath = request.FilePath,
+                        UploadedAt = DateTime.Now,
+                        FileStatus = "Ký hoàn tất",
+                    };
+                    _context.ContractFiles.Add(newContractFile);
+
+                    // Thêm lịch sử trạng thái hợp đồng
+                    var newContractStatusHistory = new ContractStatusHistory
+                    {
+                        Contractnumber = contract.Contractnumber,
+                        OldStatus = oldStatus,
+                        NewStatus = "Ký hoàn tất",
+                        ChangedAt = DateTime.Now,
+                        ChangedBy = request.StaffId,
+                    };
+                    _context.ContractStatusHistories.Add(newContractStatusHistory);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return "Cập nhật trạng thái và thông tin file thành công";
+                }
+                catch (Exception dbEx)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"[DB ERROR] {dbEx.Message}");
+                    return "Lỗi khi lưu dữ liệu vào cơ sở dữ liệu.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GENERAL ERROR] {ex.Message}");
+                return "Lỗi khi xử lý file hoặc kết nối cơ sở dữ liệu.";
+            }
+        }
+
+        //Cập nhật cũng như lưu công ty đã chính thức
+        public async Task<string?> Insert( SignAdminRequest request)
+        {
+            if (request == null)
+            {
+                return "Dữ liệu không hợp lệ.";
+            }
+            var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Contractnumber == request.ContractNumber);
+            if (contract == null)
+                return "Không tìm thấy hợp đồng tương ứng";
+
+            //var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Customerid == contract.Customerid);
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Customerid == contract.Customerid);
+            var account = await _context.Accounts.FirstOrDefaultAsync(c => c.Customerid == contract.Customerid);
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // Lưu trạng thái cũ để lưu vào lịch sử
+                    var oldStatus = contract.Constatus;
+
+                    // Cập nhật trạng thái công ty
+                    company.IsActive = true;
+                    company.Accountissueddate = DateTime.Now;
+                    _context.Companies.Update(company);
+
+                    // Cập nhật trạng thái người đại diện
+                    account.IsActive = true;
+                    _context.Accounts.Update(account);
+
+                    // Cập nhật trạng thái hợp đồng
+                    contract.Constatus = "Đã duyệt";
+                    contract.IsActive = true; 
+                    _context.Contracts.Update(contract);
+
+                    // Thêm thông tin file (không lưu file nữa, chỉ lưu tên và đường dẫn hiện tại)
+                    var newContractFile = new ContractFile
+                    {
+                        Contractnumber = request.ContractNumber,
+                        ConfileName = Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
+                        FilePath = request.FilePath,
+                        UploadedAt = DateTime.Now,
+                        FileStatus = "Đã duyệt",
+                    };
+                    _context.ContractFiles.Add(newContractFile);
+
+                    // Thêm lịch sử trạng thái hợp đồng
+                    var newContractStatusHistory = new ContractStatusHistory
+                    {
+                        Contractnumber = contract.Contractnumber,
+                        OldStatus = oldStatus,
+                        NewStatus = "Đã duyệt",
+                        ChangedAt = DateTime.Now,
+                        ChangedBy = request.StaffId,
+                    };
+                    _context.ContractStatusHistories.Add(newContractStatusHistory);
+
+                    //+*+***********************
+                    // Tạo mật khẩu ngẫu nhiên
+                    string generatedPassword = GenerateRandomPassword();
+                    string hashedPassword = HashPassword(generatedPassword);
+
+                    var newLogin = new Loginclient
+                    {
+                        Customerid = company.Customerid,
+                        Username = account.Rphonenumber,
+                        Passwordclient = hashedPassword
+                    };
+                    _context.Loginclients.Add(newLogin);
+                    _context.SaveChanges();
+
+                    await transaction.CommitAsync();
+
+                    // Gửi email với mật khẩu
+                    await SendPasswordEmail(account.Rphonenumber, generatedPassword);
+                    return company.Customerid;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                    return "Lỗi hệ thống, vui lòng thử lại sau.";
+                }
+            }
+        }
+        private string GenerateRandomPassword()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*!";
+            return new string(Enumerable.Repeat(chars, 10)
+                .Select(s => s[new Random().Next(s.Length)]).ToArray());
+        }
+
+        private string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        private async Task SendPasswordEmail(string email, string password)
+        {
+            var emailSender = new SendEmailRegister();
+            MailRequest mailRequest = new MailRequest
+            {
+                ToEmail = email,
+                Subject = "Tài khoản đăng nhập hệ thống",
+                Body = emailSender.SendEmail_pass(password, email)
+            };
+            await _emailService.SendEmailAsync(mailRequest);
         }
 
     }

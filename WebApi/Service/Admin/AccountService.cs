@@ -9,7 +9,6 @@ using System.Text;
 using WebApi.Content;
 using WebApi.Helper;
 using WebApi.Service.Client;
-using StackExchange.Redis;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
