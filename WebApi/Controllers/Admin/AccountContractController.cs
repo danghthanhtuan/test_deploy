@@ -184,7 +184,7 @@ namespace WebApi.Controllers.Admin
                     return BadRequest(new { success = false, message = result });
                 }
 
-                // 6. Gửi mail hợp đồng đã ký số tới khách hàng
+                // 6. Gửi mail hợp đồng tới khách hàng ký
                 await _emailService.SendContractEmail(dto.RootAccount, dto.CompanyName, viewLink);
 
                 return Ok(new { success = true, viewLink });

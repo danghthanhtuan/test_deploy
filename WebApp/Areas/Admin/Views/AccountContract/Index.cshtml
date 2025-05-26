@@ -1007,7 +1007,9 @@
                     $('#btnSignContract').addClass('hidden');
                     $('#pdfViewer').addClass('hidden');
                     $('#pendingContracts').DataTable().ajax.reload(null, false); // Reload bảng không mất trang
-                    showSuccess("Ký hợp đồng thành công!");
+                    //showSuccess("Ký hợp đồng thành công!");
+                    document.getElementById("contentModalSuccess").innerHTML = "Ký hợp đồng thành công!";
+                    $("#ModalSuccess").modal("show");
                 } else {
                     showError("Không thể ký hợp đồng. Vui lòng thử lại.");
                 }
@@ -1046,10 +1048,13 @@
             }),
             success: function (res) {
                 if (res.success) {
-                    showSuccess("Duyệt hợp đồng thành công!");
-
+                   // showSuccess("Duyệt hợp đồng thành công!");
+                    document.getElementById("contentModalSuccess").innerHTML = "Duyệt hợp đồng thành công!";
+                    $("#ModalSuccess").modal("show");
+                    backBtn3.click();
                     // Reload lại bảng để cập nhật UI
-                    $('#pendingContracts').DataTable().ajax.reload(null, false);
+                    init("", "Tất cả");
+                   // $('#pendingContracts').DataTable().ajax.reload(null, false);
                 } else {
                     showError("Duyệt hợp đồng thất bại: " + (res.message || ""));
                 }
@@ -1115,17 +1120,16 @@
                     // Optional: Show loading indicator
                 },
                 data: function (data) {
-                    var listCompanyA = $("#listCompany").DataTable();
-                    var settings = listCompanyA.settings();
-                    var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+                    var currentPageIndex = data.start / data.length + 1;
 
                     return JSON.stringify({
-                        PageSize: 7,
+                        PageSize: data.length,
                         Page: currentPageIndex,
-                        Keyword: keyword, // Lấy giá trị từ input tìm kiếm
+                        Keyword: keyword,
                         Category: category
                     });
                 },
+
                 dataSrc: function (res) {
                     console.log("List hop dong da duyet",res.listCompany);
                     return res.success && res.listCompany && res.listCompany.results ? res.listCompany.results : [];
@@ -1169,7 +1173,7 @@
                     }
                 },
                 {
-                    data: "isactive",
+                    data: "isActive",
                     width: "13%",
                     render: function (data, type, row) {
                         let isChecked = data ? "checked" : "";
@@ -1479,30 +1483,133 @@
     }
 
     function SaveAccount() {
-        var cValues = getID1(); // hoặc getID2 tùy trường hợp
+        var cId = document.getElementById("cId").value.trim();
+        var cId2 = document.getElementById("cId2").value.trim();
+        console.log("Gia tri cId la: ", cId);
+        console.log("Gia tri cId2 la: ", cId2);
+        if (cId === "" && cId2 !== "") {
+
+            cValues = getID2(cId2);
+            console.log("Gia tri cValues2  la: ", cValues);
+
+            if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber) {
+
+                showError("Vui lòng nhập đầy đủ thông tin.");
+
+                return;
+            }
+        }
+        else {
+            cValues = getID1(cId);
+            console.log("Gia tri cValues  la: ", cValues);
+
+            var startDate = new Date(cValues.Startdate);
+            var endDate = new Date(cValues.EndDate);
+            if (startDate >= endDate) {
+                showError("Kiểm tra lại ngày tháng của hợp đồng: Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+                return;
+            }
+            if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber || !cValues.Amount) {
+
+                showError("Vui lòng nhập đầy đủ thông tin.");
+                return;
+            }
+
+        }
+        console.log("Gia tri la: ", cValues);
+
+
+        var phoneRegex = /^(0\d{9,10})$/; // Số điện thoại bắt đầu bằng số 0, có 10 hoặc 11 chữ số
+        // Biểu thức chính quy kiểm tra email hợp lệ
+        var emailRegex = @Html.Raw("/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/");
+
+        // Kiểm tra mã số thuế (9 chữ số)
+        var taxCodeRegex = /^[a-zA-Z0-9]{9}$/;
+
+        // Kiểm tra độ dài ContractNumber (tối đa 10 ký tự)
+
+        if (!phoneRegex.test(cValues.CPhoneNumber)) {
+            showError("Số điện thoại khách hàng không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
+            return;
+        }
+
+        if (!phoneRegex.test(cValues.RPhoneNumber)) {
+            showError("Số điện thoại người đại diện không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
+            return;
+        }
+
+        // Kiểm tra định dạng email
+        if (!emailRegex.test(cValues.CompanyAccount)) {
+            showError("Email khách hàng không hợp lệ.");
+            return;
+        }
+
+        if (!emailRegex.test(cValues.RootAccount)) {
+            showError("Email người đại diện không hợp lệ.");
+            return;
+        }
+
+        // Kiểm tra mã số thuế
+        if (!taxCodeRegex.test(cValues.TaxCode)) {
+            showError("Mã số thuế không hợp lệ. Phải có đúng 9 kí tự.");
+            return;
+        }
+
         var StaffId = "@User.FindFirst("StaffId")?.Value";
 
-        // Bỏ bước xác nhận lưu DB
-        $.ajax({
-            url: `/admin/accountcontract/GenerateContractAndSendMail?id=${StaffId}`,
-            type: 'POST',
-            headers: {
-                "Authorization": "Bearer " + tokenJWT
-            },
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            data: JSON.stringify(cValues),
-            success: function (response) {
-                if (response.success) {
-                    alert("Đã gửi hợp đồng đến email khách hàng. Vui lòng chờ khách ký.");
-                    console.log("Link ký hợp đồng:", response.data.viewLink);
-                }else {
-                    alert("Lỗi: " + response.message);
+        // Xác định Insert hay Update
+        var isUpdate = cValues.CustomerId && cValues.CustomerId !== "AUTO_GENERATED_ID";
+        var url = isUpdate ? `/admin/account/Update?id=${StaffId}` : `/admin/accountcontract/GenerateContractAndSendMail?id=${StaffId}`;
+        var confirmText = isUpdate ? "Bạn có chắc muốn cập nhật tài khoản không?" : "Bạn có chắc muốn tạo hợp đồng không?";
+
+        document.getElementById("contentModalConfirm").innerHTML = confirmText;
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
+
+        $("#confirmButton1").off("click").on("click", function () {
+            modal.hide();
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(cValues),
+                success: function (response) {
+                    if (response.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = isUpdate ? "Cập nhật tài khoản thành công" : "Tạo hợp đồng thành công";
+                        $("#ModalSuccess").modal("show");
+                        refresh();
+                        var keyword = $('input[type="text"]').val();
+                        var category = $('select').val();
+                        init(keyword, category);
+                        // Gọi sự kiện "Quay lại" để trở về danh sách
+                        if (isUpdate) {
+                            backBtn2.click();
+                        }
+                        else
+                            backBtn.click();
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định.";
+                    if (xhr.responseJSON) {
+                        if (Array.isArray(xhr.responseJSON.message) && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message.join("<br>");
+                        } else if (typeof xhr.responseJSON.message === "string" && xhr.responseJSON.message.length > 0) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                    }
+                    $("#contentModalError").html(errorMessage);
+                    $("#ModalError").modal("show");
+                    // Gán sự kiện đóng modal vào nút "Đóng"
+                    document.getElementById("btnCloseModal").addEventListener("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
                 }
-            },
-            error: function (xhr) {
-                alert("Lỗi gửi hợp đồng: " + xhr.responseText);
-            }
+            });
         });
     }
 
@@ -1569,7 +1676,6 @@
         });
     }
 
-
     function exportToCsv(event) {
         event.preventDefault();
         console.log("Gọi exportToCsv()");
@@ -1607,6 +1713,5 @@
             }
         });
     }
-
 
 </script>

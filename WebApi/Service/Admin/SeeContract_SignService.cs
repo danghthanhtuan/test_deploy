@@ -74,7 +74,7 @@ namespace WebApi.Service.Admin
                     var newContractStatusHistory = new ContractStatusHistory
                     {
                         Contractnumber = contract.Contractnumber,
-                        OldStatus = "", // hoặc có thể truy vấn trạng thái cũ nếu muốn
+                        OldStatus = "Chưa ký", // hoặc có thể truy vấn trạng thái cũ nếu muốn
                         NewStatus = "Đã ký",
                         ChangedAt = DateTime.Now,
                         ChangedBy = email,

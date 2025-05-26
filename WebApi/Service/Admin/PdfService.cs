@@ -14,6 +14,8 @@ using iText.Forms;
 using iText.Forms.Fields;
 using iText.Forms;
 using iText.Kernel.Pdf.Canvas.Parser;
+using iText.IO.Font.Constants;
+using iText.Kernel.Font;
 
 namespace WebApi.Service.Admin
 {
@@ -44,17 +46,63 @@ namespace WebApi.Service.Admin
 
                     page.Content().Column(column =>
                     {
-                        column.Item().Text($"Mã công ty: {dto.CompanyAccount}");
-                        column.Item().Text($"Tên công ty: {dto.CompanyName}");
-                        column.Item().Text($"Địa chỉ: {dto.CAddress}");
-                        column.Item().Text($"Người đại diện: {dto.RootName}");
-                        column.Item().Text($"Email: {dto.RootAccount}");
-                        column.Item().Text($"Số điện thoại: {dto.RPhoneNumber}");
+                        column.Item().PaddingBottom(10).Column(col =>
+                        {
+                            col.Item().Text("🔹 Thông tin công ty").Bold().FontSize(14).Underline();
+                            col.Item().Text($"Tên công ty: {dto.CompanyName}");
+                            col.Item().Text($"Mã số thuế: {dto.TaxCode}");
+                            col.Item().Text($"Email công ty: {dto.CompanyAccount}");
+                            col.Item().Text($"Số điện thoại: {dto.CPhoneNumber}");
+                            col.Item().Text($"Địa chỉ: {dto.CAddress}");
+
+                            col.Item().PaddingTop(10).Text("🔹 Người đại diện").Bold().FontSize(14).Underline();
+                            col.Item().Text($"Họ tên: {dto.RootName}");
+                            col.Item().Text($"Email: {dto.RootAccount}");
+                            col.Item().Text($"Số điện thoại: {dto.RPhoneNumber}");
+
+                            col.Item().PaddingTop(10).Text("🔹 Dịch vụ").Bold().FontSize(14).Underline();
+                            col.Item().Text($"Phân loại: {dto.CustomerType}");
+                            col.Item().Text($"Loại dịch vụ: {dto.ServiceType}");
+                            col.Item().Text($"Ngày bắt đầu: {dto.Startdate:dd/MM/yyyy}");
+                            col.Item().Text($"Ngày kết thúc: {dto.Enddate:dd/MM/yyyy}");
+                            col.Item().Text($"Giá: {dto.Amount:N0} VND");
+                        });
+
 
                         column.Item().PaddingVertical(15).Text("Điều khoản hợp đồng:").FontSize(14).Bold();
-                        column.Item().Text("1. Hai bên đồng ý cung cấp và sử dụng dịch vụ theo điều kiện được nêu trong hợp đồng.");
-                        column.Item().Text("2. Thời hạn hợp đồng: 12 tháng kể từ ngày ký.");
-                        column.Item().Text("3. Các điều khoản khác theo quy định của pháp luật Việt Nam.");
+
+                        column.Item().Text("1. Hai bên thống nhất rằng Bên B sẽ cung cấp dịch vụ \"" + dto.ServiceType + "\" cho Bên A theo các điều kiện sau:");
+
+                        column.Item().Text("2. Phạm vi cung cấp dịch vụ:");
+                        column.Item().Text("   - Bên B cung cấp đầy đủ dịch vụ với nội dung, phạm vi và thông số kỹ thuật theo mô tả hoặc yêu cầu từ Bên A.");
+                        column.Item().Text("   - Các điều chỉnh, mở rộng hoặc thay đổi phạm vi dịch vụ sẽ được hai bên thống nhất bằng văn bản hoặc phụ lục hợp đồng.");
+
+                        column.Item().Text("3. Thời hạn và hiệu lực:");
+                        column.Item().Text($"   - Hợp đồng có hiệu lực từ ngày {dto.Startdate:dd/MM/yyyy} đến ngày {dto.Enddate:dd/MM/yyyy}");
+
+                        column.Item().Text("   - Hai bên có thể gia hạn hợp đồng trước khi hết hạn tối thiểu 15 ngày bằng văn bản.");
+
+                        column.Item().Text("4. Giá trị và thanh toán:");
+                        column.Item().Text("   - Tổng giá trị hợp đồng: " + dto.Amount + ".");
+                        column.Item().Text("   - Bên A thanh toán cho Bên B theo phương thức và thời hạn được quy định trong phụ lục hợp đồng hoặc hóa đơn.");
+
+                        column.Item().Text("5. Hỗ trợ và bảo trì:");
+                        column.Item().Text("   - Bên B cung cấp các hình thức hỗ trợ sau:");
+                        column.Item().Text("     + Hỗ trợ kỹ thuật: xử lý sự cố, hướng dẫn vận hành, khôi phục dịch vụ.");
+                        column.Item().Text("     + Hỗ trợ cước phí: đối soát, giải trình hóa đơn, điều chỉnh phí.");
+                        column.Item().Text("     + Bảo hành thiết bị (nếu có): theo chính sách nhà sản xuất hoặc thỏa thuận.");
+                        column.Item().Text("     + Cập nhật dịch vụ: thay đổi cấu hình, nâng cấp hoặc bổ sung tính năng.");
+                        column.Item().Text("   - Kênh hỗ trợ: Email, điện thoại, cổng hỗ trợ trực tuyến.");
+
+                        column.Item().Text("6. Trách nhiệm các bên:");
+                        column.Item().Text("   - Bên B đảm bảo chất lượng dịch vụ theo cam kết và chịu trách nhiệm khắc phục sự cố phát sinh.");
+                        column.Item().Text("   - Bên A phối hợp cung cấp thông tin, dữ liệu và điều kiện kỹ thuật cần thiết để triển khai dịch vụ.");
+                        column.Item().Text("   - Hai bên cam kết bảo mật thông tin, không tiết lộ nội dung hợp đồng cho bên thứ ba nếu không có sự đồng ý.");
+
+                        column.Item().Text("7. Điều khoản khác:");
+                        column.Item().Text("   - Mọi tranh chấp phát sinh trong quá trình thực hiện hợp đồng sẽ được giải quyết trên tinh thần hợp tác. Trường hợp không thỏa thuận được sẽ đưa ra Tòa án có thẩm quyền.");
+                        column.Item().Text("   - Hợp đồng này được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản.");
+
                         column.Item().PaddingVertical(20).Text("Ngày lập hợp đồng: " + DateTime.Now.ToString("dd/MM/yyyy"));
 
                         column.Item().Row(row =>
@@ -66,14 +114,14 @@ namespace WebApi.Service.Admin
                         // Tạo ô ký vẽ bằng khung viền
                         column.Item().Row(row =>
                         {
-                            row.RelativeItem().Element(c => c.Border(1).Height(100).AlignCenter().Padding(5).Text("(Ký, ghi rõ họ tên)").AlignCenter());
-                            row.RelativeItem().Element(c => c.Border(1).Height(100).AlignCenter().Padding(5).Text("(Ký, ghi rõ họ tên)").AlignCenter());
+                            row.RelativeItem().Element(c => c.Border(1).Height(100).AlignCenter().Padding(5).AlignCenter());
+                            row.RelativeItem().Element(c => c.Border(1).Height(100).AlignCenter().Padding(5).AlignCenter());
                         });
                     });
 
                     page.Footer().AlignCenter().Text(x =>
                     {
-                        x.Span("Trang được tạo bởi hệ thống").FontSize(10);
+                        x.Span("Trang được tạo bởi hệ thống ").FontSize(10);
                     });
                 });
             });
@@ -110,35 +158,53 @@ namespace WebApi.Service.Admin
 
             // Vị trí chữ ký (tọa độ tính từ bottom-left)
             //Rectangle rect = new Rectangle(100, 100, 200, 100);
-            (string keyword, float offsetY) = ("Đại diện Bên B", 60f);
+            //(string keyword, float offsetY) = ("Đại diện Bên B", -50f);
+            //var (textRect, page) = FindTextPosition(originalPdfBytes, keyword);
+            //float offsetX = -10f; // Dịch trái một chút
+            (string keyword, float offsetY) = ("Đại diện Bên B", 90f);
             var (textRect, page) = FindTextPosition(originalPdfBytes, keyword);
 
-            // Tọa độ mới
+            // Dịch trái nhiều hơn → từ -10f → -20f (hoặc -30f nếu cần)
+            float offsetX = -20f;
+
+            // Giảm chiều rộng và chiều cao khung chữ ký
+            float signatureWidth = 200f;  // từ 240 → 200 (hoặc 180 nếu cần)
+            float signatureHeight = 50f;  // từ 60 → 50
+
             Rectangle rect = new Rectangle(
-                textRect.GetX(),
+                textRect.GetX() + offsetX,
                 textRect.GetY() - offsetY,
-                200,
-                60
+                signatureWidth,
+                signatureHeight
             );
+
+            // Font và Appearance
+            PdfFont font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
             var appearance = signer.GetSignatureAppearance();
-            // Set thông tin và định dạng chữ ký
             appearance
                 .SetPageRect(rect)
-                //.SetPageNumber(1) //vị trí cố định trang cố định
                 .SetPageNumber(page)
                 .SetLocation("Hệ thống")
+                .SetLayer2Font(font)
+                .SetLayer2FontSize(9)
                 .SetReason("Ký bởi Admin")
                 .SetLayer2Text($"Ký bởi {staffId}\nNgày: {DateTime.Now:dd/MM/yyyy}")
                 .SetRenderingMode(PdfSignatureAppearance.RenderingMode.DESCRIPTION);
 
-            signer.SetFieldName("Signature2"); // field name mới được tạo nếu chưa có
+            signer.SetFieldName("Signature2");
 
             IExternalSignature externalSignature = new PrivateKeySignature(iPrivateKey, DigestAlgorithms.SHA256);
             IExternalDigest digest = new BouncyCastleDigest();
 
-            signer.SignDetached(digest, externalSignature, chain.ToArray(), null, null, null, 0, PdfSigner.CryptoStandard.CADES);
+            signer.SignDetached(
+                digest, externalSignature,
+                chain.ToArray(), null, null, null,
+                0, PdfSigner.CryptoStandard.CADES
+            );
 
             return signedPdfStream.ToArray();
+
         }
 
         private (Rectangle rect, int page) FindTextPosition(byte[] pdfBytes, string keyword)

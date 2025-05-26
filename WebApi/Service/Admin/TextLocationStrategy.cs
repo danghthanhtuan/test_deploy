@@ -24,7 +24,9 @@ namespace WebApi.Service.Admin
 
             if (!string.IsNullOrEmpty(text) && text.Contains(_keyword))
             {
-                Locations.Add(renderInfo.GetDescentLine().GetBoundingRectangle());
+                //Locations.Add(renderInfo.GetAscentLine().GetBoundingRectangle());
+                Locations.Add(renderInfo.GetBaseline().GetBoundingRectangle());
+
             }
         }
 

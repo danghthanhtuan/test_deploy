@@ -25,11 +25,34 @@ namespace WebApi.Service.Client
             Console.WriteLine($"Port: {_emailSettings.Port}");
         }
 
-        public Task SendEmailAsync(MailRequest mailRequest)
+        public async Task SendEmailAsync(MailRequest mailRequest)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var mail = new MailMessage
+                {
+                    From = new MailAddress(_emailSettings.Email, _emailSettings.Displayname),
+                    Subject = mailRequest.Subject,
+                    Body = mailRequest.Body,
+                    IsBodyHtml = true
+                };
+                mail.To.Add(mailRequest.ToEmail);
+
+                using (var smtp = new System.Net.Mail.SmtpClient(_emailSettings.Host, _emailSettings.Port))
+                {
+                    smtp.Credentials = new NetworkCredential(_emailSettings.Email, _emailSettings.Password);
+                    smtp.EnableSsl = true;
+                    await smtp.SendMailAsync(mail);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Gửi email thất bại: {ex.Message}");
+                throw;
+            }
         }
 
+        //gửi hợp đồng cho client
         public async Task SendContractEmail(string toEmail, string companyName, string signingLink)
         {
             try
@@ -37,7 +60,7 @@ namespace WebApi.Service.Client
                 var email = new MimeMessage();
                 email.Sender = MailboxAddress.Parse(_emailSettings.Email);
                 email.From.Add(MailboxAddress.Parse(_emailSettings.Email));
-                email.To.Add(MailboxAddress.Parse(toEmail)); // 💥 Nếu toEmail sai format, lỗi ở đây
+                email.To.Add(MailboxAddress.Parse(toEmail)); 
 
                 email.Subject = "Yêu cầu ký hợp đồng dịch vụ";
 
@@ -97,6 +120,40 @@ namespace WebApi.Service.Client
                 throw;
             }
         }
+
+        public async Task SendFinalContractToCustomer(string toEmail, string contractUrl)
+        {
+            try
+            {
+                var email = new MimeMessage();
+                email.Sender = MailboxAddress.Parse(_emailSettings.Email);
+                email.From.Add(MailboxAddress.Parse(_emailSettings.Email));
+                email.To.Add(MailboxAddress.Parse(toEmail));
+                email.Subject = "Hợp đồng đã hoàn tất";
+
+                var builder = new BodyBuilder();
+                builder.HtmlBody = $@"
+            <p>Xin chào,</p>
+            <p>Hợp đồng của bạn đã được phê duyệt và hoàn tất.</p>
+            <p>Bạn có thể xem hoặc tải hợp đồng tại liên kết sau: <a href='{contractUrl}'>Xem hợp đồng</a></p>
+            <br/>
+            <p>Trân trọng,<br/>{_emailSettings.Displayname}</p>";
+
+                email.Body = builder.ToMessageBody();
+
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                await smtp.ConnectAsync(_emailSettings.Host, _emailSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync(_emailSettings.Email, _emailSettings.Password);
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Lỗi gửi hợp đồng final cho khách hàng: {ex.Message}");
+                throw;
+            }
+        }
+
 
     }
 }

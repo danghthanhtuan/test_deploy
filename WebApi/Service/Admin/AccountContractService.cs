@@ -120,10 +120,10 @@ namespace WebApi.Service.Admin
                     return false;
                 }
 
-                var sql = $"UPDATE COMPANY SET OperatingStatus = @p0 WHERE CustomerId = @p1";
+                var sql = $"UPDATE CONTRACTS SET IS_ACTIVE = @p0 WHERE CustomerId = @p1";
 
                 int rowsAffected = _context.Database.ExecuteSqlInterpolated(
-                    $"UPDATE COMPANY SET OperatingStatus = {Tinhtrang} WHERE CustomerId = {CustomerID}");
+                    $"UPDATE CONTRACTS SET IS_ACTIVE = {Tinhtrang} WHERE CustomerId = {CustomerID}");
 
                 if (rowsAffected > 0)
                 {
@@ -224,7 +224,6 @@ namespace WebApi.Service.Admin
                     existingAccount.Rootaccount = CompanyAccountDTO.RootAccount;
                     existingAccount.Rootname = CompanyAccountDTO.RootName;
                     existingAccount.Rphonenumber = CompanyAccountDTO.RPhoneNumber;
-                    //existingAccount.OperatingStatus = CompanyAccountDTO.OperatingStatus;
                     existingAccount.Dateofbirth = (DateTime)CompanyAccountDTO.DateOfBirth!;
                     existingAccount.Gender = CompanyAccountDTO.Gender;
 
@@ -647,17 +646,15 @@ namespace WebApi.Service.Admin
         }
 
         //Cập nhật cũng như lưu công ty đã chính thức
-        public async Task<string?> Insert( SignAdminRequest request)
+        public async Task<string?> Insert(SignAdminRequest request)
         {
             if (request == null)
-            {
                 return "Dữ liệu không hợp lệ.";
-            }
+
             var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Contractnumber == request.ContractNumber);
             if (contract == null)
                 return "Không tìm thấy hợp đồng tương ứng";
 
-            //var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Customerid == contract.Customerid);
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Customerid == contract.Customerid);
             var account = await _context.Accounts.FirstOrDefaultAsync(c => c.Customerid == contract.Customerid);
 
@@ -665,35 +662,29 @@ namespace WebApi.Service.Admin
             {
                 try
                 {
-                    // Lưu trạng thái cũ để lưu vào lịch sử
                     var oldStatus = contract.Constatus;
 
-                    // Cập nhật trạng thái công ty
+                    // Cập nhật dữ liệu
                     company.IsActive = true;
                     company.Accountissueddate = DateTime.Now;
-                    _context.Companies.Update(company);
-
-                    // Cập nhật trạng thái người đại diện
                     account.IsActive = true;
-                    _context.Accounts.Update(account);
-
-                    // Cập nhật trạng thái hợp đồng
                     contract.Constatus = "Đã duyệt";
-                    contract.IsActive = true; 
+                    contract.IsActive = true;
+
+                    _context.Companies.Update(company);
+                    _context.Accounts.Update(account);
                     _context.Contracts.Update(contract);
 
-                    // Thêm thông tin file (không lưu file nữa, chỉ lưu tên và đường dẫn hiện tại)
                     var newContractFile = new ContractFile
                     {
                         Contractnumber = request.ContractNumber,
-                        ConfileName = Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
+                        ConfileName = Path.GetFileName(request.FilePath),
                         FilePath = request.FilePath,
                         UploadedAt = DateTime.Now,
-                        FileStatus = "Đã duyệt",
+                        FileStatus = "Đã duyệt"
                     };
                     _context.ContractFiles.Add(newContractFile);
 
-                    // Thêm lịch sử trạng thái hợp đồng
                     var newContractStatusHistory = new ContractStatusHistory
                     {
                         Contractnumber = contract.Contractnumber,
@@ -704,8 +695,6 @@ namespace WebApi.Service.Admin
                     };
                     _context.ContractStatusHistories.Add(newContractStatusHistory);
 
-                    //+*+***********************
-                    // Tạo mật khẩu ngẫu nhiên
                     string generatedPassword = GenerateRandomPassword();
                     string hashedPassword = HashPassword(generatedPassword);
 
@@ -716,22 +705,27 @@ namespace WebApi.Service.Admin
                         Passwordclient = hashedPassword
                     };
                     _context.Loginclients.Add(newLogin);
-                    _context.SaveChanges();
 
+                    // Gửi email TRƯỚC khi commit DB
+                    await SendPasswordEmail(account.Rootaccount, generatedPassword);
+                    string contractLink = GenerateContractLink(request.FilePath);
+                    await _emailService.SendFinalContractToCustomer(account.Rootaccount, contractLink);
+
+                    // Nếu gửi email thành công, mới commit DB
+                    _context.SaveChanges();
                     await transaction.CommitAsync();
 
-                    // Gửi email với mật khẩu
-                    await SendPasswordEmail(account.Rphonenumber, generatedPassword);
                     return company.Customerid;
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync();
                     Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
                     return "Lỗi hệ thống, vui lòng thử lại sau.";
                 }
             }
         }
+
         private string GenerateRandomPassword()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*!";
@@ -754,6 +748,14 @@ namespace WebApi.Service.Admin
                 Body = emailSender.SendEmail_pass(password, email)
             };
             await _emailService.SendEmailAsync(mailRequest);
+        }
+
+        private string GenerateContractLink(string filePath)
+        {
+            // Ví dụ: filePath = "wwwroot/contracts/final/hd123.pdf"
+            var fileName = Path.GetFileName(filePath);
+            return $"https://localhost:7190/signed-contracts/{fileName}";
+
         }
 
     }

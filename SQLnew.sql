@@ -391,42 +391,10 @@ select * from LOGINclient
 select * from RESETPASSWORD
 select * from endow
 
+
 DELETE FROM CONTRACT_STATUS_HISTORY WHERE CONTRACTNUMBER = 'SV0001'
 DELETE FROM CONTRACT_FILES WHERE CONTRACTNUMBER = 'SV0001'
 DELETE FROM Payment WHERE CONTRACTNUMBER = 'SV0001'
 DELETE FROM contracts WHERE CONTRACTNUMBER = 'SV0001'
 DELETE FROM Account WHERE CUSTOMERID = 'IT03030001'
 DELETE FROM company WHERE CUSTOMERID = 'IT03030001'
-
-
-select HISTORYREQ.DESCRIPTIONOFREQUEST, DATEOFREQUEST, BEFORSTATUS, APTERSTATUS, HISTORYREQ.STAFFID 
-select *
-from REQUIREMENTS join HISTORYREQ on REQUIREMENTS.REQUIREMENTSID = HISTORYREQ.REQUIREMENTSID 
-where   REQUIREMENTS.REQUIREMENTSID = 'RS0004'
-select * from REQUIREMENTS
-select * from HISTORYREQ
-select * from staff
-select * from LOGINadmin
-select * from SUPPORT_TYPE
-select * from Assign
-select * from contracts
-
-select * from Payment
-
---thiếu insert payment ở tạo tài khoản. 
-update contracts set STARTDATE ='2025-03-14' where contractnumber = 'SV0002'
-update contracts set enddate ='2025-04-14' where contractnumber = 'SV0002'
-
-Select c.Customerid,c.Companyname,c.Taxcode , c.Companyaccount,c.Accountissueddate, c.Cphonenumber,  c.Caddress, c.Customertype, e.SERVICE_TYPEName, 
-a.Rootaccount,a.Rootname,a.Rphonenumber,c.Operatingstatus,a.Dateofbirth,a.Gender
-from COMPANY c join ACCOUNT a on c.CUSTOMERID = a.customerid
-join CONTRACTS d on c.CUSTOMERID = d.CUSTOMERID
-join SERVICE_TYPE e on d.SERVICE_TYPEID = e.ID
---where c.COMPANYNAME like '%tnhh%'
-Group by c.Customerid,c.Companyname,c.Taxcode , c.Companyaccount,c.Accountissueddate, c.Cphonenumber,  c.Caddress, c.Customertype, e.SERVICE_TYPEName,
-a.Rootaccount,a.Rootname,a.Rphonenumber,c.Operatingstatus,a.Dateofbirth,a.Gender
-
-select * from SERVICE_GROUP
-select * from SERVICE_TYPE
-select * from REGULATIONS
-select * from PASSWORDRESETTOKEN
