@@ -4,13 +4,22 @@
 }
 <style>
     .toggle-password {
-        color: black; /* Chỉnh màu icon 👁 thành đen */
-        border-color: dimgray; /* Chỉnh viền nút thành đen */
+        color: lightslategray; 
+        border-color: lightgray;
+        background-color: #d1ecf1;
+        border: 1px solid #ced4da;
+        border-left: none;
+        font-size: 20px;
+        height: 45px;
+        width: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
         .toggle-password:hover {
-            background-color: black; /* Màu nền đen khi hover */
-            color: white; /* Chữ trắng khi hover */
+            background-color: darkgray; 
+            color: black; 
         }
 
     /* Tăng kích thước chữ */
@@ -23,6 +32,10 @@
         font-size: 16px;
         padding: 10px;
         height: 45px;
+        width: 400px;
+        background-color: #96e7b48a;
+        color: black;
+        border: 1px solid #96e7b48a;
     }
 
     .btn {
@@ -30,26 +43,110 @@
         padding: 12px 20px;
     }
 
-    /* Căn chỉnh lại icon toggle password */
-    .toggle-password {
-        color: black;
-        border-color: dimgray;
-        height: 45px; /* Cùng chiều cao với input */
-        width: 45px;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .login-title {
+        padiing-bottom: 80px;
+        font-size: 32px;
+        font-weight: bold;
+        color: #046b0cf0;
+        text-align: center;
+        margin-bottom: 20px;
     }
-
-
     /* Điều chỉnh kích thước form */
     #loginForm {
-        max-width: 400px;
-        margin: auto;
+        box-shadow: none;
+        background-color: transparent;
+        border: none;
+        padding: 20px;
+        margin: 0 auto;
     }
+
+        #loginForm > .btn,
+        #loginForm > .btn + .btn {
+            display: inline-block;
+            width: 47%;
+            margin-top: 10px;
+        }
+
+    #loginForm {
+        text-align: center;
+    }
+    /* Cho các label và input nằm cùng hàng */
+    .mb-3 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        /* Label có độ rộng cố định để thẳng hàng */
+        .mb-3 label {
+            width: 100px;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        /* Input chiếm phần còn lại */
+        .mb-3 .form-control,
+        .mb-3 .input-group {
+            flex: 1;
+        }
+
+    
+
+    .btn-primary {
+        color: #fff;
+        background-color: #017c2ff2;
+        border-color: #099757;
+        margin-left: 6px;
+
+    }
+
+    .modal-backdrop.show {
+        z-index: 1040 !important;
+    }
+
+    .modal.show {
+        z-index: 1050 !important;
+    }
+
+    .btn-warning {
+        color: #111;
+        background-color: #03c71ed9;
+        border-color: #006914;
+        margin-left: 6px;
+    }
+
+    input,
+    input:focus,
+    input:hover,
+    input:active,
+    input:not(:placeholder-shown),
+    input:placeholder-shown {
+        background-color: #96e7b48a !important;
+        color: black !important;
+        border: 1px solid #96e7b48a !important;
+        outline: none;
+    }
+
+        /* Chống Chrome autofill đổi màu */
+        input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 1000px #96e7b48a inset !important;
+            -webkit-text-fill-color: black !important;
+            border: 1px solid #96e7b48a !important;
+        }
+
+        input[type="tel"],
+        input[type="password"] {
+            background-color: #96e7b48a !important;
+            color: black !important;
+            border: 1px solid #96e7b48a !important;
+        }
+
+        
+
 </style>
 <div class="text-center">
+    <h2 class="login-title">Đăng nhập</h2>
+
     <form id="loginForm">
         <div class="mb-3">
             <label for="username" class="form-label">Username</label>
@@ -65,17 +162,16 @@
         <div class="mb-3">
             <label for="password" class="form-label">Password</label>
             <div class="input-group">
-                <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" name="password">
+                <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" name="password"> 
                 <button class="btn btn-outline-secondary btn-sm position-absolute toggle-password" type="button" id="togglePassword">👁</button>
             </div>
         </div>
-
-        <button type="button" id="loginButton" onclick="login()" class="btn btn-primary">Đăng nhập</button>
-       @*  <button type="button" onclick="REGISTER()" class="btn btn-secondary">Đăng ký</button> *@
         <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Quên mật khẩu</button>
+        <button type="button" id="loginButton" onclick="login()" class="btn btn-primary">Đăng nhập</button>
+        
     </form>
 </div>
-
+@section Modals {
 @* Modal thông báo đăng nhập thành công *@
 <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -152,6 +248,7 @@
         </div>
     </div>
 </div>
+}
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -222,34 +319,37 @@
             data: JSON.stringify(data),
             success: function (result) {
                 if (result.success) {
+                    // Lưu token vào localStorage (nếu có)
+                    if (result.token) {
+                        localStorage.setItem("accessToken", result.token);
+                    }
+
+                    // Hiện modal đăng nhập thành công
                     $('#successModal').modal('show');
-                    $('#successModal').on('hidden.bs.modal', function () {
+
+                    // Sau khi đóng modal, chuyển hướng đến trang chính
+                    document.getElementById("buttonCloseModal").addEventListener("click", function () {
                         window.location.href = "/home/Index";
                     });
+
+                    // Tự động chuyển trang sau 2 giây (trong trường hợp user không nhấn "Đóng")
+                    setTimeout(function () {
+                        window.location.href = "/home/Index";
+                    }, 2000);
+
                 } else {
-                    document.getElementById("contentModalError").innerHTML = result.message || "Đăng nhập thất bại!";
+                    document.getElementById("contentModalError").innerHTML = result.message || "Đăng nhập thất bại, vui lòng kiểm tra lại.";
                     $('#failModal').modal('show');
                 }
             },
             error: function (xhr, status, error) {
-                console.log("Lỗi khi gửi yêu cầu AJAX:", xhr.responseText);
-
-                let errorMessage = "Đăng nhập thất bại!";
-                try {
-                    // Kiểm tra xem server có trả về JSON hợp lệ không
-                    let response = JSON.parse(xhr.responseText);
-                    if (response.message) {
-                        errorMessage = response.message;
-                    }
-                } catch (e) {
-                    console.warn("Không thể parse JSON từ responseText:", xhr.responseText);
-                }
-
-                document.getElementById("contentModalError").innerHTML = errorMessage;
+                console.error("Lỗi:", error);
+                document.getElementById("contentModalError").innerHTML = "Có lỗi xảy ra khi kết nối tới máy chủ.";
                 $('#failModal').modal('show');
             }
         });
     }
+
 
     function sendOTP() {
         var phoneNumber = document.getElementById("forgotPhone").value.trim();
@@ -275,18 +375,18 @@
                 if (response.success) {
                     document.querySelector("#successModal .modal-body").innerHTML = "OTP đã được gửi đến email của bạn.";
 
-                    // Đóng modal hiện tại trước
-                    $('#forgotPasswordModal').modal('hide');
+                    $('#forgotPasswordModal').modal('hide'); // Tự động đóng
 
-                    // Khi modal forgotPasswordModal đóng hoàn toàn thì mới mở successModal
-                    $('#forgotPasswordModal').on('hidden.bs.modal', function () {
+                    // Khi modal `forgotPasswordModal` đã hoàn tất đóng
+                    $('#forgotPasswordModal').off('hidden.bs.modal').on('hidden.bs.modal', function () {
                         $('#successModal').modal('show');
                     });
 
-                    // Khi successModal đóng thì mới mở sendEmailModal
-                    $('#successModal').on('hidden.bs.modal', function () {
+                    // Khi modal `successModal` đóng thì mở modal tiếp theo
+                    $('#successModal').off('hidden.bs.modal').on('hidden.bs.modal', function () {
                         $('#sendEmailModal').modal('show');
                     });
+
                 } else {
                     document.getElementById("contentModalError").innerHTML = response.message || "Gửi OTP thất bại!";
                     $('#failModal').modal('show');
@@ -354,48 +454,5 @@
         });
     }
 
-    // function REGISTER() {
-    //     window.location.href = "/CRegister/Index";
-    // }
 
-    // function checkEmail() {
-    //     var otp = $('#otpEmail').val();
-    //     var phoneNumber = document.getElementById("forgotPhone").value.trim(); // Lấy số điện thoại từ modal
-    //     console.log("OTP nhận vào:", otp);
-    //     console.log("Số điện thoại:", phoneNumber);
-    //     $.ajax({
-    //         url: "/Loginclient/CheckEmailRegister",
-    //         type: "GET",
-    //         data:
-    //         {
-    //             otp: otp
-    //         },
-    //         success: function (result) {
-
-    //             if (result.success) {
-    //                 // Lưu số điện thoại vào sessionStorage để sử dụng ở trang ResetPass
-    //                 sessionStorage.setItem("resetPhoneNumber", phoneNumber);
-
-    //                 // Chuyển hướng sang trang đặt lại mật khẩu
-    //                 window.location.href = "/Loginclient/ResetPass";
-
-    //             } else {
-    //                 document.getElementById("contentModalError").innerHTML = result.message;
-    //                 $('#failModal').modal('show');
-
-    //                 document.getElementById('failModal').addEventListener('hidden.bs.modal', function () {
-    //                     console.log('Modal đã được đóng.');
-    //                     // Thực hiện hành động sau khi failModal được đóng
-    //                     $('#sendEmailModal').modal('show');
-    //                 });
-
-    //             }
-    //         },
-    //         error: function (result) {
-    //             document.getElementById("contentModalError").innerHTML = "Có lỗi xảy ra";
-    //             $('#failModal').modal('show');
-    //         }
-    //     });
-
-    // }
 </script>

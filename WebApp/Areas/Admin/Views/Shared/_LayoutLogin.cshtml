@@ -1,113 +1,130 @@
-﻿@* 
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Login</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/png" href="~/Content/Assets/Login/images/icons/favicon.ico" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="~/Content/Assets/Login/vendor/bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="~/Content/Assets/Login/fonts/font-awesome-4.7.0/css/font-awesome.min.css" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="~/Content/Assets/Login/fonts/iconic/css/material-design-iconic-font.min.css" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="~/Content/Assets/Login/vendor/animate/animate.css" />
-    <link rel="stylesheet"
-          type="text/css"
-
-          href="~/Content/Assets/Login/vendor/css-hamburgers/hamburgers.min.css" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="~/Content/Assets/Login/vendor/animsition/css/animsition.min.css" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="~/Content/Assets/Login/vendor/select2/select2.min.css" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="~/Content/Assets/Login/vendor/daterangepicker/daterangepicker.css" />
-    <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/css/util.css" />
-    <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/css/main.css" />
-</head>
-<body>
-
-    @RenderBody()
-
-    @*<script src="~/Content/Assets/Login/vendor/jquery/jquery-3.2.1.min.js"></script>
-    <script src="~/Content/Assets/Login/vendor/animsition/js/animsition.min.js"></script>
-    <script src="~/Content/Assets/Login/vendor/bootstrap/js/popper.js"></script>
-    <script src="~/Content/Assets/Login/vendor/bootstrap/js/bootstrap.min.js"></script>
-    <script src="~/Content/Assets/Login/vendor/select2/select2.min.js"></script>
-    <script src="~/Content/Assets/Login/vendor/daterangepicker/moment.min.js"></script>
-    <script src="~/Content/Assets/Login/vendor/daterangepicker/daterangepicker.js"></script>
-    <script src="~/Content/Assets/Login/vendor/countdowntime/countdowntime.js"></script>
-    <script src="~/Content/Assets/Login/js/main.js"></script>
-</body>
-</html>
-
-
- *@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Login</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/vendor/bootstrap/css/bootstrap.min.css" />
+@*      <link rel="stylesheet" href="~/Content/Assets/Login/vendor/bootstrap/css/bootstrap.min.css"/>
+    *@
+    <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/vendor/bootstrap/css/bootstrap.css" />
     <link rel="stylesheet" type="text/css" href="~/Content/Assets/Login/css/main.css" />
     <style>
-        body {
-            position: relative;
-            background: url('/Content/Assets/Login/images/Ifyou.png') no-repeat center center fixed;
-            background-size: cover;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .text-center1
+        {
+            color:black;
+            font-size: 22px;
+        }
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #ffffff; /* ✅ Đổi từ xám sang trắng */
         }
 
-            body::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-               /*  background: white; /* Hoặc dùng black nếu muốn tối hơn 
-                opacity: 0.1; /* Điều chỉnh mức độ nhạt (0.1 - 0.5) */ 
-                z-index: -1;
+        .login-wrapper {
+            height: 100vh;
+            background-color: #ffffff; /* ✅ Đảm bảo wrapper cũng trắng */
+            overflow: hidden;
+        }
+
+        .login-row {
+            height: 100%;
+        }
+
+        .left-panel {
+            background: linear-gradient(135deg, #007f5f, #2b9348);
+            color: white;
+            text-align: center;
+            position: relative;
+            border-bottom-left-radius: 250px 100px;
+            border-top-right-radius: 200px 300px; /* cần giữ */
+            z-index: 1;
+            overflow: hidden;
+            padding-bottom: 80px;
+        }
+
+        .right-panel {
+            background: #ffffff;
+            border-top-right-radius: 200px 300px;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            transition: border-radius 0.3s ease;
+        }
+
+
+
+        .login-form-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: none;
+            width: 100%;
+        }
+        /*
+            input[type="text"], input[type="password"] {
+                margin-bottom: 15px;
+                border-radius: 10px;
+                border: 1px solid #ccc;
+                padding: 10px;
+            }
+         */
+        .btn-outline-light {
+            border-radius: 20px;
+            padding: 10px 25px;
+            transition: all 0.3s ease-in-out;
+        }
+
+            .btn-outline-light:hover {
+                background-color: white;
+                color: #007f5f;
+                transform: scale(1.05);
             }
 
-
-
-        .logo {
-            position: absolute;
-            top: 30px;
-            left: 40px;
-            width: 100px;
+        .left-panel > * {
+            position: relative;
+            z-index: 1;
         }
 
-        .login-container {
+        .bg-green-overlay {
             position: absolute;
-            bottom: 30%;
-            left: 10%;
-            max-width: 500px;
-           /*  background: rgba(255, 255, 255, 0.8);
-            padding: 20px;
-            border-radius: 8px; */
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #007f5f, #2b9348);
+            z-index: 0;
         }
+
     </style>
 </head>
+
 <body>
-    <img src="~/Content/Assets/Login/images/Logo.jpg" class="logo" alt="Logo">
-    <div class="login-container">
-        @RenderBody()
+    <div class="container-fluid login-wrapper position-relative">
+        <div class="bg-green-overlay"></div> 
+        <div class="row login-row position-relative">
+            <div class="col-md-6 left-panel d-flex flex-column justify-content-center align-items-center text-white px-4">
+                <h2 style="font-size: 40; padding:90px">Chào mừng bạn trở lại!</h2>
+                <p class="text-center1 px-5">
+                    Đây là hệ thống quản lý yêu cầu sự cố dành cho doanh nghiệp.
+                    <br />
+                    Hãy đăng nhập để tiếp tục theo dõi, xử lý và cập nhật trạng thái các yêu cầu một cách hiệu quả, nhanh chóng.
+                </p>
+            </div>
+
+            <div class="col-md-6 right-panel d-flex align-items-center justify-content-center">
+                <div class="login-form-container w-75">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
     </div>
+    @RenderSection("Modals", required: false)
+
+
 </body>
+
 </html>

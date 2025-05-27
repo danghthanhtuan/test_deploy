@@ -1,69 +1,26 @@
 ﻿@{
-    ViewBag.Title = "Đăng nhập";
-    Layout = "~/Areas/Admin/Views/Shared/_LayoutLogin.cshtml";
-}
-<style>
-    .toggle-password {
-        color: black; /* Chỉnh màu icon 👁 thành đen */
-        border-color: dimgray; /* Chỉnh viền nút thành đen */
-    }
-
-        .toggle-password:hover {
-            background-color: black; /* Màu nền đen khi hover */
-            color: white; /* Chữ trắng khi hover */
-        }
-
-    /* Tăng kích thước chữ */
-    body {
-        font-size: 16px; /* Mặc định toàn bộ chữ lớn hơn */
-    }
-
-    /* Điều chỉnh kích thước input và button */
-    .form-control {
-        font-size: 16px;
-        padding: 10px;
-        height: 45px;
-    }
-
-    .btn {
-        font-size: 16px;
-        padding: 12px 20px;
-    }
-
-    /* Căn chỉnh lại icon toggle password */
-    .toggle-password {
-        color: black;
-        border-color: dimgray;
-        height: 45px; /* Cùng chiều cao với input */
-        width: 45px;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-
-    /* Điều chỉnh kích thước form */
-    #loginForm {
-        max-width: 400px;
-        margin: auto;
-    }
-</style>
-@{
     ViewBag.Title = "Đổi mật khẩu";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutLogin.cshtml";
 }
 <style>
     .toggle-password {
-        color: black;
-        border-color: dimgray;
+        color: lightslategray; /* Chỉnh màu icon 👁 thành đen */
+        border-color: lightgray; /* Chỉnh viền nút thành đen */
+        background-color: #d1ecf1;
+        border: 1px solid #ced4da;
+        border-left: none;
+        font-size: 20px;
         height: 45px;
         width: 45px;
-        font-size: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
+
+        .toggle-password:hover {
+            background-color: darkgray; /* Màu nền đen khi hover */
+            color: white; /* Chữ trắng khi hover */
+        }
 
     body {
         font-size: 16px;
@@ -73,6 +30,10 @@
         font-size: 16px;
         padding: 10px;
         height: 45px;
+        width: 400px;
+        background-color: #96e7b48a;
+        color: black;
+        border: 1px solid #96e7b48a;
     }
 
     .btn {
@@ -80,12 +41,101 @@
         padding: 12px 20px;
     }
 
-    #resetPasswordForm {
-        max-width: 400px;
-        margin: auto;
+    .login-title {
+        padiing-bottom: 80px;
+        font-size: 32px;
+        font-weight: bold;
+        color: #046b0cf0;
+        text-align: center;
+        margin-bottom: 20px;
     }
+
+    #resetPasswordForm {
+        box-shadow: none;
+        background-color: transparent;
+        border: none;
+        padding: 20px;
+        margin: 0 auto;
+    }
+
+        #resetPasswordForm > .btn,
+        #resetPasswordForm > .btn + .btn {
+            display: inline-block;
+            width: 47%;
+            margin-top: 10px;
+        }
+
+    #resetPasswordForm {
+        text-align: center;
+    }
+    /* Cho các label và input nằm cùng hàng */
+    .mb-3 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .input {
+        margin-left: 25px;
+    }
+    /* Label có độ rộng cố định để thẳng hàng */
+    .mb-3 label {
+        width: 100px;
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+
+    /* Input chiếm phần còn lại */
+    .mb-3 .form-control,
+    .mb-3 .input-group {
+        flex: 1;
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: #017c2ff2;
+        border-color: #099757;
+        margin-left: 6px;
+    }
+
+    .modal-backdrop.show {
+        z-index: 1040 !important;
+    }
+
+    .modal.show {
+        z-index: 1050 !important;
+    }
+
+    input,
+    input:focus,
+    input:hover,
+    input:active,
+    input:not(:placeholder-shown),
+    input:placeholder-shown {
+        background-color: #96e7b48a !important;
+        color: black !important;
+        border: 1px solid #96e7b48a !important;
+        outline: none;
+    }
+
+        /* Chống Chrome autofill đổi màu */
+        input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 1000px #96e7b48a inset !important;
+            -webkit-text-fill-color: black !important;
+            border: 1px solid #96e7b48a !important;
+        }
+
+        input[type="tel"],
+        input[type="password"] {
+            background-color: #96e7b48a !important;
+            color: black !important;
+            border: 1px solid #96e7b48a !important;
+        }
+
 </style>
 <div class="text-center">
+    <h2 class="login-title">Đổi mật khẩu</h2>
+
     <form id="resetPasswordForm">
         <div class="mb-3">
             <label for="newPassword" class="form-label">Mật khẩu mới</label>
@@ -104,6 +154,7 @@
         <button type="button" id="saveButton" onclick="updatePassword()" class="btn btn-primary">OK</button>
     </form>
 </div>
+@section Modals {
 <!-- Modal thông báo -->
 <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -121,6 +172,7 @@
         </div>
     </div>
 </div>
+}
 
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

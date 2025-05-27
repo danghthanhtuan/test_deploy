@@ -152,36 +152,7 @@ namespace WebApp.Controllers
             }
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> UpdatePassword([FromBody] LoginRequest model)
-        //{
-        //    if (model == null)
-        //    {
-        //        return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
-        //    }
-        //    try
-        //    {
-        //        var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
-
-        //        // Gửi request đến API backend với đường dẫn đúng
-        //        HttpResponseMessage response = _client.PostAsync(_client.BaseAddress + "/Login/UpdatePassword", jsonContent).Result;
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            var responseData = await response.Content.ReadAsStringAsync();
-        //            return Ok(new { success = true, message = "Cập nhật mật khẩu mới thành công!", data = responseData });
-        //        }
-        //        else
-        //        {
-        //            var errorMessage = await response.Content.ReadAsStringAsync();
-        //            return BadRequest(new { success = false, message = errorMessage });
-        //        }
-        //    }
-        //    catch
-        //    {
-        //        return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
-        //    }
-        //}
+       
         [HttpPost]
         public async Task<IActionResult> UpdatePassword([FromBody] LoginRequest model)
         {
