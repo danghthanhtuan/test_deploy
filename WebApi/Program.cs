@@ -97,6 +97,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("KyThuatPolicy", policy => policy.RequireRole("KyThuat"));
     // Chính sách cho User
     options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+    options.AddPolicy("DirectorPolicy", policy => policy.RequireRole("Director"));
+
 });
 
 builder.Services.AddSwaggerGen(c =>
@@ -137,7 +139,6 @@ builder.Services.AddScoped<IMapper, Mapper>();
 builder.Services.AddScoped<RegisterService>();
 builder.Services.AddTransient<HomeService>();
 builder.Services.AddTransient<JwtService>();
-builder.Services.AddTransient<AccountService>();
 builder.Services.AddTransient<CRegisterService>();
 builder.Services.AddTransient<LoginService>();
 builder.Services.AddTransient<RequirementService>();
@@ -146,6 +147,8 @@ builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<ContractService>();
 builder.Services.AddTransient<RegulationsService>();
 builder.Services.AddTransient<AccountContractService>();
+builder.Services.AddTransient<AccountService>();
+
 builder.Services.AddTransient<StaffService>();
 builder.Services.AddTransient<PdfService>();
 builder.Services.AddTransient<SeeContract_SignService>();

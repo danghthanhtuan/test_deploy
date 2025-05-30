@@ -1,29 +1,26 @@
 ﻿@{
+    Layout = null;
+}
+@{
     var fileName = Context.Request.Query["fileName"];
     var email = Context.Request.Query["email"];
     var apiDomain = "https://localhost:7190"; // Địa chỉ API
-    var pdfUrl = $"{apiDomain}/temp-pdfs/{fileName}";
-}
-
-<h2>Xem hợp đồng</h2>
-
+    var pdfUrl = $"{apiDomain}/signed-contracts/{fileName}";
+    }
 <embed id="pdfViewer" src="@pdfUrl" type="application/pdf" width="100%" height="600px" />
 
 <br />
+<!-- Chọn file chứng thư số (.pfx) -->
+<input type="file" id="certInput" accept=".pfx" />
+<input type="password" id="certPassword" placeholder="Mật khẩu chứng thư số" />
 
-<!-- Nút tải xuống -->
-<a href="@pdfUrl" download class="btn btn-primary">Tải hợp đồng về</a>
+<button id="signBtn" class="btn btn-primary">Ký hợp đồng</button>
+<button id="confirmSaveBtn" class="btn btn-success" disabled>Lưu hợp đồng đã ký</button>
 
-<!-- Upload file đã ký -->
-<form id="uploadForm" enctype="multipart/form-data">
-    <input type="hidden" name="email" value="@email" /> 
-    <input type="hidden" id="originalFileName" name="originalFileName" value="@fileName" />
-    <input type="file" name="signedFile" accept=".pdf" required />
-    <button type="submit" class="btn btn-success">Gửi file hợp đồng đã ký</button>
-</form>
-
-<!-- Thông báo kết quả -->
-<div id="uploadResult" style="margin-top: 10px;"></div>
+<hr />
+<h4>Hoặc ký bằng hình ảnh chữ ký tay (scan)</h4>
+<input type="file" id="signatureImage" accept=".png,.jpg,.jpeg" />
+<button id="signWithImageBtn" class="btn btn-secondary">Ký bằng chữ ký tay</button>
 <!-- Modal thông báo lỗi -->
 <div class="modal fade" id="ModalError" tabindex="-1" aria-labelledby="ModalErrorLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -52,62 +49,92 @@
     </div>
 </div>
 @section Scripts {
-    <script>
-        document.getElementById("uploadForm").addEventListener("submit", function (e) {
-            e.preventDefault();
+    <script type="module">
+        import * as forge from 'https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js';
+        let signedPdfBlob = null; // Lưu trữ bản PDF ký tạm
 
-            const form = this;
-            const formData = new FormData(form);
+        document.getElementById("signBtn").addEventListener("click", async () => {
+            const pfxFile = document.getElementById("certInput").files[0];
+            const password = document.getElementById("certPassword").value;
 
-            // Lấy file upload
-            const file = formData.get("signedFile");
-
-            // Lấy email
-            const email = formData.get("email");
-
-            // Lấy tên file gốc chưa ký từ hidden input (đặt trong form nếu chưa có)
-            const originalFileName = document.getElementById("originalFileName")?.value;
-            if (!originalFileName) {
-                document.getElementById("contentModalError").innerText = "⚠️ Không tìm thấy tên file gốc!";
-                const modal = new bootstrap.Modal(document.getElementById('ModalError'));
-                modal.show();
+            if (!pfxFile || !password) {
+                showError("Vui lòng chọn file chứng thư số và nhập mật khẩu");
                 return;
             }
 
-            // Kiểm tra file đã chọn chưa
-            if (!file || file.size === 0) {
-                document.getElementById("contentModalError").innerText = "⚠️ Vui lòng chọn file để upload!";
-                const modal = new bootstrap.Modal(document.getElementById('ModalError'));
-                modal.show();
-                return;
+            const formData = new FormData();
+            formData.append("pfxFile", pfxFile);
+            formData.append("password", password);
+            formData.append("fileName", "@fileName");
+            formData.append("email", "@email");
+
+            try {
+                const res = await fetch("/seecontract/SignPdfWithPfx", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error("Ký thất bại");
+
+                signedPdfBlob = await res.blob();
+
+                // Hiển thị PDF ký tạm trong pdfViewer
+                const url = URL.createObjectURL(signedPdfBlob);
+                document.getElementById("pdfViewer").src = url;
+                document.getElementById("contentModalSuccess").innerHTML = "Ký hợp đồng thành công, xem hợp đồng đã ký bên trên";
+                $("#ModalSuccess").modal("show");
+                // Kích hoạt nút lưu hợp đồng đã ký
+                document.getElementById("confirmSaveBtn").disabled = false;
+            } catch (err) {
+                  showError("Ký thất bại: " + err.message);
             }
-
-            // Gửi thêm originalFileName vào formData
-            formData.append("originalFileName", originalFileName);
-
-            console.log("Email gửi đi:", email);
-            console.log("Tên file mới (signedFile):", file.name);
-            console.log("Tên file gốc cần xóa:", originalFileName);
-
-            // Gửi qua Ajax
-            $.ajax({
-                url: "/SeeContract/UploadSignedFile",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    const message = response.message || "Tải lên thành công!";
-                    document.getElementById("contentModalSuccess").innerText = message;
-                    const modal = new bootstrap.Modal(document.getElementById('ModalSuccess'));
-                    modal.show();
-                },
-                error: function (xhr) {
-                    document.getElementById("contentModalError").innerText = `Lỗi khi gửi dữ liệu: ${xhr.statusText}`;
-                    const modal = new bootstrap.Modal(document.getElementById('ModalError'));
-                    modal.show();
-                }
-            });
         });
+
+        // Khi client xác nhận lưu file ký đè lên file gốc
+        document.getElementById("confirmSaveBtn").addEventListener("click", async () => {
+            if (!signedPdfBlob) {
+                showError("Chưa có hợp đồng ký tạm để lưu");
+                return;
+            }
+
+            try {
+                // Gửi file ký tạm lên server để lưu đè
+                const formData = new FormData();
+                formData.append("fileName", "@fileName");
+                formData.append("signedPdf", signedPdfBlob, "signed_" + "@fileName");
+                formData.append("email", "@email");
+
+                const res = await fetch("/seecontract/SaveSignedPdf", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error("Lưu file ký thất bại");
+
+                document.getElementById("contentModalSuccess").innerHTML = "Lưu hợp đồng đã ký thành công!";
+                $("#ModalSuccess").modal("show");
+                // Vô hiệu hóa nút lưu sau khi lưu xong
+                document.getElementById("confirmSaveBtn").disabled = true;
+            } catch (err) {
+                showError("Lưu thất bại:", err.message);
+                return;
+            }
+        });
+
+        function showError(message) {
+            document.getElementById("contentModalError").innerText = message;
+
+            // Khởi tạo modal bằng Bootstrap 5
+            var errorModal = new bootstrap.Modal(document.getElementById("ModalError"), {
+                keyboard: true, // Cho phép bấm phím ESC để đóng
+                backdrop: 'static' // Không đóng modal khi bấm ngoài
+            });
+            // Hiển thị modal
+            errorModal.show();
+            // Gán sự kiện đóng modal vào nút "Đóng"
+            document.getElementById("btnCloseModal").addEventListener("click", function () {
+                errorModal.hide();
+            });
+        }
     </script>
 }

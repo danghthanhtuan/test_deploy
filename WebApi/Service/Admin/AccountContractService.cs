@@ -15,9 +15,9 @@ namespace WebApi.Service.Admin
         private readonly ManagementDbContext _context;
         private readonly IEmailService _emailService;
         //private readonly IConnectionMultiplexer _redis;
-        private readonly ILogger<AccountService> _logger;
+        private readonly ILogger<AccountContractService> _logger;
 
-        public AccountContractService(ManagementDbContext context, IEmailService emailService, ILogger<AccountService> logger)
+        public AccountContractService(ManagementDbContext context, IEmailService emailService, ILogger<AccountContractService> logger)
         {
             _context = context;
             _emailService = emailService;

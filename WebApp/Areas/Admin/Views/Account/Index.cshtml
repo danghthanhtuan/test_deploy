@@ -6,7 +6,7 @@
         display: none !important;
     }
 
-    .flex-shrink-0{
+    .flex-shrink-0 {
         height: 60px;
     }
     /* Căn chỉnh toàn bảng */
@@ -68,6 +68,7 @@
     .card-body {
         padding-top: 5px;
     }
+
     .switch {
         position: relative;
         display: inline-block;
@@ -147,7 +148,6 @@
         padding-left: 1rem !important;
         padding-right: 1rem !important;
         padding-top: 0px;
-       
     }
 </style>
 <body>
@@ -168,6 +168,11 @@
                         <button class="btn btn-warning btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;" onclick=" exportToCsv(event)">📥 Xuất Excel</button>
                         <button class="btn btn-success btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;" onclick="refresh()">➕ Làm mới</button>
                         <button id="createAccountBtn" class="btn btn-danger btn-sm flex-grow-1 px-3" style="padding: 5px;">👤 Tạo tài khoản</button>
+
+                        <button id="pendingContractsBtn" class="btn btn-outline-secondary btn-sm flex-grow-1 px-3" type="button" style="padding: 5px;">
+                            ⏳ Chờ duyệt
+                        </button>
+
                     </form>
                 </div>
             </div>
@@ -200,15 +205,16 @@
             </div>
         </div>
     </div>
+    @* TẠO *@
     <div id="createAccountContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
-        <div class="row flex-shrink-0" >
+        <div class="row flex-shrink-0">
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">
-                       
+
                         <button id="backBtn" class="btn btn-secondary btn-sm px-3">
                             🔙 Quay lại
-                        </button>
+                        </button> 
                     </form>
 
                 </div>
@@ -256,7 +262,7 @@
                             <label class="w-25">Số hợp đồng: <span class="text-danger">*</span></label>
                             <input type="text" class="form-control w-75" id="ContractNumber" readonly>
                         </div>
-                       
+
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Loại dịch vụ:</label>
                             <select class="form-control w-75" id="serviceType">
@@ -279,7 +285,7 @@
                 <div class="card-body">
                     <h5>THÔNG TIN TÀI KHOẢN</h5>
                     <form>
-                        
+
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Email: <span class="text-danger">*</span></label>
                             <input type="email" class="form-control w-75" id="aEmail">
@@ -292,11 +298,11 @@
                             <label class="w-25">Số điện thoại: <span class="text-danger">*</span></label>
                             <input type="text" class="form-control w-75 phone-input" id="aPhone" maxlength="10">
                         </div>
-                        
+
 
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Ngày sinh:</label>
-                            <input type="date" class="form-control w-75" id="aDate" >
+                            <input type="date" class="form-control w-75" id="aDate">
                         </div>
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Giới tính:</label>
@@ -306,7 +312,7 @@
                             </select>
                         </div>
 
-                         <div class="form-group d-flex align-items-center">
+                        <div class="form-group d-flex align-items-center">
                             <label class="w-25">Ngày bắt đầu:</label>
                             <input type="date" class="form-control w-75" id="startDate" readonly>
                         </div>
@@ -341,15 +347,16 @@
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Tổng tiền:</label>
                             <input type="text" class="form-control w-75" id="amount" readonly>
-                        </div> 
+                        </div>
                     </form>
                     <button id="createAccount" class="btn btn-danger btn-sm px-3" onclick="SaveAccount()">Lưu tài khoản</button>
                 </div>
             </div>
         </div>
     </div>
+    @* UPDATE *@
     <div id="updateAccountContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
-        <div class="row flex-shrink-0" >
+        <div class="row flex-shrink-0">
             <div class="col-12">
                 <div class="card p-2">
                     <form class="d-flex align-items-center w-100" style="gap: 10px;">
@@ -404,7 +411,7 @@
                             <label class="w-25">Ngày tạo TK:</label>
                             <input type="date" class="form-control w-75" id="accountIssuedDate" readonly>
                         </div>
-                         
+
                     </form>
                 </div>
             </div>
@@ -448,10 +455,60 @@
                                 <option value="0">Không hoạt động</option>
                             </select>
                         </div>
-                        
-                        
+
+
                     </form>
                     <button id="createAccount" class="btn btn-danger btn-sm px-3" onclick="SaveAccount()">Lưu tài khoản</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @* CHỜ DUYỆT *@
+    <div id="pendingContractsSection" class="container-fluid d-flex flex-column vh-100" style="display: none;">
+        <div class="row flex-shrink-0">
+            <div class="col-12">
+                <div class="card p-2">
+                    <form class="d-flex align-items-center w-100" style="gap: 10px;">
+
+                        <button id="backBtn3" class="btn btn-secondary btn-sm px-3">
+                            🔙 Quay lại
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+        
+        <div class="row flex-grow-1 overflow-auto">
+            <div class="col-12">
+                <div class="card-body">
+                    <h5>Danh sách hợp đồng chờ duyệt</h5>
+        
+                    <table id="pendingContracts" class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã hợp đồng</th>
+                                <th>Tên công ty</th>
+                                <th>File đã ký</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dữ liệu hợp đồng chờ duyệt sẽ render ở đây -->
+                        </tbody>
+                    </table>
+
+                    <!-- iframe hiển thị PDF -->
+                    <div id="pdfViewer" class="hidden mt-3">
+                        <iframe src="" width="100%" height="600px" style="border:none;"></iframe>
+
+                        <div class="mt-2">
+                            <button id="btnSignContract" class="btn btn-success hidden">
+                                ✍️ Ký hợp đồng
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -508,6 +565,11 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    let signedStateMap = {};
+    var Department = "@User.FindFirst("Department")?.Value";
+    var StaffId = "@User.FindFirst("StaffId")?.Value";
+
+    const tokenJWT = localStorage.getItem("accessToken");
     document.addEventListener("DOMContentLoaded", function () {
         const startDateInput = document.getElementById("startDate");
         const endDateInput = document.getElementById("endDate");
@@ -516,7 +578,8 @@
         timeGiahanSelect.addEventListener("change", function () {
             const value = this.value;
             if (!value) {
-                alert("Vui lòng chọn thời gian gia hạn!");
+                //alert("Vui lòng chọn thời gian gia hạn!");
+                showError("Vui lòng chọn thời gian gia hạn!");
                 return;
             }
 
@@ -599,21 +662,34 @@
         const companyListContainer = document.getElementById("companyListContainer");
         const createAccountContainer = document.getElementById("createAccountContainer");
         const updateAccountContainer = document.getElementById("updateAccountContainer");
+        const pendingContractsContainer = document.getElementById("pendingContractsSection");
+
         const createAccountBtn = document.getElementById("createAccountBtn");
+        const pendingContractsBtn = document.getElementById("pendingContractsBtn");
+
         const backBtn = document.getElementById("backBtn");
         const backBtn2 = document.getElementById("backBtn2");
+        const backBtn3 = document.getElementById("backBtn3");
+
 
         console.log("companyListContainer:", companyListContainer);
         console.log("createAccountContainer:", createAccountContainer);
-        console.log("updateAccountContainer:", createAccountContainer);
+        console.log("updateAccountContainer:", updateAccountContainer);
+        console.log("pendingContractsContainer:", pendingContractsContainer);
 
         console.log("createAccountBtn:", createAccountBtn);
+        console.log("pendingContractsBtn:", pendingContractsBtn);
+
         console.log("backBtn:", backBtn);
+        console.log("backBtn2:", backBtn2);
+        console.log("backBtn3:", backBtn3);
+
 
         // Ẩn form tạo tài khoản mặc định
         createAccountContainer.classList.add("hidden");
         updateAccountContainer.classList.add("hidden");
-        
+        pendingContractsContainer.classList.add("hidden");
+
         // Khi click "Tạo tài khoản"
         createAccountBtn.addEventListener("click", function (event) {
             event.preventDefault(); // Ngăn chặn load lại trang nếu là <button>
@@ -623,6 +699,8 @@
             companyListContainer.classList.add("hidden");
             createAccountContainer.classList.remove("hidden");
             updateAccountContainer.classList.add("hidden");
+            pendingContractsContainer.classList.add("hidden");
+
 
             $.ajax({
                 url: `/admin/account/GetListServiceID`, // Thay URL này bằng URL thật trong backend
@@ -655,7 +733,8 @@
 
                 },
                 error: function () {
-                    alert('Không lấy được danh sách loại dịch vụ!');
+                    showError("Không lấy được danh sách loại dịch vụ!");
+                   // alert('Không lấy được danh sách loại dịch vụ!');
                 }
             });
 
@@ -665,22 +744,35 @@
 
         // Khi click "Quay lại"
         backBtn.addEventListener("click", function (event) {
-            event.preventDefault(); 
+            event.preventDefault();
             console.log("Nhấn Quay lại!");
             companyListContainer.classList.remove("hidden");
             createAccountContainer.classList.add("hidden");
             updateAccountContainer.classList.add("hidden");
+            pendingContractsContainer.classList.add("hidden");
 
             init("", "Tất cả");
-           
+
         });
 
         backBtn2.addEventListener("click", function (event) {
-            event.preventDefault(); 
+            event.preventDefault();
             console.log("Nhấn Quay lại!");
             companyListContainer.classList.remove("hidden");
             createAccountContainer.classList.add("hidden");
             updateAccountContainer.classList.add("hidden");
+            pendingContractsContainer.classList.add("hidden");
+
+            init("", "Tất cả");
+        });
+
+        backBtn3.addEventListener("click", function (event) {
+            event.preventDefault();
+            console.log("Nhấn Quay lại!");
+            companyListContainer.classList.remove("hidden");
+            createAccountContainer.classList.add("hidden");
+            updateAccountContainer.classList.add("hidden");
+            pendingContractsContainer.classList.add("hidden");
 
             init("", "Tất cả");
         });
@@ -696,8 +788,349 @@
                 companyListContainer.classList.add("hidden");
                 createAccountContainer.classList.add("hidden");
                 updateAccountContainer.classList.remove("hidden");
+                pendingContractsContainer.classList.add("hidden");
 
                 //refresh();
+            }
+        });
+    
+        // Khi click "Chờ duyệt"
+        pendingContractsBtn.addEventListener("click", function (event) {
+            event.preventDefault(); // Ngăn chặn load lại trang nếu là <button>
+            console.log("Nhấn hợp đồng chờ duyệt!");
+
+            // Ẩn các form khác và hiển thị form tạo tài khoản
+            companyListContainer.classList.add("hidden");
+            createAccountContainer.classList.add("hidden");
+            updateAccountContainer.classList.add("hidden");
+            pendingContractsContainer.classList.remove("hidden");
+
+            if ($.fn.DataTable.isDataTable("#pendingContracts")) {
+                $("#pendingContracts").DataTable().destroy(); // Xóa DataTable cũ trước khi tạo lại
+            }
+
+            var table = $('#pendingContracts').DataTable({
+                processing: true,
+                serverSide: true,
+                paging: true,
+                searching: false,
+                searchDelay: 400,
+                // scrollY: false,
+                iDisplayLength: 7,
+                bLengthChange: false,
+                language: {
+                    info: "Hiển thị _START_ đến _END_ của _TOTAL_ tài khoản",
+                    lengthMenu: "Hiển thị _MENU_  tài khoản",
+                    //search: "Tìm kiếm",
+                    processing: "Đang tải dữ liệu...",
+                    paginate: {
+                        previous: "Trước",
+                        next: "Tiếp theo",
+                        last: "Cuối"
+                    }
+                },
+
+                ajax: {
+                    url: "/admin/account/GetListPending",
+                    type: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + tokenJWT
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    beforeSend: function () {
+                        // Optional: Show loading indicator
+                    },
+                    data: function (data) {
+                        var pendingContractsA = $("#pendingContracts").DataTable();
+                        var settings = pendingContractsA.settings();
+                        var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+
+                        return JSON.stringify({
+                            PageSize: 7,
+                            Page: currentPageIndex,
+                            Keyword: "", // Lấy giá trị từ input tìm kiếm
+                            Category: ""
+                        });
+                    },
+                    dataSrc: function (res) {
+                        signedStateMap = {}; // Reset map trạng thái
+                        console.log("Ket qua hop dong cho duyet",res.pendingContracts);
+
+                        if (res.success && res.pendingContracts.results) {
+                            res.pendingContracts.results.forEach(contract => {
+                                const key = contract.contractNumber.toLowerCase(); // dùng lowercase để tránh sai sót
+                                //const status = contract.constatus.trim().toLowerCase();
+                                //signedStateMap[key] = (status === "ký hoàn tất") ? 1 : 0;
+                                const status = contract.constatus;
+                                signedStateMap[key] = (status === "Đã ký") ? 1 : 0;
+
+                            });
+                            return res.pendingContracts.results;
+                        }
+
+                        return [];
+                    },
+                    dataFilter: function (data) {
+                        var page = $.parseJSON(data);
+                        if (!page.success || !page.pendingContracts) {
+                            page.recordsTotal = 0;
+                            page.recordsFiltered = 0;
+                            return JSON.stringify(page);
+                        }
+                        page.recordsTotal = page.pendingContracts.rowCount || 0;
+                        page.recordsFiltered = page.pendingContracts.rowCount || 0;
+                        return JSON.stringify(page);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Lỗi khi lấy dữ liệu:", error);
+                        // alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                        showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
+
+                    }
+                },
+                columns: [
+                    {
+                        data: null,
+                        width: "5%",
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { data: "contractNumber", width: "20%" },
+                    { data: "companyName", width: "25%" },
+                    {
+                        data: "confileName",
+                        width: "25%",
+                        render: function (data, type, row) {
+                            if (!data) return "<span class='text-muted'>Chưa có file</span>";
+
+                            const fileName = data.split('/').pop();
+                            const folder = row.constatus === "Chưa ký" ? "temp-pdfs" : "signed-contracts";
+
+                            return `
+                            <a href="/temp-pdfs/${fileName}"
+                               target="_blank"
+                               class="pdf-link"
+                               data-id="${row.contractNumber}"
+                               data-confilename="${fileName}"
+                               data-realpath="${row.filePath}"
+                               data-folder="${folder}">
+                                <i class="fa-solid fa-file-pdf text-danger" style="font-size: 1.3rem;"></i>Xem hợp đồng
+                            </a>`;
+                        }
+                    },
+                    {
+                        data: "constatus",
+                        width: "25%",
+                        render: function (data, type, row) {
+                            const contractNumber = row.contractNumber;
+                            const normalizedStatus = row.constatus;
+
+                            if (normalizedStatus === "Chưa ký") {
+                                return `<span class="text-muted">Chờ người phụ trách ký</span>`;
+                            }
+
+                            if (normalizedStatus === "Đã ký") {
+                                return `
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-sm btn-primary btn-send-client"
+                                            title="Gửi mail cho khách ký"
+                                            data-contractnumber="${contractNumber}"
+                                            data-confilename="${row.fileName}"
+                                                data-filepath="${row.filePath}">
+                                        <i class="fa-solid fa-paper-plane"></i> Gửi khách ký
+                                    </button>
+                                </div>`;
+                            } 
+                            if (normalizedStatus === "Chờ client ký") {
+                                return `<span class="text-muted">Chờ khách hàng ký</span>`;
+                            }
+                            if (normalizedStatus === "Ký hoàn tất") {
+                                return `
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-sm btn-success btn-approve"
+                                            title="Duyệt hợp đồng"
+                                            data-contractnumber="${contractNumber}"
+                                            data-confilename="${row.fileName}"
+                                            data-filepath="${row.filePath}">
+                                        <i class="fa-solid fa-circle-check"></i> Duyệt hợp đồng
+                                    </button>
+                                </div>`;
+                            }
+
+                            return `<span class="text-muted">Chưa ký</span>`;
+                        }
+                    }
+                ],
+
+                createdRow: function (row, data, dataIndex) {
+                    $(row).data("fullData", data); // Lưu toàn bộ dữ liệu vào row
+                },
+
+                columnDefs: [{
+                    "defaultContent": "-",
+                    "targets": "_all"
+                }]
+            });
+
+        });
+    });
+
+    //xem hợp đồng
+    $('#pendingContracts').on('click', '.pdf-link', function (e) {
+        e.preventDefault();
+
+        const $link = $(e.target).closest('.pdf-link'); // lấy thẻ <a>
+        const contractNumber = $link.attr('data-id');
+        const confileName = $link.attr('data-confilename'); // dùng attr thay vì data
+        const realFilePath = $link.attr('data-realpath'); // ✅ đường dẫn thực
+        const folder = $link.attr('data-folder'); 
+
+        console.log("Clicked contract", contractNumber);
+        console.log("confileName", confileName);
+
+        if (!confileName) {
+            console.error("Không lấy được confileName");
+            return;
+        }
+        const pdfUrl = `https://localhost:7190/${folder}/${confileName}`;
+
+        //const pdfUrl = `https://localhost:7190/temp-pdfs/${confileName}`;
+
+        $('#btnSignContract').data('contractNumber', contractNumber);
+        $('#btnSignContract').data('filePath', realFilePath); // ✅ gán đúng key là filePath
+        $('#pdfViewer iframe').attr('src', pdfUrl);
+        $('#pdfViewer').removeClass('hidden');
+        const signed = signedStateMap[contractNumber.toLowerCase()];
+        if (signed === 1) {
+            $('#btnSignContract').addClass('hidden');
+        } else {
+
+            if (Department === "Admin") {
+                $('#btnSignContract').addClass('hidden');
+            } else if (Department === "Director") {
+                $('#btnSignContract').removeClass('hidden');
+            }
+            //$('#btnSignContract').removeClass('hidden');
+        }
+    });
+
+    //nút ký của Director
+    $('#btnSignContract').on('click', function () {
+        const contractNumber = $(this).data('contractNumber');
+        const filePath = $(this).data('filePath'); // ✅ Đúng đường dẫn nội bộ
+
+        $.ajax({
+            url: `/admin/account/SignPdfWithAdminCertificate`, // Không cần truyền staffId trong URL nữa
+            type: "POST",
+            contentType: "application/json",
+            headers: {
+                "Authorization": "Bearer " + tokenJWT
+            },
+            data: JSON.stringify({
+                StaffId: StaffId,
+                FilePath: filePath,
+                ContractNumber: contractNumber
+            }),
+            success: function (res) {
+                if (res.success) {
+                    signedStateMap[contractNumber] = 1; // Cập nhật trạng thái
+                    $('#btnSignContract').addClass('hidden');
+                    $('#pdfViewer').addClass('hidden');
+                    $('#pendingContracts').DataTable().ajax.reload(null, false); // Reload bảng không mất trang
+                    document.getElementById("contentModalSuccess").innerHTML = "Ký hợp đồng thành công!";
+                    $("#ModalSuccess").modal("show");
+                } else {
+                    showError("Không thể ký hợp đồng. Vui lòng thử lại.");
+                }
+            },
+            error: function (xhr) {
+                showError("Lỗi khi gọi API ký hợp đồng!");
+            }
+        });
+    });
+
+    //gửi cho client
+    $('#pendingContracts').on('click', '.btn-send-client', function () {
+        const contractNumber = $(this).data('contractnumber');
+        //const fileName = $(this).data('confilename');
+        const filePath = $(this).data('filepath');
+
+        $.ajax({
+            url: '/admin/Account/SendEmailtoclient',
+            type: 'POST',
+            headers: {
+                "Authorization": "Bearer " + tokenJWT
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                StaffId: StaffId,
+                FilePath: filePath,
+                ContractNumber: contractNumber
+            }),
+            success: function (res) {
+                if (res.success) {
+                    // showSuccess("Duyệt hợp đồng thành công!");
+                    document.getElementById("contentModalSuccess").innerHTML = "Đã gửi hợp đồng thành công!";
+                    $("#ModalSuccess").modal("show");
+                    // backBtn3.click();
+                    // init("", "Tất cả");
+                    $('#pdfViewer').addClass('hidden');
+                    $('#pendingContracts').DataTable().ajax.reload(null, false); // Reload bảng không mất trang
+                } else {
+                    showError("Gửi hợp đồng thất bại: " + (res.message || ""));
+                }
+            },
+            error: function () {
+                console.error("Lỗi khi duyệt:", error);
+                showError("Lỗi khi duyệt hợp đồng. Vui lòng thử lại.");
+            }
+        });
+    });
+
+    //duyệt
+    $('#pendingContracts').on('click', '.btn-approve', function () {
+        const contractNumber = $(this).data('contractnumber');
+        const realFilePath = $(this).data('filepath');
+
+
+        if (!contractNumber) {
+            showError("Không tìm thấy mã hợp đồng.");
+            return;
+        }
+
+        // Xác nhận
+        if (!confirm("Bạn có chắc chắn muốn duyệt hợp đồng này?")) return;
+
+        $.ajax({
+            url: "/admin/account/Insert", // 🔧 sửa đúng URL nếu khác
+            type: "POST",
+            contentType: "application/json",
+            headers: {
+                "Authorization": "Bearer " + tokenJWT
+            },
+            data: JSON.stringify({
+                StaffId: StaffId,
+                FilePath: realFilePath,
+                ContractNumber: contractNumber
+            }),
+            success: function (res) {
+                if (res.success) {
+                   // showSuccess("Duyệt hợp đồng thành công!");
+                    document.getElementById("contentModalSuccess").innerHTML = "Duyệt hợp đồng thành công!";
+                    $("#ModalSuccess").modal("show");
+                    backBtn3.click();
+                    // Reload lại bảng để cập nhật UI
+                    init("", "Tất cả");
+                   // $('#pendingContracts').DataTable().ajax.reload(null, false);
+                } else {
+                    showError("Duyệt hợp đồng thất bại: " + (res.message || ""));
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi khi duyệt:", error);
+                showError("Lỗi khi duyệt hợp đồng. Vui lòng thử lại.");
             }
         });
     });
@@ -717,20 +1150,19 @@
         });
 
     });
-    const tokenJWT = localStorage.getItem("accessToken");
 
     function init(keyword, category) {
         if ($.fn.DataTable.isDataTable("#listCompany")) {
             $("#listCompany").DataTable().destroy(); // Xóa DataTable cũ trước khi tạo lại
         }
-
+        console.log("Chức vụ của nhân viên là:", Department);
         var table = $('#listCompany').DataTable({
             processing: true,
             serverSide: true,
             paging: true,
             searching: false,
             searchDelay: 400,
-           // scrollY: false,
+            // scrollY: false,
             iDisplayLength: 7,
             bLengthChange: false,
             language: {
@@ -757,19 +1189,18 @@
                     // Optional: Show loading indicator
                 },
                 data: function (data) {
-                    var listCompanyA = $("#listCompany").DataTable();
-                    var settings = listCompanyA.settings();
-                    var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+                    var currentPageIndex = data.start / data.length + 1;
 
                     return JSON.stringify({
-                        PageSize: 7,
+                        PageSize: data.length,
                         Page: currentPageIndex,
-                        Keyword: keyword, // Lấy giá trị từ input tìm kiếm
+                        Keyword: keyword,
                         Category: category
                     });
                 },
+
                 dataSrc: function (res) {
-                    console.log(res.listCompany);
+                    console.log("List hop dong da duyet",res.listCompany);
                     return res.success && res.listCompany && res.listCompany.results ? res.listCompany.results : [];
 
                 },
@@ -786,7 +1217,7 @@
                 },
                 error: function (xhr, status, error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
-                   // alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                    // alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
                     showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
 
                 }
@@ -811,31 +1242,31 @@
                     }
                 },
                 {
-                    data: "operatingStatus",
+                    data: "isActive",
                     width: "13%",
                     render: function (data, type, row) {
                         let isChecked = data ? "checked" : "";
                         let text = data ? "ON" : "OFF";
 
                         return `
-                    <label class="switch">
-                        <input type="checkbox" class="toggle-customerType" data-id="${row.customerId}" ${isChecked}>
-                             <span class="slider round">
-                <span class="toggle-text on">ON</span>
-                <span class="toggle-text off">OFF</span>
-            </span>
-                    </label>
-                    `;
+                        <label class="switch">
+                            <input type="checkbox" class="toggle-customerType" data-id="${row.customerId}" ${isChecked}>
+                                 <span class="slider round">
+                    <span class="toggle-text on">ON</span>
+                    <span class="toggle-text off">OFF</span>
+                </span>
+                        </label>
+                        `;
                     }
                 },
-               
+
                 {
                     data: null,
                     width: "10%",
                     render: function (data, type, row) {
                         return `<div class="text-center">
-                        <i id="BtnUpdate" class="fa-solid fa-pen-to-square text-info update-btn"
-                            style="cursor: pointer;font-size: 1.2rem;" title="Cập nhật" data-id="${row.customerId}"></i></div>`;
+                            <i id="BtnUpdate" class="fa-solid fa-pen-to-square text-info update-btn"
+                                style="cursor: pointer;font-size: 1.2rem;" title="Cập nhật" data-id="${row.customerId}"></i></div>`;
                     }
                 }
 
@@ -851,7 +1282,7 @@
             }]
         });
     }
-    
+
     function updateTongTien() {
         const timeSelect = document.getElementById("timeGiahan");
         const serviceType = document.getElementById("serviceType");
@@ -864,7 +1295,7 @@
         const unitPrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
         const unitID = selectedOption.getAttribute('value') || "";
 
-        const selectedContractType = contractType.value; 
+        const selectedContractType = contractType.value;
 
         if (!selectedTimeValue || !unitID) {
             document.getElementById("amount").value = "Vui lòng chọn thời gian";
@@ -1017,24 +1448,13 @@
             $("#cPhone2").val(rowData.cPhoneNumber || "");
             $("#cAddress2").val(rowData.cAddress || "");
             $("#cType2").val(rowData.customerType ? "vip" : "normal");
-           // $("#ContractNumber2").val(rowData.ContractNumber);
-
-            // // Gán giá trị cho dropdown ServiceType
-            // let foundValue = "doi-tac"; // Giá trị mặc định
-            // $("#serviceType2 option").each(function () {
-            //     if ($(this).text().trim() === rowData.serviceType.trim()) {
-            //         foundValue = $(this).val();
-            //         return false; // Thoát vòng lặp nếu tìm thấy
-            //     }
-            // });
-            // $("#serviceType2").val(foundValue);
 
             $("#aNameID2").val(rowData.customerId.trim());
             $("#aEmail2").val(rowData.rootAccount || "");
             $("#aName2").val(rowData.rootName || "");
             $("#aPhone2").val(rowData.rPhoneNumber || "");
             $("#aStatus2").val(rowData.operatingStatus ? "1" : "0");
-            $("#aDate2").val(rowData.dateOfBirth ? rowData.dateOfBirth.substring(0,10):"");
+            $("#aDate2").val(rowData.dateOfBirth ? rowData.dateOfBirth.substring(0, 10) : "");
             $("#aGender2").val(rowData.gender ? "nu" : "nam");
             $("#accountIssuedDate").val(rowData.accountIssuedDate ? rowData.accountIssuedDate.substring(0, 10) : "");
         }
@@ -1043,8 +1463,8 @@
     function formatMoney(number) {
         return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
     }
-    
-    function getID1 (cID){
+
+    function getID1(cID) {
         var cName = document.getElementById("cName").value;
         var cTaxCode = document.getElementById("cTaxCode").value;
         var cEmail = document.getElementById("cEmail").value;
@@ -1090,22 +1510,22 @@
         return cValues;
     }
 
-    function getID2 (cID){
+    function getID2(cID) {
         var cName = document.getElementById("cName2").value;
         var cTaxCode = document.getElementById("cTaxCode2").value;
         var cEmail = document.getElementById("cEmail2").value;
         var cPhone = document.getElementById("cPhone2").value.replace(/\D/g, '');
         var cAddress = document.getElementById("cAddress2").value;
         var cType = document.getElementById("cType2").value;
-       
-        
+
+
         var aEmail = document.getElementById("aEmail2").value;
         var aName = document.getElementById("aName2").value;
         var aPhone = document.getElementById("aPhone2").value.replace(/\D/g, '');
         var aStatus = document.getElementById("aStatus2").value;
         var aDate = document.getElementById("aDate2").value;
         var aGender = document.getElementById("aGender2").value;
-  
+
         var cValues = {
             CustomerId: cID || "AUTO_GENERATED_ID",
             CompanyName: cName,
@@ -1131,7 +1551,6 @@
         return cValues;
     }
 
-
     function SaveAccount() {
         var cId = document.getElementById("cId").value.trim();
         var cId2 = document.getElementById("cId2").value.trim();
@@ -1142,7 +1561,7 @@
             cValues = getID2(cId2);
             console.log("Gia tri cValues2  la: ", cValues);
 
-            if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber ) {
+            if (!cValues.CompanyName || !cValues.TaxCode || !cValues.CompanyAccount || !cValues.CPhoneNumber || !cValues.CAddress || !cValues.RootAccount || !cValues.RootName || !cValues.RPhoneNumber) {
 
                 showError("Vui lòng nhập đầy đủ thông tin.");
 
@@ -1166,9 +1585,9 @@
             }
 
         }
-        console.log("Gia tri la: ",cValues); 
-       
-        
+        console.log("Gia tri la: ", cValues);
+
+
         var phoneRegex = /^(0\d{9,10})$/; // Số điện thoại bắt đầu bằng số 0, có 10 hoặc 11 chữ số
         // Biểu thức chính quy kiểm tra email hợp lệ
         var emailRegex = @Html.Raw("/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/");
@@ -1177,7 +1596,7 @@
         var taxCodeRegex = /^[a-zA-Z0-9]{9}$/;
 
         // Kiểm tra độ dài ContractNumber (tối đa 10 ký tự)
-       
+
         if (!phoneRegex.test(cValues.CPhoneNumber)) {
             showError("Số điện thoại khách hàng không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
             return;
@@ -1205,12 +1624,10 @@
             return;
         }
 
-        var StaffId = "@User.FindFirst("StaffId")?.Value";
-
         // Xác định Insert hay Update
         var isUpdate = cValues.CustomerId && cValues.CustomerId !== "AUTO_GENERATED_ID";
-        var url = isUpdate ? `/admin/account/Update?id=${StaffId}` : `/admin/account/Insert?id=${StaffId}`;
-        var confirmText = isUpdate ? "Bạn có chắc muốn cập nhật tài khoản không?" : "Bạn có chắc muốn thêm tài khoản không?";
+        var url = isUpdate ? `/admin/account/Update?id=${StaffId}` : `/admin/account/GenerateContract?id=${StaffId}`;
+        var confirmText = isUpdate ? "Bạn có chắc muốn cập nhật tài khoản không?" : "Bạn có chắc muốn tạo hợp đồng không?";
 
         document.getElementById("contentModalConfirm").innerHTML = confirmText;
         const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
@@ -1229,19 +1646,18 @@
                 data: JSON.stringify(cValues),
                 success: function (response) {
                     if (response.success) {
-                        document.getElementById("contentModalSuccess").innerHTML = isUpdate ? "Cập nhật tài khoản thành công" : "Thêm tài khoản thành công";
+                        document.getElementById("contentModalSuccess").innerHTML = isUpdate ? "Cập nhật tài khoản thành công" : "Tạo hợp đồng thành công";
                         $("#ModalSuccess").modal("show");
                         refresh();
                         var keyword = $('input[type="text"]').val();
                         var category = $('select').val();
                         init(keyword, category);
                         // Gọi sự kiện "Quay lại" để trở về danh sách
-                        if (isUpdate)
-                        {
+                        if (isUpdate) {
                             backBtn2.click();
                         }
                         else
-                        backBtn.click();
+                            backBtn.click();
                     }
                 },
                 error: function (xhr) {
@@ -1275,7 +1691,7 @@
         document.getElementById("serviceType").value = "doi-tac";
         document.getElementById("ContractNumber").value = "";
         document.getElementById("aEmail").value = "";
-       // document.getElementById("aNameID").value = "";
+        // document.getElementById("aNameID").value = "";
         document.getElementById("aName").value = "";
         document.getElementById("aPhone").value = "";
         document.getElementById("aDate").value = "";
@@ -1293,8 +1709,8 @@
         document.getElementById("cPhone2").value = "";
         document.getElementById("cAddress2").value = "";
         document.getElementById("cType2").value = "normal";
-       // document.getElementById("serviceType2").value = "doi-tac";
-       // document.getElementById("ContractNumber2").value = "";
+        // document.getElementById("serviceType2").value = "doi-tac";
+        // document.getElementById("ContractNumber2").value = "";
         document.getElementById("aEmail2").value = "";
         document.getElementById("aNameID2").value = "";
         document.getElementById("aName2").value = "";
@@ -1305,9 +1721,9 @@
         document.getElementById("aGender2").value = "nam";
         document.getElementById("aStatus2").value = "1";
         //document.getElementById("startDate2").value = "";
-       
-       //  document.getElementById("endDate2").value = "";
-      //  document.getElementById("amount2").value = "";
+
+        //  document.getElementById("endDate2").value = "";
+        //  document.getElementById("amount2").value = "";
 
     }
 
@@ -1327,7 +1743,6 @@
         });
     }
 
-
     function exportToCsv(event) {
         event.preventDefault();
         console.log("Gọi exportToCsv()");
@@ -1336,7 +1751,7 @@
         var categoryText = $('select').val();
 
         $.ajax({
-            url: "/Admin/Account/ExportToCsv",
+            url: "/Admin/account/ExportToCsv",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({ Keyword: keyword, Category: categoryText }),
@@ -1354,9 +1769,9 @@
                 document.body.removeChild(link);
 
                 $("#contentModalSuccess").html(`
-                    <strong>Xuất file thành công!</strong> <br>
-                    📥 File đang được tải xuống tự động!
-                `);
+                        <strong>Xuất file thành công!</strong> <br>
+                        📥 File đang được tải xuống tự động!
+                    `);
                 $("#ModalSuccess").modal("show");
             },
             error: function (xhr) {
@@ -1366,5 +1781,4 @@
         });
     }
 
-   
 </script>

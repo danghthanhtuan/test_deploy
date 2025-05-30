@@ -37,7 +37,7 @@ namespace WebApi.Controllers.Admin
           
         }
 
-        [Authorize(Roles = "Admin,HanhChinh")]
+        [Authorize(Roles = "Admin,HanhChinh,Director")]
         [HttpPost]
         public async Task<ActionResult<CompanyAccountDTO>> GetAllCompany([FromBody] GetListCompanyPaging req)
         {

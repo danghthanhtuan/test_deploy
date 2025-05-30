@@ -16,6 +16,9 @@ using iText.Forms;
 using iText.Kernel.Pdf.Canvas.Parser;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using System.Globalization;
+using System.Text;
 
 namespace WebApi.Service.Admin
 {
@@ -156,16 +159,10 @@ namespace WebApi.Service.Admin
             var reader = new PdfReader(originalPdfStream);
             var signer = new PdfSigner(reader, signedPdfStream, new StampingProperties());
 
-            // Vị trí chữ ký (tọa độ tính từ bottom-left)
-            //Rectangle rect = new Rectangle(100, 100, 200, 100);
-            //(string keyword, float offsetY) = ("Đại diện Bên B", -50f);
-            //var (textRect, page) = FindTextPosition(originalPdfBytes, keyword);
-            //float offsetX = -10f; // Dịch trái một chút
-            (string keyword, float offsetY) = ("Đại diện Bên B", 90f);
+            (string keyword, float offsetY) = ("Đại diện Bên B", 80f);
             var (textRect, page) = FindTextPosition(originalPdfBytes, keyword);
 
-            // Dịch trái nhiều hơn → từ -10f → -20f (hoặc -30f nếu cần)
-            float offsetX = -20f;
+            float offsetX = -40f;
 
             // Giảm chiều rộng và chiều cao khung chữ ký
             float signatureWidth = 200f;  // từ 240 → 200 (hoặc 180 nếu cần)
@@ -225,6 +222,131 @@ namespace WebApi.Service.Admin
             }
 
             throw new Exception($"Không tìm thấy từ khóa '{keyword}' trong PDF.");
+        }
+
+        public byte[] SignPdfWithClientCertificate(byte[] originalPdfBytes, Stream clientPfxStream, string pfxPassword, string clientName)
+        {
+            // Load certificate từ stream
+            Pkcs12Store store = new Pkcs12StoreBuilder().Build();
+            store.Load(clientPfxStream, pfxPassword.ToCharArray());
+
+            string alias = store.Aliases.Cast<string>().FirstOrDefault(store.IsKeyEntry);
+            AsymmetricKeyParameter privateKey = store.GetKey(alias).Key;
+
+            var chain = store.GetCertificateChain(alias)
+                .Select(c => new X509CertificateBC(c.Certificate))
+                .Cast<IX509Certificate>()
+                .ToList();
+
+            var iPrivateKey = new PrivateKeyBC(privateKey);
+
+            using var signedPdfStream = new MemoryStream();
+            using var originalPdfStream = new MemoryStream(originalPdfBytes);
+            var reader = new PdfReader(originalPdfStream);
+            var signer = new PdfSigner(reader, signedPdfStream, new StampingProperties());
+
+            // Tìm vị trí chữ ký theo từ khóa
+            (string keyword, float offsetY) = ("Đại diện Bên A", 113f);
+            var (textRect, page) = FindTextPosition2(originalPdfBytes, keyword);
+
+            float offsetX = 55f;
+            float signatureWidth = 200f;
+            float signatureHeight = 50f;
+
+            Rectangle rect = new Rectangle(
+                textRect.GetX() + offsetX,
+                textRect.GetY() - offsetY,
+                signatureWidth,
+                signatureHeight
+            );
+
+           
+            // Font và appearance
+            PdfFont font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+            var appearance = signer.GetSignatureAppearance();
+            appearance
+                .SetPageRect(rect)
+                .SetPageNumber(page)
+                .SetLocation("Client Upload")
+                .SetLayer2Font(font)
+                .SetLayer2FontSize(9)
+                .SetReason("Ký bởi Khách hàng")
+                .SetLayer2Text($"Ký bởi {clientName}\nNgày: {DateTime.Now:dd/MM/yyyy}")
+                .SetRenderingMode(PdfSignatureAppearance.RenderingMode.DESCRIPTION);
+
+            signer.SetFieldName("SignatureClient");
+
+            IExternalSignature externalSignature = new PrivateKeySignature(iPrivateKey, DigestAlgorithms.SHA256);
+            IExternalDigest digest = new BouncyCastleDigest();
+
+            signer.SignDetached(
+                digest, externalSignature,
+                chain.ToArray(), null, null, null,
+                0, PdfSigner.CryptoStandard.CADES
+            );
+
+            return signedPdfStream.ToArray();
+        }
+        private (Rectangle rect, int page) FindTextPosition2(byte[] pdfBytes, string keywordPart)
+        {
+            using var pdfReader = new PdfReader(new MemoryStream(pdfBytes));
+            using var pdfDoc = new PdfDocument(pdfReader);
+
+            string normalizedKeyword = NormalizeText(keywordPart);
+
+            for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
+            {
+                Console.WriteLine($"📄 Đang xử lý trang {i}");
+
+                var page = pdfDoc.GetPage(i);
+                var strategy = new GeneralTextLocationStrategy();
+
+                var processor = new PdfCanvasProcessor(strategy);
+                processor.ProcessPageContent(page);
+
+                var locations = strategy.Locations;
+                if (locations == null || locations.Count == 0)
+                {
+                    Console.WriteLine($"Không tìm thấy đoạn text nào ở trang {i}");
+                    continue;
+                }
+
+                for (int j = 0; j < locations.Count; j++)
+                {
+                    string combinedText = "";
+                    Rectangle? firstRect = null;
+
+                    // Ghép tối đa 3 đoạn liên tiếp lại để tìm
+                    for (int k = j; k < Math.Min(j + 3, locations.Count); k++)
+                    {
+                        if (string.IsNullOrWhiteSpace(locations[k].Text)) continue;
+
+                        combinedText += locations[k].Text;
+                        if (firstRect == null)
+                            firstRect = locations[k].Rect;
+
+                        string normalizedCombined = NormalizeText(combinedText);
+                        Console.WriteLine($"Ghép đoạn: '{combinedText}' Normalized: '{normalizedCombined}'");
+
+                        if (normalizedCombined.Contains(normalizedKeyword, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine($"Tìm thấy từ khóa '{keywordPart}' tại trang {i}, vị trí x={firstRect.GetX()}, y={firstRect.GetY()}");
+                            return (firstRect, i);
+                        }
+                    }
+                }
+            }
+
+            throw new Exception($"❌ Không tìm thấy từ khóa gần đúng '{keywordPart}' trong PDF.");
+        }
+
+
+        // Helper để normalize text
+        private string NormalizeText(string text)
+        {
+            return string.Concat(text.Where(c => !char.IsWhiteSpace(c)))
+                 .ToLowerInvariant();
         }
 
     }

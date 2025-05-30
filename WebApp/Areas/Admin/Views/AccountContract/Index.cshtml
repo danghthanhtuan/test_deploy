@@ -576,7 +576,8 @@
         timeGiahanSelect.addEventListener("change", function () {
             const value = this.value;
             if (!value) {
-                alert("Vui lòng chọn thời gian gia hạn!");
+                //alert("Vui lòng chọn thời gian gia hạn!");
+                showError("Vui lòng chọn thời gian gia hạn!");
                 return;
             }
 
@@ -730,7 +731,9 @@
 
                 },
                 error: function () {
-                    alert('Không lấy được danh sách loại dịch vụ!');
+                    //alert('Không lấy được danh sách loại dịch vụ!');
+                    showError("Không lấy được danh sách loại dịch vụ!");
+                    return;
                 }
             });
 

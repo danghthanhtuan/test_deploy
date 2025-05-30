@@ -51,6 +51,12 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser();
         policy.RequireRole("KyThuat");
     });
+    options.AddPolicy("DirectorPolicy", policy =>
+    {
+        policy.AuthenticationSchemes.Add("AdminCookie");
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Director");
+    });
 });
 
 
