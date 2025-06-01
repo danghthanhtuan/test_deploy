@@ -70,7 +70,7 @@
 
         .toggle-password:hover {
             background-color: darkgray; /* Màu nền đen khi hover */
-            color: white; /* Chữ trắng khi hover */
+            color: black;
         }
 
     body {
@@ -100,24 +100,22 @@
         text-align: center;
         margin-bottom: 20px;
     }
+
     #resetPasswordForm {
         box-shadow: none;
         background-color: transparent;
         border: none;
         padding: 20px;
-        margin: 0 auto;
-    }
-
-    #resetPasswordForm > .btn,
-    #resetPasswordForm > .btn + .btn {
-    display: inline-block;
-    width: 47%;
-    margin-top: 10px;
-    }
-
-    #resetPasswordForm {
         text-align: center;
     }
+
+        #resetPasswordForm > .btn,
+        #resetPasswordForm > .btn + .btn {
+            display: inline-block;
+            width: 35%;
+            margin-top: 10px;
+        }
+
     /* Cho các label và input nằm cùng hàng */
     .mb-3 {
         display: flex;
@@ -126,21 +124,20 @@
     }
 
     .input {
-        
         margin-left: 25px;
     }
-        /* Label có độ rộng cố định để thẳng hàng */
-        .mb-3 label {
-            width: 100px;
-            margin-bottom: 0;
-            white-space: nowrap;
-        }
+    /* Label có độ rộng cố định để thẳng hàng */
+    .mb-3 label {
+        width: 100px;
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
 
-        /* Input chiếm phần còn lại */
-        .mb-3 .form-control,
-        .mb-3 .input-group {
-            flex: 1;
-        }
+    /* Input chiếm phần còn lại */
+    .mb-3 .form-control,
+    .mb-3 .input-group {
+        flex: 1;
+    }
 
     .btn-primary {
         color: #fff;

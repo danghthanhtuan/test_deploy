@@ -8,6 +8,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = "localhost:6379"; // địa chỉ Redis
 });
+builder.Services.AddHttpClient();
 
 // thêm dịch vụ authentication
 builder.Services.AddAuthentication(option =>

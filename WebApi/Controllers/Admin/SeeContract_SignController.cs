@@ -96,5 +96,18 @@ namespace WebApi.Controllers.Admin
 
             return Ok("Lưu file và cập nhật DB thành công.");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadSignatureImage(IFormFile signatureImage)
+        {
+            if (signatureImage == null || signatureImage.Length == 0)
+                return BadRequest("Chưa có ảnh chữ ký.");
+
+            using var stream = signatureImage.OpenReadStream();
+            var pdfBytes = await _pdfService.InsertSignatureToContractAsync(stream);
+
+            return File(pdfBytes, "application/pdf");
+        }
+
     }
 }

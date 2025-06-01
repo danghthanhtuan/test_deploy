@@ -15,10 +15,13 @@ namespace WebApp.Areas.Controllers
     {
         Uri baseAddress = new Uri("https://localhost:7190/api/admin");
         private readonly HttpClient _client;
-        public SeeContractController()
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public SeeContractController(IHttpClientFactory httpClientFactory)
         {
             _client = new HttpClient();
             _client.BaseAddress = baseAddress;
+            _httpClientFactory = httpClientFactory;
         }
         public IActionResult Index()
         {
@@ -76,7 +79,7 @@ namespace WebApp.Areas.Controllers
 
                 // Gửi file dưới dạng ByteArrayContent với Content-Type đúng
                 var byteContent = new ByteArrayContent(pfxBytes);
-                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/x-pkcs12"); // hoặc "application/octet-stream"
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/x-pkcs12"); 
 
                 formData.Add(byteContent, "pfxFile", pfxFile.FileName);
                 formData.Add(new StringContent(password), "password");
@@ -138,6 +141,27 @@ namespace WebApp.Areas.Controllers
             {
                 return StatusCode(500, $"Lỗi khi gửi file đã ký đến API: {ex.Message}");
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadSignatureImage(IFormFile signatureImage)
+        {
+            if (signatureImage == null || signatureImage.Length == 0)
+                return BadRequest("Không có ảnh nào được gửi.");
+
+            var client = _httpClientFactory.CreateClient();
+
+            var content = new MultipartFormDataContent();
+            content.Add(new StreamContent(signatureImage.OpenReadStream()), "signatureImage", signatureImage.FileName);
+
+            var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/UploadSignatureImage";
+            var response = await client.PostAsync(apiUrl, content);
+
+            if (!response.IsSuccessStatusCode)
+                return BadRequest("Không thể ký tài liệu.");
+
+            var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+            return File(pdfBytes, "application/pdf");
         }
 
     }
