@@ -147,10 +147,6 @@ namespace WebApi.Controllers.Admin
                 //await System.IO.File.WriteAllBytesAsync(fullPath, signedPdfBytes);
                 await System.IO.File.WriteAllBytesAsync(fullPath, pdfBytes);
 
-                //// 4. Tạo link xem file PDF
-                //string razorDomain = _config["App:RazorBaseUrl"] ?? "https://localhost:7176";
-                //string viewLink = $"{razorDomain}/SeeContract/Index?fileName={fileName}&email={dto.RootAccount}";
-
                 // 5. Lưu thông tin hợp đồng, trạng thái file đã ký vào DB
                 var result = await _accountService.SaveContractStatusAsync(new CompanyContractDTOs
                 {

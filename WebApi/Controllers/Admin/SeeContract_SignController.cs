@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApi.DTO;
 using WebApi.Models;
 using WebApi.Service.Admin;
 
@@ -23,26 +24,6 @@ namespace WebApi.Controllers.Admin
             _context = context;
             _sign = sign;
             _pdfService = pdfService;
-        }
-
-        //update db client ký xong.
-        [HttpPost]
-        public async Task<IActionResult> UploadSignedFile(IFormFile signedFile, [FromForm] string email, [FromForm] string originalFileName)
-        {
-            if (signedFile == null || signedFile.Length == 0 || originalFileName 
-                == null)
-                return BadRequest(new { message = "File không hợp lệ." });
-
-            try
-            {
-                var fileName = await _sign.UploadSignedContract(signedFile, email, originalFileName);
-                return Ok(new { message = "Upload thành công", fileName });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[UploadSignedContract] Lỗi: {ex.Message}");
-                return StatusCode(500, new { message = "Lỗi khi lưu file", error = ex.Message });
-            }
         }
 
         [HttpPost]
@@ -96,18 +77,83 @@ namespace WebApi.Controllers.Admin
 
             return Ok("Lưu file và cập nhật DB thành công.");
         }
-
+        
         [HttpPost]
-        public async Task<IActionResult> UploadSignatureImage(IFormFile signatureImage)
+        public async Task<IActionResult> SignPdfWithHand([FromBody] SignPdfWithHandRequest request)
         {
-            if (signatureImage == null || signatureImage.Length == 0)
-                return BadRequest("Chưa có ảnh chữ ký.");
+            Console.WriteLine("---- Log đầu vào ----");
+            Console.WriteLine("data: " + request.ToString());
+            if (request == null || string.IsNullOrEmpty(request.base64Data) || string.IsNullOrEmpty(request.fileName))
+            {
+                return BadRequest("Thiếu thông tin bắt buộc");
+            }
+            try
+            {
+                // Xác định đường dẫn đến thư mục chứa file PDF cần ký
+                var pdfFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "signed-contracts");
+                var filePath = Path.Combine(pdfFolder, request.fileName);
 
-            using var stream = signatureImage.OpenReadStream();
-            var pdfBytes = await _pdfService.InsertSignatureToContractAsync(stream);
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return NotFound("Không tìm thấy file PDF gốc để ký.");
+                }
 
-            return File(pdfBytes, "application/pdf");
+                var originalSPdfBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+                var signedPdfBytes = _pdfService.InsertSignatureImageToPdf(originalSPdfBytes, request.base64Data, "Đại diện Bên A");
+
+                // Trả về file PDF đã ký
+                return File(signedPdfBytes, "application/pdf", "signed_" + request.fileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi khi ký PDF: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckStatus(string fileName, string email)
+        {
+            var hopDong = await _sign.GetContractByFileAndEmailAsync(fileName, email);
+
+            if (hopDong == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(hopDong); // DTO được service trả về
         }
 
     }
 }
+//[HttpPost]
+//public async Task<IActionResult> UploadSignatureImage(IFormFile signatureImage)
+//{
+//    if (signatureImage == null || signatureImage.Length == 0)
+//        return BadRequest("Chưa có ảnh chữ ký.");
+
+//    using var stream = signatureImage.OpenReadStream();
+//    var pdfBytes = await _pdfService.InsertSignatureToContractAsync(stream);
+
+//    return File(pdfBytes, "application/pdf");
+//}
+
+////update db client ký xong.
+//[HttpPost]
+//public async Task<IActionResult> UploadSignedFile(IFormFile signedFile, [FromForm] string email, [FromForm] string originalFileName)
+//{
+//    if (signedFile == null || signedFile.Length == 0 || originalFileName 
+//        == null)
+//        return BadRequest(new { message = "File không hợp lệ." });
+
+//    try
+//    {
+//        var fileName = await _sign.UploadSignedContract(signedFile, email, originalFileName);
+//        return Ok(new { message = "Upload thành công", fileName });
+//    }
+//    catch (Exception ex)
+//    {
+//        Console.WriteLine($"[UploadSignedContract] Lỗi: {ex.Message}");
+//        return StatusCode(500, new { message = "Lỗi khi lưu file", error = ex.Message });
+//    }
+//}

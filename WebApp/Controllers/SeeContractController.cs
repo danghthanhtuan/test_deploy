@@ -8,6 +8,9 @@ using System.Text;
 using WebApp.DTO;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
+using System.Text.RegularExpressions;
+using NuGet.Protocol;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace WebApp.Areas.Controllers
 {
@@ -23,42 +26,34 @@ namespace WebApp.Areas.Controllers
             _client.BaseAddress = baseAddress;
             _httpClientFactory = httpClientFactory;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index(string fileName, string email)
         {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UploadSignedFile(IFormFile signedFile, string email, string originalFileName)
-        {
-            if (signedFile == null || signedFile.Length == 0 || originalFileName==null)
-                return Json(new { success = false, message = "Vui lòng chọn file hợp lệ." });
-
-            // Tạo HttpClient để gọi API Controller
             using (var client = new HttpClient())
             {
-                var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/UploadSignedFile";
+                var apiUrl = $"https://localhost:7190/api/admin/SeeContract_Sign/CheckStatus?fileName={fileName}&email={email}";
 
-                var form = new MultipartFormDataContent();
-                form.Add(new StreamContent(signedFile.OpenReadStream()), "signedFile", signedFile.FileName);
-                form.Add(new StringContent(email), "email");
-                form.Add(new StringContent(originalFileName), "originalFileName"); // Thêm dòng này
-
-                var response = await client.PostAsync(apiUrl, form);
-
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    var result = await response.Content.ReadAsStringAsync();
-                    return Json(new { success = true, message = "Gửi đến API thành công", result });
+                    var response = await client.GetAsync(apiUrl);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ViewBag.ErrorMessage = "Không thể lấy thông tin hợp đồng.";
+                        return View(null);
+                    }
+                  
+                    return View();
+
                 }
-                else
+                catch (Exception ex)
                 {
-                    var error = await response.Content.ReadAsStringAsync();
-                    return Json(new { success = false, message = "Lỗi từ API", error });
+                    return BadRequest("Có lỗi khi gọi API: " + ex.Message);
                 }
             }
         }
 
+
+        //ky so
         [HttpPost]
         public async Task<IActionResult> SignPdfWithPfx(IFormFile pfxFile, string password, string fileName, string email)
         {
@@ -100,6 +95,7 @@ namespace WebApp.Areas.Controllers
 
         }
         
+        //luu
         [HttpPost]
         public async Task<IActionResult> SaveSignedPdf(IFormFile signedPdf, string fileName, string email)
         {
@@ -143,26 +139,95 @@ namespace WebApp.Areas.Controllers
             }
         }
 
+        //ky tay
         [HttpPost]
-        public async Task<IActionResult> UploadSignatureImage(IFormFile signatureImage)
+        public async Task<IActionResult> SignPdfWithHand(string base64Hand, string fileName, string email)
         {
-            if (signatureImage == null || signatureImage.Length == 0)
-                return BadRequest("Không có ảnh nào được gửi.");
+            if (string.IsNullOrEmpty(base64Hand) || string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("Thiếu dữ liệu đầu vào");
+            }
 
-            var client = _httpClientFactory.CreateClient();
+            using (var client = new HttpClient())
+            {
+                var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/SignPdfWithHand";
 
-            var content = new MultipartFormDataContent();
-            content.Add(new StreamContent(signatureImage.OpenReadStream()), "signatureImage", signatureImage.FileName);
+                // Tách chuỗi base64 ra(loại bỏ tiền tố data: image / png; base64,)
+                var base64Data = Regex.Replace(base64Hand, @"^data:image\/[a-zA-Z]+;base64,", string.Empty);
 
-            var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/UploadSignatureImage";
-            var response = await client.PostAsync(apiUrl, content);
+                var request = new
+                {
+                    base64Data = base64Hand,
+                    fileName = fileName,
+                    email = email
+                };
+                var content = new StringContent(request.ToJson(), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(apiUrl, content);
 
-            if (!response.IsSuccessStatusCode)
-                return BadRequest("Không thể ký tài liệu.");
+                if (!response.IsSuccessStatusCode)
+                {
+                    var err = await response.Content.ReadAsStringAsync();
+                    return StatusCode((int)response.StatusCode, $"Ký không thành công: {err}");
+                }
 
-            var pdfBytes = await response.Content.ReadAsByteArrayAsync();
-            return File(pdfBytes, "application/pdf");
+                var pdfSignedBytes = await response.Content.ReadAsByteArrayAsync();
+                return File(pdfSignedBytes, "application/pdf");
+            }
+
         }
-
     }
 }
+
+
+//[HttpPost]
+//public async Task<IActionResult> UploadSignedFile(IFormFile signedFile, string email, string originalFileName)
+//{
+//    if (signedFile == null || signedFile.Length == 0 || originalFileName==null)
+//        return Json(new { success = false, message = "Vui lòng chọn file hợp lệ." });
+
+//    // Tạo HttpClient để gọi API Controller
+//    using (var client = new HttpClient())
+//    {
+//        var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/UploadSignedFile";
+
+//        var form = new MultipartFormDataContent();
+//        form.Add(new StreamContent(signedFile.OpenReadStream()), "signedFile", signedFile.FileName);
+//        form.Add(new StringContent(email), "email");
+//        form.Add(new StringContent(originalFileName), "originalFileName"); // Thêm dòng này
+
+//        var response = await client.PostAsync(apiUrl, form);
+
+//        if (response.IsSuccessStatusCode)
+//        {
+//            var result = await response.Content.ReadAsStringAsync();
+//            return Json(new { success = true, message = "Gửi đến API thành công", result });
+//        }
+//        else
+//        {
+//            var error = await response.Content.ReadAsStringAsync();
+//            return Json(new { success = false, message = "Lỗi từ API", error });
+//        }
+//    }
+//}
+
+
+//[HttpPost]
+//public async Task<IActionResult> UploadSignatureImage(IFormFile signatureImage)
+//{
+//    if (signatureImage == null || signatureImage.Length == 0)
+//        return BadRequest("Không có ảnh nào được gửi.");
+
+//    var client = _httpClientFactory.CreateClient();
+
+//    var content = new MultipartFormDataContent();
+//    content.Add(new StreamContent(signatureImage.OpenReadStream()), "signatureImage", signatureImage.FileName);
+
+//    var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/UploadSignatureImage";
+//    var response = await client.PostAsync(apiUrl, content);
+
+//    if (!response.IsSuccessStatusCode)
+//        return BadRequest("Không thể ký tài liệu.");
+
+//    var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+//    return File(pdfBytes, "application/pdf");
+//}

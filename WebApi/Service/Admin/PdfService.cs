@@ -25,6 +25,7 @@ using ImgSharp = SixLabors.ImageSharp;
 using ImgProc = SixLabors.ImageSharp.Processing;
 using ImgPixel = SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
+using System.Text.RegularExpressions;
 
 
 namespace WebApi.Service.Admin
@@ -356,58 +357,88 @@ namespace WebApi.Service.Admin
                  .ToLowerInvariant();
         }
 
-        public async Task<byte[]> InsertSignatureToContractAsync(Stream signatureImageStream)
+        //public async Task<byte[]> InsertSignatureToContractAsync(Stream signatureImageStream)
+        //{
+        //    // Bước 1: Load ảnh chữ ký và xóa nền trắng
+        //    using var signatureImage = ImgSharp.Image.Load<ImgPixel.Rgba32>(signatureImageStream);
+        //    signatureImage.ProcessPixelRows(accessor =>
+        //    {
+        //        for (int y = 0; y < accessor.Height; y++)
+        //        {
+        //            Span<ImgPixel.Rgba32> pixelRow = accessor.GetRowSpan(y);
+        //            for (int x = 0; x < pixelRow.Length; x++)
+        //            {
+        //                var pixel = pixelRow[x];
+        //                if (pixel.R > 230 && pixel.G > 230 && pixel.B > 230)
+        //                {
+        //                    pixelRow[x] = new ImgPixel.Rgba32(255, 255, 255, 0); // xóa nền trắng (alpha 0)
+        //                }
+        //            }
+        //        }
+        //    });
+
+        //    // Bước 2: Chuyển ảnh thành byte[] PNG
+        //    byte[] imageBytes;
+        //    using (var ms = new MemoryStream())
+        //    {
+        //        signatureImage.Save(ms, new PngEncoder());
+        //        imageBytes = ms.ToArray();
+        //    }
+        //    // Bước 3: Load PDF gốc
+        //    var originalPdfPath = "wwwroot/pdf/HopDongGoc.pdf";
+        //    using var pdfReader = new PdfReader(originalPdfPath);
+        //    using var outputStream = new MemoryStream();
+        //    using var pdfWriter = new PdfWriter(outputStream);
+        //    using var pdfDoc = new PdfDocument(pdfReader, pdfWriter);
+
+        //    // Bước 4: Tìm vị trí từ khóa trong PDF
+        //    var (textRect, pageNumber) = FindTextPosition2(await File.ReadAllBytesAsync(originalPdfPath), "Đại diện Bên A");
+
+        //    // Bước 5: Load ảnh PNG vào iText ImageData
+        //    var image = new iText.Layout.Element.Image(ImageDataFactory.Create(imageBytes));
+
+        //    // Bước 6: Vẽ ảnh lên PDF tại vị trí xác định
+        //    float x = textRect.GetX() + 55f;
+        //    float y = textRect.GetY() - 113f;
+        //    float width = 200f;
+        //    float height = 50f;
+        //    image.SetFixedPosition(pageNumber, x, y);
+        //    image.ScaleAbsolute(width, height);
+
+        //    // Bước 7: Kết thúc
+        //    pdfDoc.Close();
+        //    return outputStream.ToArray();
+        //}
+        public byte[] InsertSignatureImageToPdf(byte[] originalPdfBytes, string signatureBase64, string keyword, float offsetX = 55f, float offsetY = 113f, float width = 200f, float height = 50f)
         {
-            // Bước 1: Load ảnh chữ ký và xóa nền trắng
-            using var signatureImage = ImgSharp.Image.Load<ImgPixel.Rgba32>(signatureImageStream);
-            signatureImage.ProcessPixelRows(accessor =>
-            {
-                for (int y = 0; y < accessor.Height; y++)
-                {
-                    Span<ImgPixel.Rgba32> pixelRow = accessor.GetRowSpan(y);
-                    for (int x = 0; x < pixelRow.Length; x++)
-                    {
-                        var pixel = pixelRow[x];
-                        if (pixel.R > 230 && pixel.G > 230 && pixel.B > 230)
-                        {
-                            pixelRow[x] = new ImgPixel.Rgba32(255, 255, 255, 0); // xóa nền trắng (alpha 0)
-                        }
-                    }
-                }
-            });
+            using var pdfStream = new MemoryStream(originalPdfBytes);
+            using var outputPdfStream = new MemoryStream();
 
-            // Bước 2: Chuyển ảnh thành byte[] PNG
-            byte[] imageBytes;
-            using (var ms = new MemoryStream())
-            {
-                signatureImage.Save(ms, new PngEncoder());
-                imageBytes = ms.ToArray();
-            }
-            // Bước 3: Load PDF gốc
-            var originalPdfPath = "wwwroot/pdf/HopDongGoc.pdf";
-            using var pdfReader = new PdfReader(originalPdfPath);
-            using var outputStream = new MemoryStream();
-            using var pdfWriter = new PdfWriter(outputStream);
-            using var pdfDoc = new PdfDocument(pdfReader, pdfWriter);
+            // Decode base64 image
+            var base64Data = Regex.Replace(signatureBase64, @"^data:image\/[a-zA-Z]+;base64,", string.Empty);
+            byte[] imageBytes = Convert.FromBase64String(base64Data);
 
-            // Bước 4: Tìm vị trí từ khóa trong PDF
-            var (textRect, pageNumber) = FindTextPosition2(await File.ReadAllBytesAsync(originalPdfPath), "Đại diện Bên A");
+            PdfReader reader = new PdfReader(pdfStream);
+            PdfWriter writer = new PdfWriter(outputPdfStream);
+            PdfDocument pdfDoc = new PdfDocument(reader, writer);
+            iText.Layout.Document doc = new iText.Layout.Document(pdfDoc);
 
-            // Bước 5: Load ảnh PNG vào iText ImageData
-            var image = new iText.Layout.Element.Image(ImageDataFactory.Create(imageBytes));
+            // Tìm vị trí từ khóa để chèn ảnh
+            (Rectangle textRect, int pageNum) = FindTextPosition2(originalPdfBytes, keyword); 
+            float x = textRect.GetX() + offsetX;
+            float y = textRect.GetY() - offsetY;
 
-            // Bước 6: Vẽ ảnh lên PDF tại vị trí xác định
-            float x = textRect.GetX() + 55f;
-            float y = textRect.GetY() - 113f;
-            float width = 200f;
-            float height = 50f;
-            image.SetFixedPosition(pageNumber, x, y);
-            image.ScaleAbsolute(width, height);
+            // Tạo hình ảnh iText7
+            iText.Layout.Element.Image signImg = new iText.Layout.Element.Image(ImageDataFactory.Create(imageBytes));
+            signImg.SetFixedPosition(pageNum, x, y);
+            signImg.SetWidth(width);
+            signImg.SetHeight(height);
 
-            // Bước 7: Kết thúc
-            pdfDoc.Close();
-            return outputStream.ToArray();
+            // Chèn ảnh lên PDF
+            doc.Add(signImg);
+
+            doc.Close();
+            return outputPdfStream.ToArray();
         }
-
     }
 }
