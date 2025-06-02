@@ -38,7 +38,7 @@ namespace WebApp.Areas.Controllers
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        ViewBag.ErrorMessage = "Không thể lấy thông tin hợp đồng.";
+                        ViewBag.ErrorMessage = "Hợp đồng đã ký, vui lòng thanh toán hóa đơn và chờ Quản trị viên gửi Hợp đồng chính thức.";
                         return View(null);
                     }
                   

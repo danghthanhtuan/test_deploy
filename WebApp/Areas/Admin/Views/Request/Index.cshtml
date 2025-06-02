@@ -1039,13 +1039,22 @@
         var dateOfRequest = new Date().toISOString();
 
         if (!descriptionOfRequest) {
-            showErrorModal("Vui lòng mô tả yêu cầu của bạn.");
+            showErrorModal("Vui lòng nhập mô tả yêu cầu của bạn.");
             // Gán sự kiện đóng modal vào nút "Đóng"
             document.getElementById("btnCloseModal").addEventListener("click", function () {
                 $("#ModalError").modal("hide");
             });
             return;
         }
+        if (!customerId || !contractNumber ) {
+            showErrorModal("Vui lòng chọn khách hàng cần tạo yêu cầu.");
+            // Gán sự kiện đóng modal vào nút "Đóng"
+            document.getElementById("btnCloseModal").addEventListener("click", function () {
+                $("#ModalError").modal("hide");
+            });
+            return;
+        }
+
         var cValues = {
             Support: Support,
             RequirementsStatus: requirementsStatus,

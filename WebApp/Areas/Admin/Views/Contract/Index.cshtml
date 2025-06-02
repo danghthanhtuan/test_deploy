@@ -1259,9 +1259,14 @@
     document.getElementById("timeGiahan2").addEventListener("change", updateTongTien2);
     document.getElementById("serviceType2").addEventListener("change", updateTongTien2);
 
+
     function SaveContract() {
         var cId = document.getElementById("cId2").value.trim();
-
+        // Kiểm tra độ dài ContractNumber (tối đa 10 ký tự)
+        if (!cId) {
+            showError("Vui lòng chọn công ty thêm hợp đồng mới.");
+            return;
+        }
         var cName = document.getElementById("cName2").value;
         var cTaxCode = document.getElementById("cTaxCode2").value;
         var cEmail = document.getElementById("cEmail2").value;
@@ -1269,7 +1274,6 @@
         var cAddress = document.getElementById("cAddress2").value;
         var cType = document.getElementById("cType2").value;
         var ContractNumber = document.getElementById("ContractNumber2").value.trim();
-        //var serviceType = document.getElementById("serviceType2").value.trim();
         var aEmail = document.getElementById("aEmail2").value;
         var aName = document.getElementById("aName2").value;
         var aPhone = document.getElementById("aPhone2").value;
@@ -1281,7 +1285,14 @@
         var amount = document.getElementById("amount2").value.trim();
 
         var serviceTypeElement = document.getElementById("serviceType2");
-        var serviceTypeText = serviceTypeElement.options[serviceTypeElement.selectedIndex].text; // Lấy nội dung hiển thị
+        var serviceTypeText = "";
+        if (serviceTypeElement && serviceTypeElement.selectedIndex > 0) {
+            serviceTypeText = serviceTypeElement.options[serviceTypeElement.selectedIndex].text;
+        } else {
+            showError("Vui lòng chọn loại dịch vụ.");
+            return;
+        }
+       // var serviceTypeText = serviceTypeElement.options[serviceTypeElement.selectedIndex].text; // Lấy nội dung hiển thị
         var normalizedAmount = parseFloat(amount.replace(/[^\d]/g, ''));
 
         var timeGiahanElement = document.getElementById("timeGiahan2");
@@ -1292,6 +1303,7 @@
             return;
 
         }
+
         var cValues = {
             CustomerId: cId || "AUTO_GENERATED_ID",
             CompanyName: cName,
@@ -1322,8 +1334,7 @@
         // Kiểm tra mã số thuế (9 chữ số)
         var taxCodeRegex = /^[a-zA-Z0-9]{9}$/;
 
-        // Kiểm tra độ dài ContractNumber (tối đa 10 ký tự)
-
+       
         if (!phoneRegex.test(cValues.CPhoneNumber)) {
             showError("Số điện thoại khách hàng không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 0.");
             return;
