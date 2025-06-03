@@ -152,9 +152,14 @@ builder.Services.AddTransient<AccountService>();
 builder.Services.AddTransient<StaffService>();
 builder.Services.AddTransient<PdfService>();
 builder.Services.AddTransient<SeeContract_SignService>();
+builder.Services.AddTransient<PaymentService>();
+
 //builder.Services.AddTransient<TextLocationStrategy>();
 
 builder.Services.AddTransient<IEmailService, EmailService>();
+
+builder.Services.AddTransient<IPaymentService, PaymentService>();
+
 builder.Services.AddMemoryCache(); // Cho IMemoryCache
 
 var app = builder.Build();

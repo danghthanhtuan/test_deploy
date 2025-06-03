@@ -38,12 +38,29 @@ namespace WebApp.Areas.Controllers
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        ViewBag.ErrorMessage = "Hợp đồng đã ký, vui lòng thanh toán hóa đơn và chờ Quản trị viên gửi Hợp đồng chính thức.";
+                        ViewBag.ErrorMessage = "Không tìm thấy hợp đồng hoặc lỗi hệ thống.";
+
                         return View(null);
                     }
-                  
-                    return View();
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var hopDong = JsonConvert.DeserializeObject<StatusSignClient>(jsonString);
 
+                    if (hopDong == null)
+                    {
+                        ViewBag.ErrorMessage = "Dữ liệu hợp đồng không hợp lệ.";
+                        return View("Error");
+                    }
+
+                    if (hopDong.status == "Chờ client ký")
+                    {
+                        return View(); // index.cshtml
+                    }
+                    else if (hopDong.status == "Ký hoàn tất")
+                    {
+                        return View("~/Views/SeeContract/Payment.cshtml", hopDong); 
+                    }
+                    ViewBag.ErrorMessage = "Trạng thái hợp đồng không xác định.";
+                    return View("Error");
                 }
                 catch (Exception ex)
                 {
@@ -51,7 +68,6 @@ namespace WebApp.Areas.Controllers
                 }
             }
         }
-
 
         //ky so
         [HttpPost]

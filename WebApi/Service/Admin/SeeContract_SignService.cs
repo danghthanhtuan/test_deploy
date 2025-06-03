@@ -112,15 +112,17 @@ namespace WebApi.Service.Admin
                 from a in _context.Accounts
                 join contract in _context.Contracts on a.Customerid equals contract.Customerid
                 join conFile in _context.ContractFiles on contract.Contractnumber equals conFile.Contractnumber
+                join h in _context.Payments on contract.Contractnumber equals h.Contractnumber
                 where email == a.Rootaccount
                       && conFile.ConfileName == fileName
-                      && contract.Constatus == "Chờ client ký"
+                      && contract.Constatus == "Chờ client ký" || contract.Constatus == "Ký hoàn tất" 
                 select new
                 {
                     FileName = conFile.ConfileName,
                     TinhTrang = contract.Constatus,
                     ContractNumber = contract.Contractnumber, 
                     Email = a.Rootaccount,
+                    Amount = h.Amount,
                 }
             ).FirstOrDefaultAsync();
 
@@ -131,7 +133,8 @@ namespace WebApi.Service.Admin
                 fileName = hopDong.FileName,
                 status = hopDong.TinhTrang,
                 email = hopDong.Email,
-                contractnumber = hopDong.ContractNumber
+                contractnumber = hopDong.ContractNumber,
+                amount = hopDong.Amount
             };
         }
 

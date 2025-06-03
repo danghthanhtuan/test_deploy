@@ -543,7 +543,7 @@ namespace WebApi.Service.Admin
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in fileJoin on b.Contractnumber equals h.Contractnumber
                         where c.IsActive == false &&
-                                (b.Constatus=="Chưa ký"||b.Constatus == "Đã ký" ||b.Constatus=="Chờ client ký"|| b.Constatus == "Ký hoàn tất" )
+                                (b.Constatus=="Chưa ký"||b.Constatus == "Đã ký" ||b.Constatus=="Chờ client ký"|| b.Constatus == "Ký hoàn tất" || b.Constatus == "Đã thanh toán")
                         select new CompanyContractDTOs
                         {
                             ContractNumber = b.Contractnumber,

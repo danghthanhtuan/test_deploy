@@ -947,18 +947,20 @@
                                 return `<span class="text-muted">Chờ khách hàng ký</span>`;
                             }
                             if (normalizedStatus === "Ký hoàn tất") {
-                                return `
-                                <div class="d-flex justify-content-center gap-2">
-                                    <button class="btn btn-sm btn-success btn-approve"
-                                            title="Duyệt hợp đồng"
-                                            data-contractnumber="${contractNumber}"
-                                            data-confilename="${row.fileName}"
-                                            data-filepath="${row.filePath}">
-                                        <i class="fa-solid fa-circle-check"></i> Duyệt hợp đồng
-                                    </button>
-                                </div>`;
+                                return `<span class="text-muted">Chờ thanh toán</span>`;
                             }
-
+                            if (normalizedStatus === "Đã thanh toán") {
+                                return `
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-success btn-approve"
+                                                title="Duyệt hợp đồng"
+                                                data-contractnumber="${contractNumber}"
+                                                data-confilename="${row.fileName}"
+                                                data-filepath="${row.filePath}">
+                                            <i class="fa-solid fa-circle-check"></i> Duyệt hợp đồng
+                                        </button>
+                                    </div>`;
+                            }
                             return `<span class="text-muted">Chưa ký</span>`;
                         }
                     }

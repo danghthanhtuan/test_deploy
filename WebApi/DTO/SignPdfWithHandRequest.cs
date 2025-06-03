@@ -13,6 +13,6 @@
         public string fileName { get; set; }
         public string status { get; set; }
         public string contractnumber { get; set; }
-
+        public decimal amount { get; set; }
     }
 }

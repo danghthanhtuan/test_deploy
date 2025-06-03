@@ -383,16 +383,17 @@ INSERT INTO CONTRACTS (CONTRACTNUMBER,STARTDATE,ENDDATE,SERVICE_TYPEName,CUSTOME
 ('SV0014','2025-02-08','2026-02-08',N'Hỗ trợ CNTT','IT03030014'),
 ('SV0015','2025-02-09','2026-02-09',N'Hợp đồng tích hợp/dự án','IT03030015');
 
-select * from company 
-select * from Account 
-select * from contracts
-select * from CONTRACT_FILES
-select * from CONTRACT_STATUS_HISTORY
+	select * from company 
+	select * from Account 
+	select * from contracts
+	select * from CONTRACT_FILES
+	select * from CONTRACT_STATUS_HISTORY
 select * from Payment
 select * from contracts
 select * from LOGINclient
 select * from RESETPASSWORD
 select * from endow
+
 update  contracts set constatus ='Ký hoàn tất' where CONTRACTNUMBER = 'SV0001'
 
 
