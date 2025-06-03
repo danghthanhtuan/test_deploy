@@ -1,51 +1,74 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace WebApp.Helpers
 {
     public class VnPayLibrary
     {
         public const string VERSION = "2.1.0";
-        private Dictionary<string, string> _requestData = new Dictionary<string, string>();
-        private Dictionary<string, string> _responseData = new Dictionary<string, string>();
+
+        private readonly Dictionary<string, string> _requestData = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _responseData = new Dictionary<string, string>();
+
+        #region Add Data Methods
 
         public void AddRequestData(string key, string value)
         {
-            _requestData[key] = value;
+            if (!string.IsNullOrEmpty(value))
+            {
+                _requestData[key] = value;
+            }
         }
 
         public void AddResponseData(string key, string value)
         {
-            _responseData[key] = value;
+            if (!string.IsNullOrEmpty(value))
+            {
+                _responseData[key] = value;
+            }
         }
+
+        public string GetResponseData(string key)
+        {
+            return _responseData.TryGetValue(key, out var retValue) ? retValue : string.Empty;
+        }
+
+        #endregion
+
+        #region Create Request URL
 
         public string CreateRequestUrl(string baseUrl, string vnp_HashSecret)
         {
-            StringBuilder queryString = new StringBuilder();
-            StringBuilder rawData = new StringBuilder();
+            var queryString = new StringBuilder();
+            var rawData = new StringBuilder();
 
-            foreach (KeyValuePair<string, string> kv in _requestData)
+            var sortedData = _requestData
+                .Where(kv => !string.IsNullOrEmpty(kv.Value))
+                .OrderBy(kv => kv.Key);
+
+            foreach (var kv in sortedData)
             {
-                if (!String.IsNullOrEmpty(kv.Value))
-                {
-                    // ✅ URL encode key and value for queryString
-                    queryString.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
-
-                    // ✅ Only encode key, leave value as-is for rawData
-                    rawData.Append(WebUtility.UrlEncode(kv.Key) + "=" + kv.Value + "&");
-                }
+                queryString.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
+                rawData.Append(kv.Key + "=" + kv.Value + "&");
             }
 
-            if (queryString.Length > 0) queryString.Length -= 1; // remove last '&'
-            if (rawData.Length > 0) rawData.Length -= 1;         // remove last '&'
+            // Xoá dấu & cuối
+            if (queryString.Length > 0) queryString.Length -= 1;
+            if (rawData.Length > 0) rawData.Length -= 1;
 
-            string signData = rawData.ToString();
-            string vnp_SecureHash = HmacSHA512(vnp_HashSecret, signData);
+            string vnp_SecureHash = HmacSHA512(vnp_HashSecret, rawData.ToString());
 
-            return baseUrl + "?" + queryString.ToString() + "&vnp_SecureHash=" + vnp_SecureHash;
+            // Thêm SHA512 type vào URL (VNPay yêu cầu)
+            return $"{baseUrl}?{queryString}&vnp_SecureHashType=SHA512&vnp_SecureHash={vnp_SecureHash}";
         }
 
+        #endregion
+
+        #region Validate Signature
 
         public bool ValidateSignature(string inputHash, string hashSecret)
         {
@@ -60,21 +83,9 @@ namespace WebApp.Helpers
             return string.Equals(computedHash, inputHash, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private static string HmacSHA512(string key, string inputData)
-        {
-            var hash = new StringBuilder();
-            byte[] keyBytes = Encoding.UTF8.GetBytes(key);
-            byte[] inputBytes = Encoding.UTF8.GetBytes(inputData);
-            using (var hmac = new HMACSHA512(keyBytes))
-            {
-                byte[] hashValue = hmac.ComputeHash(inputBytes);
-                foreach (var theByte in hashValue)
-                {
-                    hash.Append(theByte.ToString("x2"));
-                }
-            }
-            return hash.ToString();
-        }
+        #endregion
+
+        #region Utility Methods
 
         public string GetRequestRaw()
         {
@@ -86,5 +97,24 @@ namespace WebApp.Helpers
                 WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value)));
         }
 
+        private static string HmacSHA512(string key, string inputData)
+        {
+            var hash = new StringBuilder();
+            var keyBytes = Encoding.UTF8.GetBytes(key);
+            var inputBytes = Encoding.UTF8.GetBytes(inputData);
+
+            using (var hmac = new HMACSHA512(keyBytes))
+            {
+                var hashBytes = hmac.ComputeHash(inputBytes);
+                foreach (var b in hashBytes)
+                {
+                    hash.Append(b.ToString("x2"));
+                }
+            }
+
+            return hash.ToString();
+        }
+
+        #endregion
     }
 }

@@ -47,8 +47,9 @@ namespace WebApp.Controllers
             vnpay.AddRequestData("vnp_OrderInfo", $"{orderInfo} | Email: {email}");
             vnpay.AddRequestData("vnp_SecureHashType", "SHA512");
 
-            string paymentUrl = vnpay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
-            return Redirect(paymentUrl);
+            var url = vnpay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
+            Console.WriteLine("URL redirect đến VNPAY: " + url); // hoặc log ra log file
+            return Redirect(url);
         }
 
         [HttpGet]
