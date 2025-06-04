@@ -9,9 +9,9 @@ public partial class ContractStatusHistory
 
     public string Contractnumber { get; set; } = null!;
 
-    public string? OldStatus { get; set; }
+    public int? OldStatus { get; set; }
 
-    public string? NewStatus { get; set; }
+    public int? NewStatus { get; set; }
 
     public DateTime? ChangedAt { get; set; }
 

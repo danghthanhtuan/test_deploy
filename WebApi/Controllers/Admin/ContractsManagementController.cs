@@ -15,8 +15,8 @@ namespace WebApi.Controllers.Admin
         private readonly ManagementDbContext _context;
         private readonly IMapper _mapper;
         private readonly ContractsManagementService _contractService;
-        private readonly AccountContractService _accountService;
-        public ContractsManagementController(IMapper mapper, ManagementDbContext context, ContractsManagementService contractService, AccountContractService accountService)
+        private readonly AccountService _accountService;
+        public ContractsManagementController(IMapper mapper, ManagementDbContext context, ContractsManagementService contractService, AccountService accountService)
         {
             _mapper = mapper;
             _contractService = contractService;

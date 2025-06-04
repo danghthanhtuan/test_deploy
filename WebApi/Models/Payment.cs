@@ -11,13 +11,9 @@ public partial class Payment
 
     public decimal Amount { get; set; }
 
-    public DateTime? PaymentDate { get; set; }
-
-    public string? PaymentMethod { get; set; }
-
     public bool Paymentstatus { get; set; }
 
-    public string? TransactionCode { get; set; }
-
     public virtual Contract ContractnumberNavigation { get; set; } = null!;
+
+    public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
 }

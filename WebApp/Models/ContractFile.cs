@@ -15,7 +15,7 @@ public partial class ContractFile
 
     public DateTime? UploadedAt { get; set; }
 
-    public string? FileStatus { get; set; }
+    public int? FileStatus { get; set; }
 
     public virtual Contract ContractnumberNavigation { get; set; } = null!;
 }

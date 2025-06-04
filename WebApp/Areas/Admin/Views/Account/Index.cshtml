@@ -863,7 +863,8 @@
                                 //const status = contract.constatus.trim().toLowerCase();
                                 //signedStateMap[key] = (status === "ký hoàn tất") ? 1 : 0;
                                 const status = contract.constatus;
-                                signedStateMap[key] = (status === "Đã ký") ? 1 : 0;
+                              //  signedStateMap[key] = (status === "Đã ký") ? 1 : 0;
+                                signedStateMap[key] = (status ==1 ) ? 1 : 0;
 
                             });
                             return res.pendingContracts.results;
@@ -906,7 +907,8 @@
                             if (!data) return "<span class='text-muted'>Chưa có file</span>";
 
                             const fileName = data.split('/').pop();
-                            const folder = row.constatus === "Chưa ký" ? "temp-pdfs" : "signed-contracts";
+                            //const folder = row.constatus === "Chưa ký" ? "temp-pdfs" : "signed-contracts";
+                            const folder = row.constatus ==0 ? "temp-pdfs" : "signed-contracts";
 
                             return `
                             <a href="/temp-pdfs/${fileName}"
@@ -927,11 +929,13 @@
                             const contractNumber = row.contractNumber;
                             const normalizedStatus = row.constatus;
 
-                            if (normalizedStatus === "Chưa ký") {
+                            //if (normalizedStatus === "Chưa ký") {
+                            if (normalizedStatus ==0) {
                                 return `<span class="text-muted">Chờ người phụ trách ký</span>`;
                             }
-
-                            if (normalizedStatus === "Đã ký") {
+                                
+                           // if (normalizedStatus === "Đã ký") {
+                            if (normalizedStatus ==1 ) {
                                 return `
                                 <div class="d-flex justify-content-center gap-2">
                                     <button class="btn btn-sm btn-primary btn-send-client"
@@ -943,13 +947,16 @@
                                     </button>
                                 </div>`;
                             } 
-                            if (normalizedStatus === "Chờ client ký") {
+                            //if (normalizedStatus === "Chờ client ký") {
+                            if (normalizedStatus ==2) {
                                 return `<span class="text-muted">Chờ khách hàng ký</span>`;
                             }
-                            if (normalizedStatus === "Ký hoàn tất") {
+                            //if (normalizedStatus === "Ký hoàn tất") {
+                            if (normalizedStatus ==3) {
                                 return `<span class="text-muted">Chờ thanh toán</span>`;
                             }
-                            if (normalizedStatus === "Đã thanh toán") {
+                            //if (normalizedStatus === "Đã thanh toán") {
+                            if (normalizedStatus ==4) {
                                 return `
                                     <div class="d-flex justify-content-center gap-2">
                                         <button class="btn btn-sm btn-success btn-approve"
@@ -1095,7 +1102,6 @@
     $('#pendingContracts').on('click', '.btn-approve', function () {
         const contractNumber = $(this).data('contractnumber');
         const realFilePath = $(this).data('filepath');
-
 
         if (!contractNumber) {
             showError("Không tìm thấy mã hợp đồng.");

@@ -36,16 +36,17 @@ namespace WebApp.Controllers
             vnpay.AddRequestData("vnp_Command", "pay");
             vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
             vnpay.AddRequestData("vnp_Amount", amountInt.ToString());
+            vnpay.AddRequestData("vnp_BankCode", "VNBANK");
             vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
             vnpay.AddRequestData("vnp_CurrCode", "VND");
             vnpay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString());
             vnpay.AddRequestData("vnp_Locale", "vn");
+            vnpay.AddRequestData("vnp_OrderInfo", $"{orderInfo} | Email: {email}");
             vnpay.AddRequestData("vnp_OrderType", "other");
             vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
             vnpay.AddRequestData("vnp_TxnRef", orderId);
-            vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
-            vnpay.AddRequestData("vnp_OrderInfo", $"{orderInfo} | Email: {email}");
-            vnpay.AddRequestData("vnp_SecureHashType", "SHA512");
+            //vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
+           // vnpay.AddRequestData("vnp_SecureHashType", "SHA512");
 
             var url = vnpay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
             Console.WriteLine("URL redirect đến VNPAY: " + url); // hoặc log ra log file

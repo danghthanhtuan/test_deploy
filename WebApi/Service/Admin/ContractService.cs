@@ -270,7 +270,7 @@ namespace WebApi.Service.Admin
                         Enddate = (DateTime)CompanyAccountDTO.Enddate!,
                         ServiceTypeid = serviceType.Id,
                         Customerid = CompanyAccountDTO.CustomerId,
-                        Constatus = "Đã hoàn tất"
+                        Constatus = 5
                     };
                     var newPayment = new Payment
                     {

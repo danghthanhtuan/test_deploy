@@ -57,7 +57,7 @@ namespace WebApi.Service.Admin
                 try
                 {
                     // 8. Cập nhật trạng thái hợp đồng
-                    contract.Constatus = "Ký hoàn tất";
+                    contract.Constatus =3;
                     _context.Contracts.Update(contract);
 
                     // 9. Thêm thông tin file
@@ -67,7 +67,7 @@ namespace WebApi.Service.Admin
                         ConfileName = fileName,
                         FilePath = filePath,
                         UploadedAt = DateTime.Now,
-                        FileStatus = "Ký hoàn tất",
+                        FileStatus = 3,
                     };
                     _context.ContractFiles.Add(newContractfile);
 
@@ -75,8 +75,8 @@ namespace WebApi.Service.Admin
                     var newContractStatusHistory = new ContractStatusHistory
                     {
                         Contractnumber = contract.Contractnumber,
-                        OldStatus = "Chờ client ký",
-                        NewStatus = "Ký hoàn tất",
+                        OldStatus = 2,
+                        NewStatus = 3,
                         ChangedAt = DateTime.Now,
                         ChangedBy = email,
                     };
@@ -115,7 +115,7 @@ namespace WebApi.Service.Admin
                 join h in _context.Payments on contract.Contractnumber equals h.Contractnumber
                 where email == a.Rootaccount
                       && conFile.ConfileName == fileName
-                      && contract.Constatus == "Chờ client ký" || contract.Constatus == "Ký hoàn tất" 
+                      && contract.Constatus == 2 || contract.Constatus ==3
                 select new
                 {
                     FileName = conFile.ConfileName,

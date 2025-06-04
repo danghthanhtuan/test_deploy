@@ -28,8 +28,7 @@ CREATE TABLE ACCOUNT (
     RPHONENUMBER VARCHAR(10) NOT NULL UNIQUE, -- S?T
     DATEOFBIRTH DATETIME NOT NULL,           -- NGÀY SINH
     GENDER BIT NOT NULL,                     -- GI?I TÍNH (0: NAM, 1: N?)
-	IS_ACTIVE BIT, --0 Bản nháp, 1 bản duyệt
-
+	--IS_ACTIVE BIT, --0 Bản nháp, 1 bản duyệt
     CONSTRAINT FK_ACCOUNT_COMPANY FOREIGN KEY (CUSTOMERID) REFERENCES COMPANY(CUSTOMERID) ON DELETE CASCADE
 );
 
@@ -85,8 +84,7 @@ CREATE TABLE CONTRACTS (
     FOREIGN KEY (SERVICE_TYPEID) REFERENCES SERVICE_TYPE(ID),
     FOREIGN KEY (CUSTOMERID) REFERENCES COMPANY(CUSTOMERID),
 	IS_ACTIVE BIT NOT NULL, -- 0 NGỪNG HOẠT ĐỘNG, 1 HOẠT ĐỘNG
-	CONSTATUS NVARCHAR(50) --0: CHƯA KÝ, 1: Đã ký, 2. Chờ Client ký , 3 :Kyhoantat  4.Đã duyệt (chính thức),5: Gia hạn, 6: Bị từ chối  
-
+	CONSTATUS INT --0: CHƯA KÝ, 1: Đã ký, 2. Chờ Client ký , 3 :Kyhoantat 4 đã thanh toán 5.Đã duyệt (chính thức),6: Gia hạn, 7: Bị từ chối  
 	--cHỈ LẤY CÁI MỚI NHẤT TỪ CONTRACTFILE CHO HỢP ĐỒNG ĐÓ
 );
 
@@ -98,7 +96,7 @@ CREATE TABLE CONTRACT_FILES (
     CONFILE_NAME NVARCHAR(255) NOT NULL,
     FILE_PATH NVARCHAR(500) NOT NULL,
     UPLOADED_AT DATETIME DEFAULT GETDATE(),
-    FILE_STATUS  NVARCHAR(50), --0: CHƯA KÝ, 1: Đã ký, 2. Chờ Client ký , 3 :Kyhoantat  4.Đã duyệt (chính thức),5: Gia hạn, 6: Bị từ chối  
+    FILE_STATUS INT --0: CHƯA KÝ, 1: Đã ký, 2. Chờ Client ký , 3 :Kyhoantat 4 đã thanh toán 5.Đã duyệt (chính thức),6: Gia hạn, 7: Bị từ chối  
     FOREIGN KEY (CONTRACTNUMBER) REFERENCES CONTRACTS(CONTRACTNUMBER)
 );
 
@@ -106,8 +104,8 @@ CREATE TABLE CONTRACT_FILES (
 CREATE TABLE CONTRACT_STATUS_HISTORY (
     ID INT IDENTITY PRIMARY KEY,
     CONTRACTNUMBER VARCHAR(10) NOT NULL, --hợp đồng
-    OLD_STATUS NVARCHAR(50),
-    NEW_STATUS NVARCHAR(50),
+    OLD_STATUS INT,
+    NEW_STATUS INT,
     CHANGED_AT DATETIME DEFAULT GETDATE(),
     CHANGED_BY NVARCHAR(50),
     FOREIGN KEY (CONTRACTNUMBER) REFERENCES CONTRACTS(CONTRACTNUMBER),
@@ -140,7 +138,10 @@ CREATE TABLE REQUIREMENTS
 (
 	ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
 	REQUIREMENTSID VARCHAR(10) NOT NULL UNIQUE, --MÃ YÊU C?U
-	REQUIREMENTSSTATUS NVARCHAR(40) NOT NULL,--TR?NG THÁI YÊU C?U
+	--REQUIREMENTSSTATUS NVARCHAR(40) NOT NULL,--TR?NG THÁI YÊU C?U
+
+	REQUIREMENTSSTATUS INT NOT NULL,--TR?NG THÁI YÊU C?U
+
 	DATEOFREQUEST DATETIME,					--NGÀY T?O
 	DESCRIPTIONOFREQUEST NVARCHAR(MAX) NOT NULL   ,    --MÔ  TA YÊU C?U 
 	--CUSTOMERID VARCHAR(15) NOT NULL,			--MÃ KH
@@ -203,18 +204,39 @@ CREATE TABLE REVIEW_DETAIL (
 );
 
 --TẠO BẢNG QUẢN LÝ THANH TOÁN
-CREATE TABLE PAYMENT (
-    ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL, 
+--CREATE TABLE PAYMENT (
+--    ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL, 
+--    CONTRACTNUMBER VARCHAR(10) NOT NULL,  -- MÃ HỢP ĐỒNG
+--	 PAYMENTSTATUS BIT NOT NULL,           -- 0: CHƯA THANH TOÁN, 1: ĐÃ THANH TOÁN
+--	 AMOUNT DECIMAL(18,2) NOT NULL,        -- SỐ TIỀN THANH TOÁN
+--    PAYMENT_DATE DATETIME,                -- NGÀY THANH TOÁN
+--    TRANSACTION_CODE VARCHAR(50) NULL,	  -- MÃ GIAO DỊCH
+--    PAYMENT_METHOD NVARCHAR(50),          -- PHƯƠNG THỨC THANH TOÁN 
+--	PAYMENT_RESULT BIT DEFAULT 0		  --KẾT QUẢ GIAO DỊCH
+--   --FOREIGN KEY (CONTRACTNUMBER) REFERENCES CONTRACTS(CONTRACTNUMBER)
+--);
+
+--TẠO BẢNG QUẢN LÝ THANH TOÁN
+CREATE TABLE PAYMENT(
+    ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
     CONTRACTNUMBER VARCHAR(10) NOT NULL,  -- MÃ HỢP ĐỒNG
-    AMOUNT DECIMAL(18,2) NOT NULL,        -- SỐ TIỀN THANH TOÁN
-    PAYMENT_DATE DATETIME,                -- NGÀY THANH TOÁN
-    PAYMENT_METHOD NVARCHAR(50),          -- PHƯƠNG THỨC THANH TOÁN 
-    PAYMENTSTATUS BIT NOT NULL,           -- 0: CHƯA THANH TOÁN, 1: ĐÃ THANH TOÁN
-    TRANSACTION_CODE VARCHAR(50) NULL, -- MÃ GIAO DỊCH
+	AMOUNT DECIMAL(18,2) NOT NULL,        -- SỐ TIỀN THANH TOÁN
+	PAYMENTSTATUS BIT NOT NULL,           -- 0: CHƯA THANH TOÁN, 1: ĐÃ THANH TOÁN
     FOREIGN KEY (CONTRACTNUMBER) REFERENCES CONTRACTS(CONTRACTNUMBER)
-    
 );
 
+CREATE TABLE PAYMENT_TRANSACTION (
+    ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+    PAYMENT_ID INT NOT NULL,					-- Liên kết tới PAYMENT_PLAN
+    TRANSACTION_CODE VARCHAR(50)NOT NULL,       -- Mã giao dịch
+    PAYMENT_DATE DATETIME,                      -- Ngày giao dịch
+    PAYMENT_METHOD NVARCHAR(50),                -- Phương thức thanh toán
+    PAYMENT_RESULT BIT DEFAULT 0,               -- 0: Thất bại, 1: Thành công
+    AMOUNT DECIMAL(18,2) NOT NULL,              -- Số tiền thanh toán trong giao dịch này
+    FOREIGN KEY (PAYMENT_ID) REFERENCES PAYMENT(ID)
+);
+
+-- tạo bảng ưu đãi
 CREATE TABLE REGULATIONS
 (
 	ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL, 
@@ -308,6 +330,7 @@ values('Sta1', N'Nguyễn Thị Kim Liên', N'Quận 9', '2000-08-25', 'lien@gma
 INSERT INTO LOGINADMIN(STAFFID, USERNAMEAD, PASSWORDAD) VALUES ('Sta1', '0365812848','$2b$12$N1SXbDnA99tyVDL2ZbRKHeR59ou2F.O88hf9roeTrz.U4yHrswrye');
 INSERT INTO LOGINADMIN(STAFFID, USERNAMEAD, PASSWORDAD) VALUES ('Sta2', '0365812847','$2a$11$WhusSTM44fBBxah.J17CIObhHKylM7PfbFW7jddYDWJ.RjFQlzT1G');
 
+
 INSERT INTO ENDOW(ENDOWID,SERVICE_GROUPID,DISCOUNT,STARTDATE,ENDDATE)
 VALUES ('ENDOW00001','SER0001',5,'2024-08-25','2026-08-25')
 select * from endow
@@ -320,68 +343,70 @@ update endow set DISCOUNT = 5 where ENDOWID ='ENDOW00001'
 --nếu CONTRACT 1.200.000/ tháng
 --VIP tăng 30%
 
-INSERT INTO Company ( customerID, companyName, taxCode, companyAccount, accountIssuedDate, cPhoneNumber, cAddress, customerType,OPERATINGSTATUS) VALUES
-('IT03030001', N'TNHH Nam Á', '012345432', 'rireland0@answers.com', '2024-08-25', '0147258369', N'Đường Lê Lợi, quận 10', 0,0),
-('IT03030002', N'Công ty Cổ phần ABC', '012355432', 'contact@abc.com', '2024-09-10', '0147258370', N'123 Đường Trần Hưng Đạo, quận 1', 1,1),
-('IT03030003', N'Công ty TNHH XYZ', '012365432', 'info@xyz.com', '2024-10-05', '0147258371', N'456 Đường Nguyễn Huệ, quận 3', 0,0),
-('IT03030004', N'Công ty TNHH DEF', '012375432', 'support@def.com', '2024-11-15', '0147258372', N'789 Đường Lý Thường Kiệt, quận 5', 1,1),
-('IT03030005', N'Công ty Cổ phần GHI', '012385432', 'sales@ghi.com', '2024-12-20', '0147258373', N'321 Đường Phạm Ngũ Lão, quận 7', 0,0),
-('IT03030006', N'Công ty TNHH JKL', '012395432', 'contact@jkl.com', '2025-01-10', '0147258374', N'654 Đường Hai Bà Trưng, quận 2', 1,1),
-('IT03030007', N'Công ty Cổ phần MNO', '012405432', 'info@mno.com', '2025-02-05', '0147258375', N'987 Đường Lê Văn Sỹ, quận 4', 0,0),
-('IT03030008', N'Công ty TNHH PQR', '012415432', 'support@pqr.com', '2025-03-15', '0147258376', N'159 Đường Nguyễn Thị Minh Khai, quận 6', 1,1),
-('IT03030009', N'Công ty Cổ phần STU', '012425432', 'sales@stu.com', '2025-04-20', '0147258377', N'753 Đường Điện Biên Phủ, quận 8', 0,0),
-('IT03030010', N'Công ty TNHH VWX', '012435432', 'contact@vwx.com', '2025-05-25', '0147258378', N'852 Đường Phan Đình Phùng, quận 9', 1,1),
-('IT03030011', N'Công ty Cổ phần YZA', '012445432', 'info@yza.com', '2025-06-30', '0147258379', N'951 Đường Hoàng Văn Thụ, quận 11', 0,0),
-('IT03030012', N'Công ty TNHH BCD', '012455432', 'support@bcd.com', '2025-07-05', '0147258380', N'159 Đường Lý Chính Thắng, quận 12', 1,1),
-('IT03030013', N'Công ty Cổ phần EFG', '012465432', 'sales@efg.com', '2025-08-10', '0147258381', N'357 Đường Nam Kỳ Khởi Nghĩa, quận Bình Thạnh', 0,0),
-('IT03030014', N'Công ty TNHH HIJ', '012475432', 'contact@hij.com', '2025-09-15', '0147258382', N'753 Đường Võ Thị Sáu, quận Phú Nhuận', 1,1),
-('IT03030015', N'Công ty Cổ phần KLM', '012485432', 'info@klm.com', '2025-10-20', '0147258383', N'456 Đường Nguyễn Văn Trỗi, quận Tân Bình', 0,0);
+--INSERT INTO Company ( customerID, companyName, taxCode, companyAccount, accountIssuedDate, cPhoneNumber, cAddress, customerType,OPERATINGSTATUS) VALUES
+--('IT03030001', N'TNHH Nam Á', '012345432', 'rireland0@answers.com', '2024-08-25', '0147258369', N'Đường Lê Lợi, quận 10', 0,0),
+--('IT03030002', N'Công ty Cổ phần ABC', '012355432', 'contact@abc.com', '2024-09-10', '0147258370', N'123 Đường Trần Hưng Đạo, quận 1', 1,1),
+--('IT03030003', N'Công ty TNHH XYZ', '012365432', 'info@xyz.com', '2024-10-05', '0147258371', N'456 Đường Nguyễn Huệ, quận 3', 0,0),
+--('IT03030004', N'Công ty TNHH DEF', '012375432', 'support@def.com', '2024-11-15', '0147258372', N'789 Đường Lý Thường Kiệt, quận 5', 1,1),
+--('IT03030005', N'Công ty Cổ phần GHI', '012385432', 'sales@ghi.com', '2024-12-20', '0147258373', N'321 Đường Phạm Ngũ Lão, quận 7', 0,0),
+--('IT03030006', N'Công ty TNHH JKL', '012395432', 'contact@jkl.com', '2025-01-10', '0147258374', N'654 Đường Hai Bà Trưng, quận 2', 1,1),
+--('IT03030007', N'Công ty Cổ phần MNO', '012405432', 'info@mno.com', '2025-02-05', '0147258375', N'987 Đường Lê Văn Sỹ, quận 4', 0,0),
+--('IT03030008', N'Công ty TNHH PQR', '012415432', 'support@pqr.com', '2025-03-15', '0147258376', N'159 Đường Nguyễn Thị Minh Khai, quận 6', 1,1),
+--('IT03030009', N'Công ty Cổ phần STU', '012425432', 'sales@stu.com', '2025-04-20', '0147258377', N'753 Đường Điện Biên Phủ, quận 8', 0,0),
+--('IT03030010', N'Công ty TNHH VWX', '012435432', 'contact@vwx.com', '2025-05-25', '0147258378', N'852 Đường Phan Đình Phùng, quận 9', 1,1),
+--('IT03030011', N'Công ty Cổ phần YZA', '012445432', 'info@yza.com', '2025-06-30', '0147258379', N'951 Đường Hoàng Văn Thụ, quận 11', 0,0),
+--('IT03030012', N'Công ty TNHH BCD', '012455432', 'support@bcd.com', '2025-07-05', '0147258380', N'159 Đường Lý Chính Thắng, quận 12', 1,1),
+--('IT03030013', N'Công ty Cổ phần EFG', '012465432', 'sales@efg.com', '2025-08-10', '0147258381', N'357 Đường Nam Kỳ Khởi Nghĩa, quận Bình Thạnh', 0,0),
+--('IT03030014', N'Công ty TNHH HIJ', '012475432', 'contact@hij.com', '2025-09-15', '0147258382', N'753 Đường Võ Thị Sáu, quận Phú Nhuận', 1,1),
+--('IT03030015', N'Công ty Cổ phần KLM', '012485432', 'info@klm.com', '2025-10-20', '0147258383', N'456 Đường Nguyễn Văn Trỗi, quận Tân Bình', 0,0);
 
-INSERT INTO Account (customerID, rootAccount, rootName, rPhoneNumber, dateOfBirth, gender) VALUES
-('IT03030001', 'nam.a@domain.com', N'Nguyễn Văn Huy', '0912345671',  '1985-05-15', 0),
-('IT03030002', 'abc@domain.com', N'Trần Quốc Khang', '0912345672',  '1990-08-22', 0),
-('IT03030003', 'xyz@domain.com', N'Lê Hoàng Bảo', '0912345673',  '1987-12-05', 0),
-('IT03030004', 'def@domain.com', N'Phạm Minh Anh', '0912345674',  '1992-03-18', 1),
-('IT03030005', 'ghi@domain.com', N'Hoàng Gia Hân', '0912345675',  '1989-07-30', 1),
-('IT03030006', 'jkl@domain.com', N'Vũ Tuấn Khoa', '0912345676',  '1991-11-11', 0),
-('IT03030007', 'mno@domain.com', N'Đặng Thế Phát', '0912345677',  '1986-02-25', 0),
-('IT03030008', 'pqr@domain.com', N'Bùi Đình Đạt', '0912345678',  '1993-09-09', 0),
-('IT03030009', 'stu@domain.com', N'Ngô Khánh Lan', '0912345679',  '1988-06-21', 1),
-('IT03030010', 'vwx@domain.com', N'Đỗ Văn Long', '0912345680',  '1994-04-14', 0),
-('IT03030011', 'yz@domain.com', N'Phan Minh Nam', '0912345681',  '1990-10-10', 0),
-('IT03030012', 'abc2@domain.com', N'Nguyễn Ngọc Bảo Nhi', '0912345682', '1985-01-20', 1),
-('IT03030013', 'def2@domain.com', N'Trần Văn Quân', '0912345683',  '1992-05-25', 0),
-('IT03030014', 'ghi2@domain.com', N'Lê Thành Kim Yến', '0912345684', '1987-08-08', 1),
-('IT03030015', 'jkl2@domain.com', N'Phạm Hữu Thịnh', '0912342685',  '1991-12-12', 0);
+--INSERT INTO Account (customerID, rootAccount, rootName, rPhoneNumber, dateOfBirth, gender) VALUES
+--('IT03030001', 'nam.a@domain.com', N'Nguyễn Văn Huy', '0912345671',  '1985-05-15', 0),
+--('IT03030002', 'abc@domain.com', N'Trần Quốc Khang', '0912345672',  '1990-08-22', 0),
+--('IT03030003', 'xyz@domain.com', N'Lê Hoàng Bảo', '0912345673',  '1987-12-05', 0),
+--('IT03030004', 'def@domain.com', N'Phạm Minh Anh', '0912345674',  '1992-03-18', 1),
+--('IT03030005', 'ghi@domain.com', N'Hoàng Gia Hân', '0912345675',  '1989-07-30', 1),
+--('IT03030006', 'jkl@domain.com', N'Vũ Tuấn Khoa', '0912345676',  '1991-11-11', 0),
+--('IT03030007', 'mno@domain.com', N'Đặng Thế Phát', '0912345677',  '1986-02-25', 0),
+--('IT03030008', 'pqr@domain.com', N'Bùi Đình Đạt', '0912345678',  '1993-09-09', 0),
+--('IT03030009', 'stu@domain.com', N'Ngô Khánh Lan', '0912345679',  '1988-06-21', 1),
+--('IT03030010', 'vwx@domain.com', N'Đỗ Văn Long', '0912345680',  '1994-04-14', 0),
+--('IT03030011', 'yz@domain.com', N'Phan Minh Nam', '0912345681',  '1990-10-10', 0),
+--('IT03030012', 'abc2@domain.com', N'Nguyễn Ngọc Bảo Nhi', '0912345682', '1985-01-20', 1),
+--('IT03030013', 'def2@domain.com', N'Trần Văn Quân', '0912345683',  '1992-05-25', 0),
+--('IT03030014', 'ghi2@domain.com', N'Lê Thành Kim Yến', '0912345684', '1987-08-08', 1),
+--('IT03030015', 'jkl2@domain.com', N'Phạm Hữu Thịnh', '0912342685',  '1991-12-12', 0);
 
-INSERT INTO REQUIREMENTS (requirementsID, requirementsStatus, dateOfRequest, descriptionOfRequest, customerID) VALUES
-('RS0001', N'Yêu cầu hỗ trợ','2025-01-01',N'Gọi điện thoại trước khi đến','IT03030001'),
-('RS0002', N'Yêu cầu hỗ trợ','2025-01-01',N'Gọi điện thoại trước khi đến','IT03030002'),
-('RS0003', N'Yêu cầu hỗ trợ','2025-01-05',N'Gọi điện thoại trước khi đến','IT03030003'),
-('RS0004', N'Yêu cầu hỗ trợ','2025-01-07',N'Gọi điện thoại trước khi đến','IT03030004'),
-('RS0005', N'Yêu cầu hỗ trợ','2025-01-07',N'Gọi điện thoại trước khi đến','IT03030005'),
-('RS0006', N'Yêu cầu hỗ trợ','2025-01-09', N'Gọi điện thoại trước khi đến','IT03030006'),
-('RS0007', N'Yêu cầu hỗ trợ','2025-01-11',N'Gọi điện thoại trước khi đến','IT03030007'),
-('RS0008', N'Yêu cầu hỗ trợ','2025-01-012',N'Gọi điện thoại trước khi đến','IT03030008'),
-('RS0009', N'Yêu cầu hỗ trợ','2025-01-15',N'Gọi điện thoại trước khi đến','IT03030009'),
-('RS0010', N'Yêu cầu hỗ trợ','2025-02-01',N'Gọi điện thoại trước khi đến','IT03030010');
+--INSERT INTO REQUIREMENTS (requirementsID, requirementsStatus, dateOfRequest, descriptionOfRequest, customerID) VALUES
+--('RS0001', N'Yêu cầu hỗ trợ','2025-01-01',N'Gọi điện thoại trước khi đến','IT03030001'),
+--('RS0002', N'Yêu cầu hỗ trợ','2025-01-01',N'Gọi điện thoại trước khi đến','IT03030002'),
+--('RS0003', N'Yêu cầu hỗ trợ','2025-01-05',N'Gọi điện thoại trước khi đến','IT03030003'),
+--('RS0004', N'Yêu cầu hỗ trợ','2025-01-07',N'Gọi điện thoại trước khi đến','IT03030004'),
+--('RS0005', N'Yêu cầu hỗ trợ','2025-01-07',N'Gọi điện thoại trước khi đến','IT03030005'),
+--('RS0006', N'Yêu cầu hỗ trợ','2025-01-09', N'Gọi điện thoại trước khi đến','IT03030006'),
+--('RS0007', N'Yêu cầu hỗ trợ','2025-01-11',N'Gọi điện thoại trước khi đến','IT03030007'),
+--('RS0008', N'Yêu cầu hỗ trợ','2025-01-012',N'Gọi điện thoại trước khi đến','IT03030008'),
+--('RS0009', N'Yêu cầu hỗ trợ','2025-01-15',N'Gọi điện thoại trước khi đến','IT03030009'),
+--('RS0010', N'Yêu cầu hỗ trợ','2025-02-01',N'Gọi điện thoại trước khi đến','IT03030010');
 
-INSERT INTO CONTRACTS (CONTRACTNUMBER,STARTDATE,ENDDATE,SERVICE_TYPEName,CUSTOMERID) VALUES
-('SV0001','2025-01-01','2025-09-01',N'Đầu số thoại','IT03030001'),
-('SV0002','2025-01-01','2025-09-01',N'An toàn thông tin','IT03030002'),
-('SV0003','2025-01-02','2025-09-02',N'Cloud partner','IT03030003'),
-('SV0004','2025-01-02','2025-10-02',N'Dịch vụ điện tử','IT03030004'),
-('SV0005','2025-01-04','2025-10-04',N'Dịch vụ phần mềm (SaaS)','IT03030005'),
-('SV0006','2025-01-05','2025-11-05',N'Điện toán đám mây','IT03030006'),
-('SV0007','2025-01-07','2025-12-07',N'Giám sát','IT03030007'),
-('SV0008','2025-01-09','2025-12-09',N'Trung tâm dữ liệu','IT03030008'),
-('SV0009','2025-01-15','2026-01-15',N'Thiết bị','IT03030009'),
-('SV0010','2025-01-20','2026-01-20',N'Hội nghị truyền hình','IT03030010'),
-('SV0011','2025-02-01','2026-02-01',N'Kênh truyền','IT03030011'),
-('SV0012','2025-02-01','2026-02-01',N'Tin nhắn','IT03030012'),
-('SV0013','2025-02-05','2026-02-05',N'Tổng đài','IT03030013'),
-('SV0014','2025-02-08','2026-02-08',N'Hỗ trợ CNTT','IT03030014'),
-('SV0015','2025-02-09','2026-02-09',N'Hợp đồng tích hợp/dự án','IT03030015');
+--INSERT INTO CONTRACTS (CONTRACTNUMBER,STARTDATE,ENDDATE,SERVICE_TYPEName,CUSTOMERID) VALUES
+--('SV0001','2025-01-01','2025-09-01',N'Đầu số thoại','IT03030001'),
+--('SV0002','2025-01-01','2025-09-01',N'An toàn thông tin','IT03030002'),
+--('SV0003','2025-01-02','2025-09-02',N'Cloud partner','IT03030003'),
+--('SV0004','2025-01-02','2025-10-02',N'Dịch vụ điện tử','IT03030004'),
+--('SV0005','2025-01-04','2025-10-04',N'Dịch vụ phần mềm (SaaS)','IT03030005'),
+--('SV0006','2025-01-05','2025-11-05',N'Điện toán đám mây','IT03030006'),
+--('SV0007','2025-01-07','2025-12-07',N'Giám sát','IT03030007'),
+--('SV0008','2025-01-09','2025-12-09',N'Trung tâm dữ liệu','IT03030008'),
+--('SV0009','2025-01-15','2026-01-15',N'Thiết bị','IT03030009'),
+--('SV0010','2025-01-20','2026-01-20',N'Hội nghị truyền hình','IT03030010'),
+--('SV0011','2025-02-01','2026-02-01',N'Kênh truyền','IT03030011'),
+--('SV0012','2025-02-01','2026-02-01',N'Tin nhắn','IT03030012'),
+--('SV0013','2025-02-05','2026-02-05',N'Tổng đài','IT03030013'),
+--('SV0014','2025-02-08','2026-02-08',N'Hỗ trợ CNTT','IT03030014'),
+--('SV0015','2025-02-09','2026-02-09',N'Hợp đồng tích hợp/dự án','IT03030015');
+
+--update  contracts set constatus ='Ký hoàn tất' where CONTRACTNUMBER = 'SV0001'
 
 	select * from company 
 	select * from Account 
@@ -393,9 +418,6 @@ select * from contracts
 select * from LOGINclient
 select * from RESETPASSWORD
 select * from endow
-
-update  contracts set constatus ='Ký hoàn tất' where CONTRACTNUMBER = 'SV0001'
-
 
 DELETE FROM CONTRACT_STATUS_HISTORY WHERE CONTRACTNUMBER = 'SV0001'
 DELETE FROM CONTRACT_FILES WHERE CONTRACTNUMBER = 'SV0001' 

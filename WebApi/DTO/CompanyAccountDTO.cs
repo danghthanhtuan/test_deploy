@@ -87,7 +87,7 @@
         public string ChangedBy { get; set; }
         public decimal Amount { get; set; }
         public string? Original { get; set; }
-        public string? Constatus { get; set; }
+        public int? Constatus { get; set; }
 
     }
     public class SignAdminRequest

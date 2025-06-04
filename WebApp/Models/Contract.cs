@@ -23,7 +23,7 @@ public partial class Contract
 
     public bool IsActive { get; set; }
 
-    public string? Constatus { get; set; }
+    public int? Constatus { get; set; }
 
     public virtual ICollection<ContractFile> ContractFiles { get; set; } = new List<ContractFile>();
 

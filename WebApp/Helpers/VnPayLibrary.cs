@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
@@ -43,27 +44,27 @@ namespace WebApp.Helpers
 
         public string CreateRequestUrl(string baseUrl, string vnp_HashSecret)
         {
-            var queryString = new StringBuilder();
-            var rawData = new StringBuilder();
-
-            var sortedData = _requestData
-                .Where(kv => !string.IsNullOrEmpty(kv.Value))
-                .OrderBy(kv => kv.Key);
-
-            foreach (var kv in sortedData)
+            var orderedByKey = _requestData.OrderBy(kv => kv.Key);
+            StringBuilder data = new StringBuilder();
+            foreach (KeyValuePair<string, string> kv in orderedByKey)
             {
-                queryString.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
-                rawData.Append(kv.Key + "=" + kv.Value + "&");
+                if (!String.IsNullOrEmpty(kv.Value))
+                {
+                    data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
+                }
             }
+            string queryString = data.ToString();
 
-            // Xoá dấu & cuối
-            if (queryString.Length > 0) queryString.Length -= 1;
-            if (rawData.Length > 0) rawData.Length -= 1;
+            baseUrl += "?" + queryString;
+            String signData = queryString;
+            if (signData.Length > 0)
+            {
+                signData = signData.Remove(data.Length - 1, 1);
+            }
+            string vnp_SecureHash = Utils.HmacSHA512(vnp_HashSecret, signData);
+            baseUrl += "vnp_SecureHash=" + vnp_SecureHash;
 
-            string vnp_SecureHash = HmacSHA512(vnp_HashSecret, rawData.ToString());
-
-            // Thêm SHA512 type vào URL (VNPay yêu cầu)
-            return $"{baseUrl}?{queryString}&vnp_SecureHashType=SHA512&vnp_SecureHash={vnp_SecureHash}";
+            return baseUrl;
         }
 
         #endregion
@@ -115,6 +116,37 @@ namespace WebApp.Helpers
             return hash.ToString();
         }
 
+        public class Utils
+        {
+            public static String HmacSHA512(string key, String inputData)
+            {
+                var hash = new StringBuilder();
+                byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+                byte[] inputBytes = Encoding.UTF8.GetBytes(inputData);
+                using (var hmac = new HMACSHA512(keyBytes))
+                {
+                    byte[] hashValue = hmac.ComputeHash(inputBytes);
+                    foreach (var theByte in hashValue)
+                    {
+                        hash.Append(theByte.ToString("x2"));
+                    }
+                }
+
+                return hash.ToString();
+            }
+        }
+
+        public class VnPayCompare : IComparer<string>
+        {
+            public int Compare(string x, string y)
+            {
+                if (x == y) return 0;
+                if (x == null) return -1;
+                if (y == null) return 1;
+                var vnpCompare = CompareInfo.GetCompareInfo("en-US");
+                return vnpCompare.Compare(x, y, CompareOptions.Ordinal);
+            }
+        }
         #endregion
     }
 }

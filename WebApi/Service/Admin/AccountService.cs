@@ -442,7 +442,6 @@ namespace WebApi.Service.Admin
                         Rphonenumber = dto.RPhoneNumber,
                         Dateofbirth = (DateTime)dto.DateOfBirth!,
                         Gender = dto.Gender,
-                        IsActive = false,
                     };
                     _context.Accounts.Add(newAccount);
 
@@ -475,7 +474,7 @@ namespace WebApi.Service.Admin
                         Customerid = newCustomerID,
                         Customertype = dto.CustomerType,
                         IsActive = false,
-                        Constatus = "Chưa ký"
+                        Constatus = 0
                     };
                     var newPayment = new Payment
                     {
@@ -492,14 +491,14 @@ namespace WebApi.Service.Admin
                         ConfileName = dto.ConfileName, 
                         FilePath = dto.FilePath,
                         UploadedAt = DateTime.Now,
-                        FileStatus = "Chưa ký",
+                        FileStatus = 0,
                     };
 
                     var newContractStatusHistory = new ContractStatusHistory
                     {
                         Contractnumber = newContractNumber,
-                        OldStatus ="",
-                        NewStatus = "Chưa ký", 
+                        OldStatus =0,
+                        NewStatus = 0, 
                         ChangedAt = DateTime.Now,
                         ChangedBy = dto.ChangedBy,
                     };
@@ -543,7 +542,8 @@ namespace WebApi.Service.Admin
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in fileJoin on b.Contractnumber equals h.Contractnumber
                         where c.IsActive == false &&
-                                (b.Constatus=="Chưa ký"||b.Constatus == "Đã ký" ||b.Constatus=="Chờ client ký"|| b.Constatus == "Ký hoàn tất" || b.Constatus == "Đã thanh toán")
+                                //(b.Constatus=="Chưa ký"||b.Constatus == "Đã ký" ||b.Constatus=="Chờ client ký"|| b.Constatus == "Ký hoàn tất" || b.Constatus == "Đã thanh toán")
+                                (b.Constatus==0||b.Constatus == 1 ||b.Constatus==2|| b.Constatus == 3 || b.Constatus == 4)
                         select new CompanyContractDTOs
                         {
                             ContractNumber = b.Contractnumber,
@@ -603,7 +603,7 @@ namespace WebApi.Service.Admin
                     var oldStatus = contract.Constatus;
 
                     // Cập nhật trạng thái hợp đồng
-                    contract.Constatus = "Đã ký";
+                    contract.Constatus = 1;
                     _context.Contracts.Update(contract);
 
                     // Thêm thông tin file (không lưu file nữa, chỉ lưu tên và đường dẫn hiện tại)
@@ -613,7 +613,7 @@ namespace WebApi.Service.Admin
                         ConfileName = Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
                         FilePath = request.FilePath,
                         UploadedAt = DateTime.Now,
-                        FileStatus = "Đã ký",
+                        FileStatus = 1,
                     };
                     _context.ContractFiles.Add(newContractFile);
 
@@ -622,7 +622,7 @@ namespace WebApi.Service.Admin
                     {
                         Contractnumber = contract.Contractnumber,
                         OldStatus = oldStatus,
-                        NewStatus = "Đã ký",
+                        NewStatus = 1,
                         ChangedAt = DateTime.Now,
                         ChangedBy = request.StaffId,
                     };
@@ -666,7 +666,7 @@ namespace WebApi.Service.Admin
                     var oldStatus = contract.Constatus;
 
                     // Cập nhật trạng thái hợp đồng
-                    contract.Constatus = "Chờ client ký";
+                    contract.Constatus = 2;
                     _context.Contracts.Update(contract);
 
                     // Thêm thông tin file (không lưu file nữa, chỉ lưu tên và đường dẫn hiện tại)
@@ -676,7 +676,7 @@ namespace WebApi.Service.Admin
                         ConfileName = Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
                         FilePath = request.FilePath,
                         UploadedAt = DateTime.Now,
-                        FileStatus = "Chờ client ký",
+                        FileStatus = 2,
                     };
                     _context.ContractFiles.Add(newContractFile);
 
@@ -685,7 +685,7 @@ namespace WebApi.Service.Admin
                     {
                         Contractnumber = contract.Contractnumber,
                         OldStatus = oldStatus,
-                        NewStatus = "Chờ client ký",
+                        NewStatus = 2,
                         ChangedAt = DateTime.Now,
                         ChangedBy = request.StaffId,
                     };
@@ -731,8 +731,7 @@ namespace WebApi.Service.Admin
                     // Cập nhật dữ liệu
                     company.IsActive = true;
                     company.Accountissueddate = DateTime.Now;
-                    account.IsActive = true;
-                    contract.Constatus = "Đã duyệt";
+                    contract.Constatus = 5;
                     contract.IsActive = true;
 
                     _context.Companies.Update(company);
@@ -745,7 +744,7 @@ namespace WebApi.Service.Admin
                         ConfileName = Path.GetFileName(request.FilePath),
                         FilePath = request.FilePath,
                         UploadedAt = DateTime.Now,
-                        FileStatus = "Đã duyệt"
+                        FileStatus = 5
                     };
                     _context.ContractFiles.Add(newContractFile);
 
@@ -753,7 +752,7 @@ namespace WebApi.Service.Admin
                     {
                         Contractnumber = contract.Contractnumber,
                         OldStatus = oldStatus,
-                        NewStatus = "Đã duyệt",
+                        NewStatus = 5,
                         ChangedAt = DateTime.Now,
                         ChangedBy = request.StaffId,
                     };

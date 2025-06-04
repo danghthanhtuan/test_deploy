@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Transactions;
 using WebApi.Models;
 
 namespace WebApi.Service.Admin
@@ -20,24 +21,36 @@ namespace WebApi.Service.Admin
 
             if (payment == null) return false;
 
-            payment.PaymentDate = DateTime.Now;
-            payment.PaymentMethod = phuongThuc;
-            payment.Paymentstatus = true;
-            payment.TransactionCode = maGiaoDich;
-            _context.Payments.Update(payment);
+            //payment.PaymentDate = DateTime.Now;
+            //payment.PaymentMethod = phuongThuc;
+            //payment.Paymentstatus = true;
+            //payment.TransactionCode = maGiaoDich;
+            //_context.Payments.Update(payment);
+
+            var newPayment = new PaymentTransaction
+            {
+                Id = payment.Id,
+                TransactionCode = maGiaoDich,
+                PaymentDate = DateTime.Now,
+                PaymentMethod = phuongThuc,
+                PaymentResult = true,
+                Amount = payment.Amount,
+            };
+            _context.PaymentTransactions.Add(newPayment);
+
 
             var contract = _context.Contracts.FirstOrDefault(c => c.Contractnumber == maHopDong);
             if (contract != null)
             {
-                contract.Constatus = "Đã thanh toán";
+                contract.Constatus = 4;
             }
             _context.Contracts.Update(contract);
 
             var newContractStatusHistory = new ContractStatusHistory
             {
                 Contractnumber = maHopDong,
-                OldStatus = "Ký hoàn tất",
-                NewStatus = "Đã thanh toán",
+                OldStatus = 3,
+                NewStatus = 4,
                 ChangedAt = DateTime.Now,
                 ChangedBy = email
             };
@@ -50,7 +63,7 @@ namespace WebApi.Service.Admin
                 ConfileName = contractfile.ConfileName, 
                 FilePath = contractfile.FilePath,
                 UploadedAt = DateTime.Now,
-                FileStatus = "Đã thanh toán"
+                FileStatus = 4
             };
             _context.ContractFiles.Add(contractfileS);
             _context.SaveChanges();
