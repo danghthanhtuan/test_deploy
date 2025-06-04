@@ -148,6 +148,7 @@ builder.Services.AddTransient<ContractService>();
 builder.Services.AddTransient<RegulationsService>();
 builder.Services.AddTransient<AccountContractService>();
 builder.Services.AddTransient<AccountService>();
+builder.Services.AddTransient<ContractsManagementService>();
 
 builder.Services.AddTransient<StaffService>();
 builder.Services.AddTransient<PdfService>();
