@@ -15,4 +15,18 @@
         public string contractnumber { get; set; }
         public decimal amount { get; set; }
     }
+
+    public class ThanhToanRequest
+    {
+        public string ID { get; set; }
+        public string MaGiaoDich { get; set; }
+        public string PhuongThuc { get; set; }
+        public string TinhTrang { get; set; } // "Thanh cong" hoặc "That bai"
+    }
+    public class PaymentCreateRequest
+    {
+        public decimal SoTien { get; set; }
+        public string MaHopDong { get; set; }
+    }
+
 }

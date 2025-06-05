@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Transactions;
+using WebApi.DTO;
 using WebApi.Models;
 
 namespace WebApi.Service.Admin
@@ -14,58 +15,93 @@ namespace WebApi.Service.Admin
             _context = context;
         }
 
-        public bool ThanhToan(string maHopDong, string maGiaoDich, string email, string phuongThuc)
+        public async Task<PaymentTransaction> CreatePaymentAsync(PaymentCreateRequest request)
         {
             var payment = _context.Payments.FirstOrDefault(p =>
-                p.Contractnumber == maHopDong && p.Paymentstatus == false);
+                p.Contractnumber == request.MaHopDong && p.Paymentstatus == false);
+            if (payment == null)
+                throw new Exception("Không tìm thấy hợp đồng hợp lệ.");
+            var paymenttran = new PaymentTransaction
+            {
+                Amount = request.SoTien,
+                PaymentId = payment.Id
+            };
 
+            _context.PaymentTransactions.Add(paymenttran);
+            await _context.SaveChangesAsync();
+
+            return paymenttran;
+        }
+
+        public bool ThanhToan(string ID, string maGiaoDich,  string phuongThuc, string tinhTrang)
+        {
+            if (!int.TryParse(ID, out int idInt))
+            {
+                return false;
+            }
+
+            var paymenttransaction = _context.PaymentTransactions
+                .FirstOrDefault(p => p.Id == idInt);
+
+            var payment = _context.Payments.FirstOrDefault(p=> p.Id == paymenttransaction.PaymentId);
             if (payment == null) return false;
 
-            //payment.PaymentDate = DateTime.Now;
-            //payment.PaymentMethod = phuongThuc;
-            //payment.Paymentstatus = true;
-            //payment.TransactionCode = maGiaoDich;
-            //_context.Payments.Update(payment);
-
-            var newPayment = new PaymentTransaction
+            bool PaymentResultint;
+            if (tinhTrang =="Thanh cong")
             {
-                Id = payment.Id,
-                TransactionCode = maGiaoDich,
-                PaymentDate = DateTime.Now,
-                PaymentMethod = phuongThuc,
-                PaymentResult = true,
-                Amount = payment.Amount,
-            };
-            _context.PaymentTransactions.Add(newPayment);
-
-
-            var contract = _context.Contracts.FirstOrDefault(c => c.Contractnumber == maHopDong);
-            if (contract != null)
+               PaymentResultint = true;
+            }   
+            else
             {
-                contract.Constatus = 4;
+                PaymentResultint = false;
             }
-            _context.Contracts.Update(contract);
 
-            var newContractStatusHistory = new ContractStatusHistory
-            {
-                Contractnumber = maHopDong,
-                OldStatus = 3,
-                NewStatus = 4,
-                ChangedAt = DateTime.Now,
-                ChangedBy = email
-            };
-            _context.ContractStatusHistories.Add(newContractStatusHistory);
+            paymenttransaction.TransactionCode = maGiaoDich;
+            paymenttransaction.PaymentDate = DateTime.Now;
+            paymenttransaction.PaymentMethod = phuongThuc;
+            paymenttransaction.PaymentResult = PaymentResultint;
+            
+            _context.PaymentTransactions.Update(paymenttransaction);
 
-            var contractfile = _context.ContractFiles.FirstOrDefault(c => c.Contractnumber == maHopDong);
-            var contractfileS = new ContractFile
+            if (tinhTrang == "Thanh cong")
             {
-                Contractnumber = maHopDong,
-                ConfileName = contractfile.ConfileName, 
-                FilePath = contractfile.FilePath,
-                UploadedAt = DateTime.Now,
-                FileStatus = 4
-            };
-            _context.ContractFiles.Add(contractfileS);
+                payment.Paymentstatus = true;
+                _context.Payments.Update(payment);
+
+                var contract = _context.Contracts.FirstOrDefault(c => c.Contractnumber == payment.Contractnumber);
+                var account = _context.Accounts.FirstOrDefault(c => c.Customerid == contract.Customerid);
+
+                if (contract != null)
+                {
+                    contract.Constatus = 4; // Đã thanh toán
+                    _context.Contracts.Update(contract);    
+
+                    var statusHistory = new ContractStatusHistory
+                    {
+                        Contractnumber = payment.Contractnumber,
+                        OldStatus = 3,
+                        NewStatus = 4,
+                        ChangedAt = DateTime.Now,
+                        ChangedBy = account.Rootaccount
+                    };
+                    _context.ContractStatusHistories.Add(statusHistory);
+
+                    var oldContractFile = _context.ContractFiles.FirstOrDefault(c => c.Contractnumber == payment.Contractnumber);
+                    if (oldContractFile != null)
+                    {
+                        var newContractFile = new ContractFile
+                        {
+                            Contractnumber = payment.Contractnumber,
+                            ConfileName = oldContractFile.ConfileName,
+                            FilePath = oldContractFile.FilePath,
+                            UploadedAt = DateTime.Now,
+                            FileStatus = 4
+                        };
+                        _context.ContractFiles.Add(newContractFile);
+                    }
+                }
+            }
+
             _context.SaveChanges();
             return true;
         }

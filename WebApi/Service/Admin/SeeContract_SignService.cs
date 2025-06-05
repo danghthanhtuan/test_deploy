@@ -115,7 +115,7 @@ namespace WebApi.Service.Admin
                 join h in _context.Payments on contract.Contractnumber equals h.Contractnumber
                 where email == a.Rootaccount
                       && conFile.ConfileName == fileName
-                      && contract.Constatus == 2 || contract.Constatus ==3
+                      && (contract.Constatus == 2 || contract.Constatus ==3 || contract.Constatus == 4)
                 select new
                 {
                     FileName = conFile.ConfileName,

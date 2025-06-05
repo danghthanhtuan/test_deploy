@@ -78,7 +78,10 @@ namespace WebApp.Helpers
                 .OrderBy(kvp => kvp.Key)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            var rawData = string.Join("&", sorted.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+            //var rawData = string.Join("&", sorted.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+            var rawData = string.Join("&", sorted.Select(kvp =>
+    $"{WebUtility.UrlEncode(kvp.Key)}={WebUtility.UrlEncode(kvp.Value)}"));
+
             var computedHash = HmacSHA512(hashSecret, rawData);
 
             return string.Equals(computedHash, inputHash, StringComparison.InvariantCultureIgnoreCase);

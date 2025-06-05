@@ -7,9 +7,9 @@ public partial class PaymentTransaction
 {
     public int Id { get; set; }
 
-    public int PaymentId { get; set; }
+    public int? PaymentId { get; set; }
 
-    public string TransactionCode { get; set; } = null!;
+    public string? TransactionCode { get; set; }
 
     public DateTime? PaymentDate { get; set; }
 
@@ -17,7 +17,7 @@ public partial class PaymentTransaction
 
     public bool? PaymentResult { get; set; }
 
-    public decimal Amount { get; set; }
+    public decimal? Amount { get; set; }
 
-    public virtual Payment Payment { get; set; } = null!;
+    public virtual Payment? Payment { get; set; }
 }

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using System.Text.RegularExpressions;
 using NuGet.Protocol;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebApp.Areas.Controllers
 {
@@ -39,8 +40,7 @@ namespace WebApp.Areas.Controllers
                     if (!response.IsSuccessStatusCode)
                     {
                         ViewBag.ErrorMessage = "Không tìm thấy hợp đồng hoặc lỗi hệ thống.";
-
-                        return View(null);
+                        return View("Error");
                     }
                     var jsonString = await response.Content.ReadAsStringAsync();
                     var hopDong = JsonConvert.DeserializeObject<StatusSignClient>(jsonString);
@@ -51,13 +51,18 @@ namespace WebApp.Areas.Controllers
                         return View("Error");
                     }
 
-                    if (hopDong.status == "Chờ client ký")
+                    if (hopDong.status == 2)
                     {
                         return View(); // index.cshtml
                     }
-                    else if (hopDong.status == "Ký hoàn tất")
+                    else if (hopDong.status == 3)
                     {
                         return View("~/Views/SeeContract/Payment.cshtml", hopDong); 
+                    }
+                    else if (hopDong.status == 4)
+                    {
+                        ViewBag.ErrorMessage = "Không thể truy cập Hợp đồng đã được thanh toán .";
+                        return View("Error");
                     }
                     ViewBag.ErrorMessage = "Trạng thái hợp đồng không xác định.";
                     return View("Error");

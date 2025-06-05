@@ -1,0 +1,12 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutGuest.cshtml";
+    ViewData["Title"] = "Lỗi thanh toán";
+}
+
+<div class="container mt-5">
+    <div class="alert alert-danger text-center">
+        <h2>❗ Thanh toán thất bại</h2>
+        <p>@ViewBag.Message</p>
+        <a href="/" class="btn btn-secondary mt-3">Thử lại hoặc quay về</a>
+    </div>
+</div>

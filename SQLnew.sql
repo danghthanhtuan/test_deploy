@@ -227,12 +227,12 @@ CREATE TABLE PAYMENT(
 
 CREATE TABLE PAYMENT_TRANSACTION (
     ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
-    PAYMENT_ID INT NOT NULL,					-- Liên kết tới PAYMENT_PLAN
-    TRANSACTION_CODE VARCHAR(50)NOT NULL,       -- Mã giao dịch
+    PAYMENT_ID INT ,					-- Liên kết tới PAYMENT_PLAN
+    TRANSACTION_CODE VARCHAR(50),       -- Mã giao dịch
     PAYMENT_DATE DATETIME,                      -- Ngày giao dịch
     PAYMENT_METHOD NVARCHAR(50),                -- Phương thức thanh toán
     PAYMENT_RESULT BIT DEFAULT 0,               -- 0: Thất bại, 1: Thành công
-    AMOUNT DECIMAL(18,2) NOT NULL,              -- Số tiền thanh toán trong giao dịch này
+    AMOUNT DECIMAL(18,2),              -- Số tiền thanh toán trong giao dịch này
     FOREIGN KEY (PAYMENT_ID) REFERENCES PAYMENT(ID)
 );
 
@@ -408,12 +408,13 @@ update endow set DISCOUNT = 5 where ENDOWID ='ENDOW00001'
 
 --update  contracts set constatus ='Ký hoàn tất' where CONTRACTNUMBER = 'SV0001'
 
-	select * from company 
-	select * from Account 
-	select * from contracts
-	select * from CONTRACT_FILES
-	select * from CONTRACT_STATUS_HISTORY
+select * from company 
+select * from Account 
+select * from contracts
+select * from CONTRACT_FILES
+select * from CONTRACT_STATUS_HISTORY
 select * from Payment
+select * from PAYMENT_TRANSACTION
 select * from contracts
 select * from LOGINclient
 select * from RESETPASSWORD

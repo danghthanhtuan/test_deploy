@@ -2,8 +2,8 @@
 {
     public interface IPaymentService
     {
-       
-            bool ThanhToan(string maHopDong, string maGiaoDich, string email, string phuongThuc);
+
+        bool ThanhToan(string ID, string maGiaoDich, string phuongThuc, string tinhTrang);
     }
 
 }

@@ -47,7 +47,6 @@
         <div class="col-md-8">
             <embed id="pdfViewer" src="@pdfUrl" type="application/pdf" width="100%" height="600px" />
         </div>
-        
     </div>
 </div>
 
@@ -286,8 +285,10 @@
             });
 
             if (response.ok) {
-                showError("Hợp đồng đã được lưu chính thức với chữ ký.");
+                document.getElementById("contentModalSuccess").innerHTML = "Hợp đồng đã được lưu chính thức với chữ ký.";
+                $("#ModalSuccess").modal("show");
                 // Chờ modal hiển thị một chút rồi chuyển trang (hoặc dùng timeout)
+
                 setTimeout(() => {
                     const fileName = "@fileName";
                     const email = "@email";

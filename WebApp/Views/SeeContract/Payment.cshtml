@@ -7,15 +7,13 @@
 
 <h2>Thông tin thanh toán</h2>
 
-<form method="post" action="/Payment/ThanhToanVNPAY">
+<form method="post" asp-controller="Payment" asp-action="ThanhToanVNPAY">
     <label>Số tiền thanh toán (VND):</label>
-    <input type="number" name="amount" value="@Model.amount" required />
+    <input type="number" name="soTien" value="@Model.amount" required />
 
     <label>Nội dung thanh toán:</label>
-    <input type="text" name="orderInfo" value="Thanh toán hợp đồng @Model.fileName" required />
+    <input type="text" name="orderInfo" value="Thanh toán hợp đồng @Model.fileName" readonly />
 
-    <input type="hidden" name="maHopDong" value="@Model.fileName" />
-    <input type="hidden" name="email" value="@Model.email" />
-
+    <input type="hidden" name="maHopDong" value="@Model.contractnumber" />
     <input type="submit" value="Thanh toán qua VNPAY" />
 </form>
