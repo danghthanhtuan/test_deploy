@@ -147,6 +147,8 @@ namespace WebApi.Controllers.Admin
                 //await System.IO.File.WriteAllBytesAsync(fullPath, signedPdfBytes);
                 await System.IO.File.WriteAllBytesAsync(fullPath, pdfBytes);
 
+                string relativePath = Path.Combine("/temp-pdfs", fileName).Replace("\\", "/");
+
                 // 5. Lưu thông tin hợp đồng, trạng thái file đã ký vào DB
                 var result = await _accountService.SaveContractStatusAsync(new CompanyContractDTOs
                 {
@@ -168,7 +170,7 @@ namespace WebApi.Controllers.Admin
                     CustomerType = dto.CustomerType,
                     ServiceType = dto.ServiceType,
                     ConfileName = fileName,
-                    FilePath = fullPath,
+                    FilePath = relativePath,
                     ChangedBy = id,
                     Amount = dto.Amount,
                     Original = dto.Original,
@@ -207,11 +209,21 @@ namespace WebApi.Controllers.Admin
                 if (string.IsNullOrEmpty(request.FilePath) || string.IsNullOrEmpty(request.StaffId) || string.IsNullOrEmpty(request.ContractNumber))
                     return BadRequest(new { success = false, message = "Thiếu thông tin file, mã hợp đồng hoặc nhân viên." });
 
-                if (!System.IO.File.Exists(request.FilePath))
+                //if (!System.IO.File.Exists(request.FilePath))
+                //return NotFound(new { success = false, message = "File hợp đồng không tồn tại." });
+
+                // Convert từ đường dẫn web sang vật lý
+                string physicalPath = Path.Combine(
+                    _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"),
+                    request.FilePath.TrimStart('/')
+                );
+
+                if (!System.IO.File.Exists(physicalPath))
                     return NotFound(new { success = false, message = "File hợp đồng không tồn tại." });
 
-                // Đọc file gốc
-                byte[] originalPdfBytes = await System.IO.File.ReadAllBytesAsync(request.FilePath);
+                // Đọc file gốc từ đường dẫn vật lý
+                byte[] originalPdfBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
+
 
                 // Ký file
                 byte[] signedPdfBytes = _pdfService.SignPdfWithAdminCertificate(originalPdfBytes, request.StaffId);
@@ -225,7 +237,8 @@ namespace WebApi.Controllers.Admin
                     Directory.CreateDirectory(folderPath);
 
                 // 4. Tạo tên file mới theo timestamp
-                string newFileName = $"{Path.GetFileNameWithoutExtension(request.FilePath)}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                string baseFileName = Path.GetFileNameWithoutExtension(request.FilePath);
+                string newFileName = $"{baseFileName}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
                 string newFilePath = Path.Combine(folderPath, newFileName);
 
                 // 5. Ghi file đã ký vào thư mục mới
@@ -233,23 +246,24 @@ namespace WebApi.Controllers.Admin
 
                 try
                 {
-                    if (System.IO.File.Exists(request.FilePath))
-                        System.IO.File.Delete(request.FilePath);
+                    if (System.IO.File.Exists(physicalPath))
+                        System.IO.File.Delete(physicalPath);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Không thể xóa file gốc: {ex.Message}");
+                    Console.WriteLine($"Không thể xóa file gốc tại {physicalPath}: {ex.Message}");
                 }
 
+                // Gán lại đường dẫn mới để lưu DB (tương đối)
+                string relativePath = Path.Combine("/signed-contracts", newFileName).Replace("\\", "/");
+                request.FilePath = relativePath;
 
                 // Gọi hàm cập nhật DB (không lưu file nữa, chỉ cập nhật trạng thái, lịch sử, ContractFile)
-                request.FilePath = newFilePath; // Gán lại đường dẫn mới để upload
                 string result = await _accountService.UploadDirectorSigned(request);
 
                 // Trả về phản hồi thành công nếu update cũng thành công
                 if (result.Contains("thành công") || result.EndsWith(".pdf"))
                 {
-                    string relativePath = request.FilePath.Replace(Directory.GetCurrentDirectory(), "").Replace("\\", "/");
                     return Ok(new
                     {
                         success = true,

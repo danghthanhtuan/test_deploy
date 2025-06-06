@@ -82,7 +82,6 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
-
         [HttpPut]
         [Route("UpdateStatus")]
         public async Task<IActionResult> UpdateStatus([FromBody] updateID updateID)
@@ -225,8 +224,20 @@ namespace WebApp.Areas.Admin.Controllers
         {
             try
             {
-                // Lấy token từ header để truyền qua API service
-                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                // Lấy token từ header Authorization
+                if (!Request.Headers.ContainsKey("Authorization"))
+                    return Unauthorized(new { success = false, message = "Thiếu token." });
+
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+                if (string.IsNullOrEmpty(token))
+                    return Unauthorized(new { success = false, message = "Token không hợp lệ." });
+
+                // Kiểm tra dữ liệu đầu vào
+                if (string.IsNullOrEmpty(id))
+                    return BadRequest(new { success = false, message = "Mã nhân viên không hợp lệ!" });
+
+                if (dto == null)
+                    return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
 
                 var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

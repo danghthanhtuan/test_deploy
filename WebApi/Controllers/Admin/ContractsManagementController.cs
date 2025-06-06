@@ -84,6 +84,8 @@ namespace WebApi.Controllers.Admin
             //await System.IO.File.WriteAllBytesAsync(fullPath, signedPdfBytes);
             await System.IO.File.WriteAllBytesAsync(fullPath, pdfBytes);
 
+            string relativePath = Path.Combine("/temp-pdfs", fileName).Replace("\\", "/");
+
             // 5. Lưu thông tin hợp đồng, trạng thái file đã ký vào DB
             var result = await _contractService.SaveContractStatusAsync(new CompanyContractDTOs
             {
@@ -105,7 +107,7 @@ namespace WebApi.Controllers.Admin
                 CustomerType = dto.CustomerType,
                 ServiceType = dto.ServiceType,
                 ConfileName = fileName,
-                FilePath = fullPath,
+                FilePath = relativePath,
                 ChangedBy = id,
                 Amount = dto.Amount,
                 Original = dto.Original,

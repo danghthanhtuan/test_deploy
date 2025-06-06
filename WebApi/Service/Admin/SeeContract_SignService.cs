@@ -24,7 +24,9 @@ namespace WebApi.Service.Admin
             try
             {
                 // 1. Đường dẫn thư mục lưu file (cố định theo yêu cầu)
-                var folderPath = @"D:\DATN\WebSystemManagement\WebApi\wwwroot\signed-contracts";
+                //var folderPath = @"D:\DATN\WebSystemManagement\WebApi\wwwroot\signed-contracts";
+
+                var folderPath = Path.Combine(_env.WebRootPath, "signed-contracts");
 
                 // 2. Tạo thư mục nếu chưa có
                 if (!Directory.Exists(folderPath))
@@ -40,6 +42,8 @@ namespace WebApi.Service.Admin
                 {
                     await signedFile.CopyToAsync(stream);
                 }
+
+                var relativePath = Path.Combine("/signed-contracts", fileName).Replace("\\", "/");
 
                 // 5. Kiểm tra email có tồn tại
                 var account = await _context.Accounts.FirstOrDefaultAsync(s => s.Rootaccount == email);
@@ -58,7 +62,7 @@ namespace WebApi.Service.Admin
                 {
                     // 8. Cập nhật trạng thái hợp đồng
 
-                    contract.Constatus =3;
+                    contract.Constatus = 3;
                     _context.Contracts.Update(contract);
 
                     // 9. Thêm thông tin file
@@ -66,7 +70,7 @@ namespace WebApi.Service.Admin
                     {
                         Contractnumber = contract.Contractnumber,
                         ConfileName = fileName,
-                        FilePath = filePath,
+                        FilePath = relativePath,
                         UploadedAt = DateTime.Now,
                         FileStatus = 3,
                     };
@@ -106,6 +110,7 @@ namespace WebApi.Service.Admin
                 return (false, $"Lỗi khi lưu file hoặc cập nhật DB: {ex.Message}");
             }
         }
+
 
         public async Task<StatusSignClient?> GetContractByFileAndEmailAsync(string fileName, string email)
         {

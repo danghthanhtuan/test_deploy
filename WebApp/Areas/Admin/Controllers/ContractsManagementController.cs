@@ -73,48 +73,6 @@ namespace WebApp.Areas.Admin.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
             }
         }
-        
-        [HttpPost]
-        [Route("InsertExtend")]
-        public async Task<IActionResult> InsertExtend([FromBody] ContractDTO contractDTO, [FromQuery] string id)
-        {
-            if (!Request.Headers.ContainsKey("Authorization"))
-                return Unauthorized(new { success = false, message = "Thiếu token" });
-            string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
-            if (string.IsNullOrEmpty(token))
-            {
-                return Unauthorized(new { success = false, message = "Token không hợp lệ" });
-            }
-            if (string.IsNullOrEmpty(contractDTO.CustomerId))
-            {
-                return BadRequest(new { success = false, message = "Mã khách hàng không hợp lệ" });
-            }
-            if (contractDTO == null)
-            {
-                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
-            }
-            try
-            {
-                var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
-                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/InsertExtend?id={id}", jsonContent);
-                var result = await response.Content.ReadAsStringAsync();
-                var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
-                string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
-                if (response.IsSuccessStatusCode)
-                {
-                    return Ok(new { success = true, message = errorMessage });
-                }
-                else
-                {
-                    return BadRequest(new { success = false, message = errorMessage });
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau" });
-            }
-        }
 
         //Lưu và tạo hợp đồng mới
         [HttpPost]
@@ -161,6 +119,48 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau." });
+            }
+        }
+
+        [HttpPost]
+        [Route("InsertExtend")]
+        public async Task<IActionResult> InsertExtend([FromBody] ContractDTO contractDTO, [FromQuery] string id)
+        {
+            if (!Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(new { success = false, message = "Thiếu token" });
+            string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized(new { success = false, message = "Token không hợp lệ" });
+            }
+            if (string.IsNullOrEmpty(contractDTO.CustomerId))
+            {
+                return BadRequest(new { success = false, message = "Mã khách hàng không hợp lệ" });
+            }
+            if (contractDTO == null)
+            {
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+            }
+            try
+            {
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/InsertExtend?id={id}", jsonContent);
+                var result = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
+                string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok(new { success = true, message = errorMessage });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau" });
             }
         }
 

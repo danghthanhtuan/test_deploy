@@ -993,7 +993,7 @@
     $('#pendingContracts').on('click', '.pdf-link', function (e) {
         e.preventDefault();
 
-        const $link = $(e.target).closest('.pdf-link'); // lấy thẻ <a>
+        const $link = $(e.target).closest('.pdf-link');
         const contractNumber = $link.attr('data-id');
         const confileName = $link.attr('data-confilename'); // dùng attr thay vì data
         const realFilePath = $link.attr('data-realpath'); // ✅ đường dẫn thực
@@ -1002,13 +1002,16 @@
         console.log("Clicked contract", contractNumber);
         console.log("confileName", confileName);
 
-        if (!confileName) {
-            console.error("Không lấy được confileName");
+        // if (!confileName) {
+        //     console.error("Không lấy được confileName");
+        //     return;
+        // }
+        if (!contractNumber || !confileName || !folder) {
+            console.error("Thiếu thông tin hợp đồng (contractNumber, confileName, folder)");
+            alert("Không thể hiển thị hợp đồng. Thiếu thông tin cần thiết.");
             return;
         }
         const pdfUrl = `https://localhost:7190/${folder}/${confileName}`;
-
-        //const pdfUrl = `https://localhost:7190/temp-pdfs/${confileName}`;
 
         $('#btnSignContract').data('contractNumber', contractNumber);
         $('#btnSignContract').data('filePath', realFilePath); // ✅ gán đúng key là filePath
