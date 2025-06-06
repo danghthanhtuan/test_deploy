@@ -989,7 +989,7 @@
                     // 🔍 Kiểm tra ngày kết thúc và trạng thái hoạt động
                     var endDate = new Date(company.enddate);
                     var today = new Date();
-                    var isOperating = company.operatingstatus === true || company.operatingstatus === "true"; // Phòng khi trả về là chuỗi
+                    var isOperating = company.isActive === true || company.isActive === "true"; // Phòng khi trả về là chuỗi
                     if (endDate >= today && isOperating) {
                         // Còn hạn và công ty còn hoạt động => cho chỉnh sửa
                         $("#reqStatus").prop("disabled", false);

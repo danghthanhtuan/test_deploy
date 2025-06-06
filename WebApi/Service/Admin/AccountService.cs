@@ -24,14 +24,15 @@ namespace WebApi.Service.Admin
             _logger = logger;
         }
 
-        //lấy những công ty đã chính thức isactive = true
+        //lấy những công ty đã chính thức isactive = true và hợp đồng đã duyệt
         public async Task<PagingResult<CompanyAccountDTO>> GetAllCompany(GetListCompanyPaging req)
         {
 
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
-                        join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id where c.IsActive == true
+                        join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id 
+                        where c.IsActive == true && b.Constatus ==5
                         group new { c, a, b, h } by new
                         {
                             c.Customerid,
@@ -276,7 +277,7 @@ namespace WebApi.Service.Admin
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
-                        where c.IsActive == true
+                        where c.IsActive == true && b.Constatus == 5
                         group new { c, a, b } by new
                         {
                             c.Customerid,
@@ -350,6 +351,8 @@ namespace WebApi.Service.Admin
                 return memoryStream.ToArray();
             }
         }
+        
+        //Lấy danh sách dịch vụ
         public async Task<List<ServiceTypeDTO2>> GetListServiceID()
         {
             // Thực hiện join giữa ServiceGroups và Regulations để lấy thêm thông tin về giá
@@ -508,7 +511,7 @@ namespace WebApi.Service.Admin
                     _context.SaveChanges();
                     transaction.Commit();
 
-                    return newCustomerID;
+                    return newContractNumber;
                 }
                 catch (Exception ex)
                 {
@@ -519,9 +522,9 @@ namespace WebApi.Service.Admin
             }
         }
         
-        //Danh sách chờ boss ký,ký xong và chờ client ký
+        //Danh sách chờ boss ký,ký xong và chờ client ký, thanh toán
         //nếu đã ký thì gửi cho client 
-        // ký hoàn tất thì duyệt hợp đồng tạo tài khoản
+        // ký hoàn tất thì thanh toán sau đó admin duyệt hợp đồng tạo tài khoản
         public async Task<PagingResult<CompanyContractDTOs>> GetListPending(GetListCompanyPaging req)
         {
             var latestFiles = from f in _context.ContractFiles
@@ -541,9 +544,9 @@ namespace WebApi.Service.Admin
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in fileJoin on b.Contractnumber equals h.Contractnumber
-                        where c.IsActive == false &&
+                        where 
                                 //(b.Constatus=="Chưa ký"||b.Constatus == "Đã ký" ||b.Constatus=="Chờ client ký"|| b.Constatus == "Ký hoàn tất" || b.Constatus == "Đã thanh toán")
-                                (b.Constatus==0||b.Constatus == 1 ||b.Constatus==2|| b.Constatus == 3 || b.Constatus == 4)
+                                b.Constatus==0||b.Constatus == 1 ||b.Constatus==2|| b.Constatus == 3 || b.Constatus == 4
                         select new CompanyContractDTOs
                         {
                             ContractNumber = b.Contractnumber,
@@ -728,14 +731,8 @@ namespace WebApi.Service.Admin
                 {
                     var oldStatus = contract.Constatus;
 
-                    // Cập nhật dữ liệu
-                    company.IsActive = true;
-                    company.Accountissueddate = DateTime.Now;
                     contract.Constatus = 5;
                     contract.IsActive = true;
-
-                    _context.Companies.Update(company);
-                    _context.Accounts.Update(account);
                     _context.Contracts.Update(contract);
 
                     var newContractFile = new ContractFile
@@ -761,13 +758,21 @@ namespace WebApi.Service.Admin
                     string generatedPassword = GenerateRandomPassword();
                     string hashedPassword = HashPassword(generatedPassword);
 
-                    var newLogin = new Loginclient
+                    if (company.IsActive == false)
                     {
-                        Customerid = company.Customerid,
-                        Username = account.Rphonenumber,
-                        Passwordclient = hashedPassword
-                    };
-                    _context.Loginclients.Add(newLogin);
+                        // Cập nhật dữ liệu
+                        company.IsActive = true;
+                        company.Accountissueddate = DateTime.Now;
+                        _context.Companies.Update(company);
+
+                        var newLogin = new Loginclient
+                        {
+                            Customerid = company.Customerid,
+                            Username = account.Rphonenumber,
+                            Passwordclient = hashedPassword
+                        };
+                        _context.Loginclients.Add(newLogin);
+                    }
 
                     // Gửi email TRƯỚC khi commit DB
                     await SendPasswordEmail(account.Rootaccount, generatedPassword);

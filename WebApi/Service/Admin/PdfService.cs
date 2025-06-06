@@ -72,7 +72,10 @@ namespace WebApi.Service.Admin
                             col.Item().Text($"Số điện thoại: {dto.RPhoneNumber}");
 
                             col.Item().PaddingTop(10).Text("🔹 Dịch vụ").Bold().FontSize(14).Underline();
-                            col.Item().Text($"Phân loại: {dto.CustomerType}");
+                            if(dto.CustomerType == true)
+                                col.Item().Text($"Phân loại: VIP");
+                            else
+                                col.Item().Text($"Phân loại: Bình thường");
                             col.Item().Text($"Loại dịch vụ: {dto.ServiceType}");
                             col.Item().Text($"Ngày bắt đầu: {dto.Startdate:dd/MM/yyyy}");
                             col.Item().Text($"Ngày kết thúc: {dto.Enddate:dd/MM/yyyy}");

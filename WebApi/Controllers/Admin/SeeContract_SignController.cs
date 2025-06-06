@@ -65,12 +65,12 @@ namespace WebApi.Controllers.Admin
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveSignedPdf(IFormFile signedPdf, [FromForm] string fileName, [FromForm]string email)
+        public async Task<IActionResult> SaveSignedPdf(IFormFile signedPdf, [FromForm] string fileName, [FromForm]string email, [FromForm] string contractnumber)
         {
             if (signedPdf == null || string.IsNullOrEmpty(fileName)|| string.IsNullOrEmpty(email))
                 return BadRequest("Thiếu thông tin đầu vào");
 
-            var result = await _sign.SaveSignedPdfAsync(signedPdf, fileName, email);
+            var result = await _sign.SaveSignedPdfAsync(signedPdf, fileName, email, contractnumber);
 
             if (!result.Success)
                 return StatusCode(500, result.Message);

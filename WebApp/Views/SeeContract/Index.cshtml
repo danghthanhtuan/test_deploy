@@ -7,7 +7,8 @@
     var email = Context.Request.Query["email"];
     var apiDomain = "https://localhost:7190"; // Địa chỉ API
     var pdfUrl = $"{apiDomain}/signed-contracts/{fileName}";
-     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    var contractNumber = Context.Request.Query["contractNumber"];
+        <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 }
 
 <div class="mt-3">
@@ -130,6 +131,7 @@
             formData.append("password", password);
             formData.append("fileName", "@fileName");
             formData.append("email", "@email");
+
             // Hiển thị modal xác nhận
             document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn ký với thông tin này không?";
             const modalConfirmEl = document.getElementById("confirmModal");
@@ -182,6 +184,7 @@
                 formData.append("fileName", "@fileName");
                 formData.append("signedPdf", signedPdfBlob, "signed_" + "@fileName");
                 formData.append("email", "@email");
+                formData.append("contractNumber", "@ViewBag.ContractNumber");
 
                 const res = await fetch("/seecontract/SaveSignedPdf", {
                     method: "POST",
@@ -278,6 +281,7 @@
             formData.append("fileName", "@fileName");
             formData.append("signedPdf", signedPdfBlob, "signed_" + "@fileName");
             formData.append("email", "@email");
+            formData.append("contractNumber", "@ViewBag.ContractNumber");
 
             const response = await fetch('/seecontract/SaveSignedPdf', {
                 method: 'POST',

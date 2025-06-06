@@ -154,7 +154,7 @@ namespace WebApi.Service.Admin
                             Department = b.Department,
                             Startdate = h.Startdate, 
                             Enddate = h.Enddate,
-                            Operatingstatus = h.IsActive
+                            IsActive = h.IsActive
                         };
 
             return await query.ToListAsync();

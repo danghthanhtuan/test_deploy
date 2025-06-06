@@ -23,8 +23,6 @@ namespace WebApp.Areas.Admin.Controllers
             _client.BaseAddress = baseAddress;
         }
 
-
-
         [AuthorizeToken]
         [Route("")]
         public IActionResult Index()
@@ -38,6 +36,8 @@ namespace WebApp.Areas.Admin.Controllers
                 return View();
             }
         }
+
+        //Lấy thông tin công ty chính thức
         [HttpPost]
         [Route("GetAllCompany")]
         public async Task<IActionResult> GetAllCompany([FromBody] GetListCompanyPaging req)
@@ -73,6 +73,7 @@ namespace WebApp.Areas.Admin.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
             }
         }
+        
         [HttpPost]
         [Route("InsertExtend")]
         public async Task<IActionResult> InsertExtend([FromBody] ContractDTO contractDTO, [FromQuery] string id)
@@ -115,9 +116,10 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
+        //Lưu và tạo hợp đồng mới
         [HttpPost]
-        [Route("InsertContract")]
-        public async Task<IActionResult> InsertContract([FromBody] CompanyAccountDTO companyAccountDTO, [FromQuery] string id)
+        [Route("GenerateContract")]
+        public async Task<IActionResult> GenerateContract([FromBody] CompanyAccountDTO companyAccountDTO, [FromQuery] string id)
         {
             // Lấy token từ header Authorization
             if (!Request.Headers.ContainsKey("Authorization"))
@@ -139,7 +141,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(companyAccountDTO), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/InsertContract?id={id}", jsonContent);
+                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/GenerateContract?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -204,6 +206,7 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
+        //Lấy ưu đãi đang có hiệu lực theo nhóm dịch vụ của hợp đồng
         [HttpGet]
         [Route("GetListEndow")]
         public async Task<IActionResult> GetListEndow([FromQuery] string id)
@@ -242,6 +245,8 @@ namespace WebApp.Areas.Admin.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
             }
         }
+
+        //Lấy thông tin công ty search để tạo hợp đồng mới
         [HttpGet]
         [Route("GetAllInfor")]
         public async Task<IActionResult> GetAllInfor([FromQuery] string customerID)

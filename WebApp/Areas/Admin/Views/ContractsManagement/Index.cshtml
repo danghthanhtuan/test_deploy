@@ -1018,7 +1018,7 @@
                 },
 
                 {
-                    data: "operatingStatus",
+                    data: "isActive",
                     width: "12%",
                     render: function (data, type, row) {
                         if (!data) {
@@ -1032,30 +1032,11 @@
                     width: "12%",
                     render: function (data, type, row) {
                         if (!data) {
-                            return `<span class="status-clickable text-danger fw-bold"  style="cursor: pointer;">Bình thường</span>`;
+                            return "Bình thường";
                         }
-                        return "VIP" || "";
+                        return `<span class="status-clickable text-danger fw-bold"  style="cursor: pointer;">VIP</span>`|| "";
                     }
                 },
-                // {
-                //     data: null,
-                //     width: "15%",
-                //     render: function (data, type, row) {
-                //         return `<button id="BtnUpdate" class="btn btn-sm btn-primary update-btn" data-id="${row.customerId}"">Gia hạn</button>`;
-                //     }
-                // },
-                // {
-                //     data: null,
-                //     width: "15%",
-                //     render: function (data, type, row) {
-                //         if (row.customerType === false) {
-                //             return `<button id="BtnUpgrade" class="btn btn-sm btn-primary upgrade-btn" data-id="${row.customerId}">Nâng cấp</button>`;
-                //         } else {
-                //             return ''; // Nếu là VIP, không hiển thị nút Nâng cấp
-                //         }
-                //         //return `<button id="BtnUpgrade" class="btn btn-sm btn-primary upgrade-btn" data-id="${row.customerId}"">Nâng cấp</button>`;
-                //     }
-                // }
                 {
                     data: null,
                     width: "8%",
@@ -1318,7 +1299,7 @@
             RootAccount: aEmail,
             RootName: aName,
             RPhoneNumber: aPhone,
-            OperatingStatus: aStatus.trim() === "1",
+            IsActive: aStatus.trim() === "1",
             DateOfBirth: aDate ? new Date(aDate).toISOString() : null,
             Gender: aGender === "nu",
             Startdate: startDate,
@@ -1372,9 +1353,7 @@
         }
         var StaffId = "@User.FindFirst("StaffId")?.Value";
 
-        // Xác định Insert hay Update
-
-        var url = `/admin/ContractsManagement/InsertContract?id=${StaffId}`;
+        var url = `/admin/ContractsManagement/GenerateContract?id=${StaffId}`;
         var confirmText = "Bạn có chắc muốn thêm hợp đồng không?";
 
         document.getElementById("contentModalConfirm").innerHTML = confirmText;
@@ -1442,7 +1421,7 @@
             $("#ContractNumber").val(rowData.contractNumber);
 
             $("#serviceType").val(rowData.serviceType || "");
-            $("#aStatus").val(rowData.operatingStatus ? "1" : "0");
+            $("#aStatus").val(rowData.isActive ? "1" : "0");
             $("#startDate").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
             $("#endDate").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
 
@@ -1659,7 +1638,7 @@
             $("#ContractNumber3").val(rowData.contractNumber);
 
             $("#serviceType3").val(rowData.serviceType || "");
-            $("#aStatus3").val(rowData.operatingStatus ? "1" : "0");
+            $("#aStatus3").val(rowData.isActive ? "1" : "0");
             $("#startDate3").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
             $("#endDate3").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
 

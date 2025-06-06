@@ -86,7 +86,7 @@ namespace WebApi.Service.Admin
                     };
                     _context.ContractStatusHistories.Add(statusHistory);
 
-                    var oldContractFile = _context.ContractFiles.FirstOrDefault(c => c.Contractnumber == payment.Contractnumber);
+                    var oldContractFile = _context.ContractFiles.FirstOrDefault(c => c.Contractnumber == payment.Contractnumber && c.FileStatus == 3);
                     if (oldContractFile != null)
                     {
                         var newContractFile = new ContractFile

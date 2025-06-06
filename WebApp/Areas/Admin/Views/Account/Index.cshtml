@@ -941,7 +941,7 @@
                                     <button class="btn btn-sm btn-primary btn-send-client"
                                             title="Gửi mail cho khách ký"
                                             data-contractnumber="${contractNumber}"
-                                            data-confilename="${row.fileName}"
+                                                data-confilename="${row.confileName}"
                                                 data-filepath="${row.filePath}">
                                         <i class="fa-solid fa-paper-plane"></i> Gửi khách ký
                                     </button>
@@ -957,13 +957,16 @@
                             }
                             //if (normalizedStatus === "Đã thanh toán") {
                             if (normalizedStatus ==4) {
+                                const fileName = row.confileName;
+                                const folder = "signed-contracts"; // vì đã ký và chờ duyệt
+                                const realPath = `/${folder}/${fileName}`;
                                 return `
                                     <div class="d-flex justify-content-center gap-2">
                                         <button class="btn btn-sm btn-success btn-approve"
                                                 title="Duyệt hợp đồng"
                                                 data-contractnumber="${contractNumber}"
-                                                data-confilename="${row.fileName}"
-                                                data-filepath="${row.filePath}">
+                                                data-confilename="${fileName}"
+                                                data-filepath="${realPath}">
                                             <i class="fa-solid fa-circle-check"></i> Duyệt hợp đồng
                                         </button>
                                     </div>`;
@@ -1461,7 +1464,7 @@
             $("#aEmail2").val(rowData.rootAccount || "");
             $("#aName2").val(rowData.rootName || "");
             $("#aPhone2").val(rowData.rPhoneNumber || "");
-            $("#aStatus2").val(rowData.operatingStatus ? "1" : "0");
+            $("#aStatus2").val(rowData.isActive ? "1" : "0");
             $("#aDate2").val(rowData.dateOfBirth ? rowData.dateOfBirth.substring(0, 10) : "");
             $("#aGender2").val(rowData.gender ? "nu" : "nam");
             $("#accountIssuedDate").val(rowData.accountIssuedDate ? rowData.accountIssuedDate.substring(0, 10) : "");
@@ -1508,7 +1511,7 @@
             RootAccount: aEmail,
             RootName: aName,
             RPhoneNumber: aPhone,
-            OperatingStatus: aStatus.trim() === "1",
+            IsActive: aStatus.trim() === "1",
             DateOfBirth: aDate ? new Date(aDate).toISOString() : null,
             Gender: aGender === "nu",
             Startdate: startDate,
@@ -1549,7 +1552,7 @@
             RootAccount: aEmail,
             RootName: aName,
             RPhoneNumber: aPhone,
-            OperatingStatus: aStatus.trim() === "1",
+            IsActive: aStatus.trim() === "1",
             DateOfBirth: aDate ? new Date(aDate).toISOString() : null,
             Gender: aGender === "nu",
             Startdate: null,

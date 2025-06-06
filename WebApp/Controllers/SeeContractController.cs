@@ -53,6 +53,7 @@ namespace WebApp.Areas.Controllers
 
                     if (hopDong.status == 2)
                     {
+                        ViewBag.ContractNumber = hopDong.contractnumber; // 👈 thêm dòng này
                         return View(); // index.cshtml
                     }
                     else if (hopDong.status == 3)
@@ -118,7 +119,7 @@ namespace WebApp.Areas.Controllers
         
         //luu
         [HttpPost]
-        public async Task<IActionResult> SaveSignedPdf(IFormFile signedPdf, string fileName, string email)
+        public async Task<IActionResult> SaveSignedPdf(IFormFile signedPdf, string fileName, string email, string contractNumber)
         {
             if (signedPdf == null || string.IsNullOrEmpty(fileName))
             {
@@ -142,6 +143,7 @@ namespace WebApp.Areas.Controllers
                     formData.Add(byteContent, "signedPdf", signedPdf.FileName);
                     formData.Add(new StringContent(fileName), "fileName");
                     formData.Add(new StringContent(email), "email");
+                    formData.Add(new StringContent(contractNumber), "contractNumber");
 
                     var response = await client.PostAsync(apiUrl, formData);
 

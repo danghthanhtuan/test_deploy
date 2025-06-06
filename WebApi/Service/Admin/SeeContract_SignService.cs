@@ -19,7 +19,7 @@ namespace WebApi.Service.Admin
             _context = context;
         }
 
-        public async Task<(bool Success, string Message)> SaveSignedPdfAsync(IFormFile signedFile, string fileName, string email)
+        public async Task<(bool Success, string Message)> SaveSignedPdfAsync(IFormFile signedFile, string fileName, string email, string contractnumber)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace WebApi.Service.Admin
                     return (false, "Email khách hàng không tồn tại trong hệ thống.");
 
                 // 6. Tìm hợp đồng theo CustomerId
-                var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Customerid == account.Customerid);
+                var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Customerid == account.Customerid && c.Contractnumber == contractnumber);
                 if (contract == null)
                     return (false, "Không tìm thấy hợp đồng tương ứng với khách hàng.");
 
@@ -57,6 +57,7 @@ namespace WebApi.Service.Admin
                 try
                 {
                     // 8. Cập nhật trạng thái hợp đồng
+
                     contract.Constatus =3;
                     _context.Contracts.Update(contract);
 

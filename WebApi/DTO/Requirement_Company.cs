@@ -38,7 +38,7 @@
 
         public DateTime Startdate { get; set; }
         public DateTime Enddate { get; set; }
-        public bool Operatingstatus { get; set; }
+        public bool IsActive { get; set; }
 
     }
 

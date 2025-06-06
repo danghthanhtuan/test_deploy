@@ -1018,7 +1018,7 @@
                 },
                
                 {
-                    data: "operatingStatus",
+                    data: "isActive",
                     width: "12%",
                     render: function (data, type, row) {
                         if (!data) {
@@ -1318,7 +1318,7 @@
             RootAccount: aEmail,
             RootName: aName,
             RPhoneNumber: aPhone,
-            OperatingStatus: aStatus.trim() === "1",
+            IsActive: aStatus.trim() === "1",
             DateOfBirth: aDate ? new Date(aDate).toISOString() : null,
             Gender: aGender === "nu",
             Startdate: startDate,
@@ -1442,7 +1442,7 @@
             $("#ContractNumber").val(rowData.contractNumber);
 
             $("#serviceType").val(rowData.serviceType || "");
-            $("#aStatus").val(rowData.operatingStatus ? "1" : "0");
+            $("#aStatus").val(rowData.isActive ? "1" : "0");
             $("#startDate").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
             $("#endDate").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
 
@@ -1659,7 +1659,7 @@
             $("#ContractNumber3").val(rowData.contractNumber);
 
             $("#serviceType3").val(rowData.serviceType || "");
-            $("#aStatus3").val(rowData.operatingStatus ? "1" : "0");
+            $("#aStatus3").val(rowData.isActive ? "1" : "0");
             $("#startDate3").val(rowData.startdate ? rowData.startdate.substring(0, 10) : "");
             $("#endDate3").val(rowData.enddate ? rowData.enddate.substring(0, 10) : "");
 

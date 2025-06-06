@@ -16,13 +16,18 @@ namespace WebApi.Controllers.Admin
         private readonly IMapper _mapper;
         private readonly ContractsManagementService _contractService;
         private readonly AccountService _accountService;
-        public ContractsManagementController(IMapper mapper, ManagementDbContext context, ContractsManagementService contractService, AccountService accountService)
+        private readonly PdfService _pdfService;
+
+        public ContractsManagementController(IMapper mapper, ManagementDbContext context, ContractsManagementService contractService, AccountService accountService, PdfService pdfService)
         {
             _mapper = mapper;
             _contractService = contractService;
             _context = context;
             _accountService = accountService;
+            _pdfService = pdfService;
         }
+
+        //Lấy thông tin công ty chính thức
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost]
         public async Task<ActionResult<CompanyAccountDTO>> GetAllCompany([FromBody] GetListCompanyPaging req)
@@ -30,6 +35,7 @@ namespace WebApi.Controllers.Admin
             var company = await _contractService.GetAllCompany(req);
             return Ok(company);
         }
+       
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost]
         public IActionResult InsertExtend([FromBody] ContractDTO contractDTO, [FromQuery] string id)
@@ -57,31 +63,59 @@ namespace WebApi.Controllers.Admin
             }
 
         }
+
+        //Tạo file hợp đồng mới
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost]
-        public async Task<IActionResult> InsertContract([FromBody] CompanyAccountDTO companyAccountDTO, [FromQuery] string id)
+        public async Task<IActionResult> GenerateContract([FromBody] CompanyAccountDTO dto, [FromQuery] string id)
         {
-            if (companyAccountDTO == null || string.IsNullOrEmpty(id))
-            {
-                Console.WriteLine("Dữ liệu đầu vào không hợp lệ.");
-                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
-            }
+            string contractId = Guid.NewGuid().ToString();
 
-            var result = await _contractService.InsertContract(companyAccountDTO, id);
+            // 1. Tạo file PDF gốc chưa ký
+            byte[] pdfBytes = _pdfService.GenerateContractPdf(dto);
 
-            if (result?.StartsWith("SV0") == true)  // Kiểm tra null trước
+            // 2. Lưu file PDF chờ boss ký
+            string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp-pdfs");
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            string fileName = $"{contractId}.pdf";
+            string fullPath = Path.Combine(folderPath, fileName);
+            //await System.IO.File.WriteAllBytesAsync(fullPath, signedPdfBytes);
+            await System.IO.File.WriteAllBytesAsync(fullPath, pdfBytes);
+
+            // 5. Lưu thông tin hợp đồng, trạng thái file đã ký vào DB
+            var result = await _contractService.SaveContractStatusAsync(new CompanyContractDTOs
             {
-                return Ok(new
-                {
-                    success = true,
-                    message = "Đăng ký tài khoản thành công",
-                    companyID = result
-                });
-            }
-            else
+                CustomerId = dto.CustomerId,
+                CompanyName = dto.CompanyName,
+                TaxCode = dto.TaxCode,
+                CompanyAccount = dto.CompanyAccount,
+                AccountIssuedDate = dto.AccountIssuedDate,
+                CPhoneNumber = dto.CPhoneNumber,
+                CAddress = dto.CAddress,
+                RootAccount = dto.RootAccount,
+                RootName = dto.RootName,
+                RPhoneNumber = dto.RPhoneNumber,
+                DateOfBirth = dto.DateOfBirth,
+                Gender = dto.Gender,
+                ContractNumber = dto.ContractNumber,
+                Startdate = dto.Startdate,
+                Enddate = dto.Enddate,
+                CustomerType = dto.CustomerType,
+                ServiceType = dto.ServiceType,
+                ConfileName = fileName,
+                FilePath = fullPath,
+                ChangedBy = id,
+                Amount = dto.Amount,
+                Original = dto.Original,
+            });
+
+            if (result == null || result.StartsWith("Lỗi") || result.Contains("không tồn tại") || result.Contains("đã tồn tại"))
             {
-                return BadRequest(new { success = false, message = result ?? "Lỗi không xác định." });
+                return BadRequest(new { success = false, message = result });
             }
+            return Ok(new { success = true, fullPath });
 
         }
 
@@ -113,6 +147,7 @@ namespace WebApi.Controllers.Admin
 
         }
 
+        //Lấy ưu đãi đang có hiệu lực theo nhóm dịch vụ của hợp đồng
         [Authorize(Policy = "AdminPolicy")]
         [HttpGet]
         public async Task<ActionResult<Endow>> GetListEndow([FromQuery] string id)

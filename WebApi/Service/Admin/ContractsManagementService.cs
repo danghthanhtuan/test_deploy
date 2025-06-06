@@ -14,6 +14,7 @@ namespace WebApi.Service.Admin
             _context = context;
         }
 
+        //Lấy thông tin công ty chính thức và  tồn tại hợp đồng đã duyệt
         public async Task<PagingResult<CompanyAccountDTO>> GetAllCompany(GetListCompanyPaging req)
         {
             var query = from c in _context.Companies
@@ -21,7 +22,7 @@ namespace WebApi.Service.Admin
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
                         join q in _context.Payments on b.Contractnumber equals q.Contractnumber
-                        where c.IsActive == true
+                        where c.IsActive == true && b.Constatus == 5
                         select new CompanyAccountDTO
                         {
                             CustomerId = c.Customerid,
@@ -114,6 +115,83 @@ namespace WebApi.Service.Admin
                 PageCount = pageCount
             };
         }
+
+        //Insert 1 hợp đồng mới của khách hàng cũ. 
+        public async Task<string?> InsertContract(CompanyAccountDTO CompanyAccountDTO, string id)
+        {
+            if (CompanyAccountDTO == null)
+            {
+                return "Dữ liệu không hợp lệ.";
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == id);
+                    if (staff == null)
+                    {
+                        return $"Nhân viên với mã nhân viên = {id} không tồn tại";
+                    }
+
+                    var lastContract = _context.Contracts
+                .OrderByDescending(c => c.Contractnumber)
+                .FirstOrDefault();
+                    int nextContractNumber = lastContract != null ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1 : 1;
+                    string newContractNumber = $"SV{nextContractNumber:D4}";
+
+                    var serviceType = _context.ServiceTypes
+    .FirstOrDefault(st => st.ServiceTypename == CompanyAccountDTO.ServiceType);
+
+                    if (serviceType == null)
+                    {
+                        return $"Loại dịch vụ '{CompanyAccountDTO.ServiceType}' không tồn tại.";
+                    }
+                    // ✅ Kiểm tra khách hàng đã có dịch vụ này chưa
+                    var existingContract = _context.Contracts
+                        .Where(c => c.Customerid == CompanyAccountDTO.CustomerId
+                                 && c.ServiceTypeid == serviceType.Id
+                                 && c.Enddate >= DateTime.Now)
+                        .FirstOrDefault();
+
+                    if (existingContract != null)
+                    {
+                        return $"Khách hàng đã có hợp đồng với loại dịch vụ '{CompanyAccountDTO.ServiceType}' đang còn hiệu lực.";
+                    }
+                    var newContract = new Contract
+                    {
+                        Contractnumber = newContractNumber,
+                        Startdate = (DateTime)CompanyAccountDTO.Startdate!,
+                        Enddate = (DateTime)CompanyAccountDTO.Enddate!,
+                        ServiceTypeid = serviceType.Id,
+                        Customerid = CompanyAccountDTO.CustomerId,
+                        Constatus = 5
+                    };
+                    var newPayment = new Payment
+                    {
+                        //Customerid = newCustomerID,
+                        Contractnumber = newContractNumber,
+                        Amount = CompanyAccountDTO.Amount,
+                        Paymentstatus = false,
+                    };
+                    _context.Payments.Add(newPayment);
+                    _context.Contracts.Add(newContract);
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+
+                    return newContractNumber;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                    return "Lỗi hệ thống, vui lòng thử lại sau.";
+                }
+            }
+        }
+
+        //Gia hạn hợp đồng
         public string? InsertExtend(ContractDTO contractDTO, string id)
         {
             if (contractDTO == null || contractDTO.chooseMonth <= 0)
@@ -221,81 +299,8 @@ namespace WebApi.Service.Admin
                 }
             }
         }
-
-        public async Task<string?> InsertContract(CompanyAccountDTO CompanyAccountDTO, string id)
-        {
-            if (CompanyAccountDTO == null)
-            {
-                return "Dữ liệu không hợp lệ.";
-            }
-
-            using (var transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == id);
-                    if (staff == null)
-                    {
-                        return $"Nhân viên với mã nhân viên = {id} không tồn tại";
-                    }
-
-                    var lastContract = _context.Contracts
-                .OrderByDescending(c => c.Contractnumber)
-                .FirstOrDefault();
-                    int nextContractNumber = lastContract != null ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1 : 1;
-                    string newContractNumber = $"SV{nextContractNumber:D4}";
-
-                    var serviceType = _context.ServiceTypes
-    .FirstOrDefault(st => st.ServiceTypename == CompanyAccountDTO.ServiceType);
-
-                    if (serviceType == null)
-                    {
-                        return $"Loại dịch vụ '{CompanyAccountDTO.ServiceType}' không tồn tại.";
-                    }
-                    // ✅ Kiểm tra khách hàng đã có dịch vụ này chưa
-                    var existingContract = _context.Contracts
-                        .Where(c => c.Customerid == CompanyAccountDTO.CustomerId
-                                 && c.ServiceTypeid == serviceType.Id
-                                 && c.Enddate >= DateTime.Now)
-                        .FirstOrDefault();
-
-                    if (existingContract != null)
-                    {
-                        return $"Khách hàng đã có hợp đồng với loại dịch vụ '{CompanyAccountDTO.ServiceType}' đang còn hiệu lực.";
-                    }
-                    var newContract = new Contract
-                    {
-                        Contractnumber = newContractNumber,
-                        Startdate = (DateTime)CompanyAccountDTO.Startdate!,
-                        Enddate = (DateTime)CompanyAccountDTO.Enddate!,
-                        ServiceTypeid = serviceType.Id,
-                        Customerid = CompanyAccountDTO.CustomerId,
-                        Constatus = 5
-                    };
-                    var newPayment = new Payment
-                    {
-                        //Customerid = newCustomerID,
-                        Contractnumber = newContractNumber,
-                        Amount = CompanyAccountDTO.Amount,
-                        Paymentstatus = false,
-                    };
-                    _context.Payments.Add(newPayment);
-                    _context.Contracts.Add(newContract);
-                    _context.SaveChanges();
-
-                    transaction.Commit();
-
-                    return newContractNumber;
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
-                    return "Lỗi hệ thống, vui lòng thử lại sau.";
-                }
-            }
-        }
-
+        
+        //Nâng cấp hợp đồng
         public string? InsertUpgrade(ContractDTO contractDTO, string id)
         {
             if (contractDTO == null)
@@ -361,6 +366,8 @@ namespace WebApi.Service.Admin
                 }
             }
         }
+        
+        //Danh sách giảm giá
         public async Task<List<Endow>> GetListEndow(string id)
         {
             var endowList = await (from endow in _context.Endows
@@ -378,7 +385,8 @@ namespace WebApi.Service.Admin
         }
 
         //lấy thông tin cty search để tạo phiếu yêu cầu
-        //đã thêm kiểm tra điều kiện hạn hợp đồng còn, vaf  hoat dong.
+                    
+                //đã thêm kiểm tra điều kiện hạn hợp đồng còn, vaf  hoat dong.          Bỏ
         //vì ở đây chỉ lấy thông tin cty để insert nên không cần lấy theo nhiều loại dịch vụ hợp đồng. 
         public async Task<List<CompanyAccountDTO>> GetAllInfor(string req)
         {
@@ -394,8 +402,8 @@ namespace WebApi.Service.Admin
                               c.Customerid.ToLower().Contains(req) ||
                               c.Companyname.ToLower().Contains(req) ||
                               c.Taxcode.ToLower().Contains(req))
-                              && h.IsActive == true
-                              && h.Enddate >= DateTime.Now
+                             // && h.IsActive == true
+                              //&& h.Enddate >= DateTime.Now
                          )
                         group new { c, a } by c.Customerid into g
                         select new CompanyAccountDTO
@@ -404,12 +412,8 @@ namespace WebApi.Service.Admin
                             CompanyName = g.First().c.Companyname,
                             TaxCode = g.First().c.Taxcode,
                             CompanyAccount = g.First().c.Companyaccount,
-                            //AccountIssuedDate = c.Accountissueddate,
                             CPhoneNumber = g.First().c.Cphonenumber,
                             CAddress = g.First().c.Caddress,
-                            //CustomerType = h.Customertype,
-                            //ServiceType = q.ServiceTypename,
-                            //ContractNumber = h.Contractnumber,
                             RootAccount = g.First().a.Rootaccount,
                             RootName = g.First().a.Rootname,
                             RPhoneNumber = g.First().a.Rphonenumber,
@@ -418,6 +422,97 @@ namespace WebApi.Service.Admin
                         };
 
             return await query.ToListAsync();
+        }
+
+        //Lưu thông tin công ty tạm thời. chờ boos ký. 
+        public async Task<string?> SaveContractStatusAsync(CompanyContractDTOs dto)
+        {
+            if (dto == null)
+            {
+                return "Dữ liệu không hợp lệ.";
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == dto.ChangedBy);
+                    if (staff == null)
+                    {
+                        return $"Nhân viên với mã nhân viên = {dto.ChangedBy} không tồn tại";
+                    }
+
+                    var lastContract = _context.Contracts
+                .OrderByDescending(c => c.Contractnumber)
+                .FirstOrDefault();
+                    if (!_context.ServiceTypes.Any(s => s.ServiceTypename == dto.ServiceType))
+                    {
+                        return "Loại dịch vụ không tồn tại trong hệ thống. Vui lòng kiểm tra lại.";
+                    }
+
+                    int nextContractNumber = lastContract != null ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1 : 1;
+                    string newContractNumber = $"SV{nextContractNumber:D4}";
+
+                    var serviceType = _context.ServiceTypes
+    .FirstOrDefault(st => st.ServiceTypename == dto.ServiceType);
+
+                    if (serviceType == null)
+                    {
+                        return $"Loại dịch vụ '{dto.ServiceType}' không tồn tại.";
+                    }
+
+                    var newContract = new Contract
+                    {
+                        Contractnumber = newContractNumber,
+                        Startdate = (DateTime)dto.Startdate!,
+                        Enddate = (DateTime)dto.Enddate!,
+                        ServiceTypeid = serviceType.Id,
+                        Customerid = dto.CustomerId,
+                        Customertype = dto.CustomerType,
+                        IsActive = false,
+                        Constatus = 0
+                    };
+                    var newPayment = new Payment
+                    {
+                        Contractnumber = newContractNumber,
+                        Amount = dto.Amount,
+                        Paymentstatus = false,
+                    };
+                    _context.Payments.Add(newPayment);
+                    _context.Contracts.Add(newContract);
+
+                    var newContractfile = new ContractFile
+                    {
+                        Contractnumber = newContractNumber,
+                        ConfileName = dto.ConfileName,
+                        FilePath = dto.FilePath,
+                        UploadedAt = DateTime.Now,
+                        FileStatus = 0,
+                    };
+
+                    var newContractStatusHistory = new ContractStatusHistory
+                    {
+                        Contractnumber = newContractNumber,
+                        OldStatus = 0,
+                        NewStatus = 0,
+                        ChangedAt = DateTime.Now,
+                        ChangedBy = dto.ChangedBy,
+                    };
+                    _context.ContractFiles.Add(newContractfile);
+                    _context.ContractStatusHistories.Add(newContractStatusHistory);
+
+                    _context.SaveChanges();
+                    transaction.Commit();
+
+                    return newContractNumber;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                    return "Lỗi hệ thống, vui lòng thử lại sau.";
+                }
+            }
         }
     }
 }
