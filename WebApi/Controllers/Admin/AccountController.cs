@@ -300,7 +300,25 @@ namespace WebApi.Controllers.Admin
             }
         }
 
-        //admin duyệt
+        //Duyệt 
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpPost]
+        public async Task<IActionResult> BrowseSignofClient([FromBody] SignAdminRequest dto)
+        {
+            try
+            {
+                // Gửi mail hợp đồng tới khách hàng ký
+                await _emailService.BrowseSignofClient(dto);
+                await _accountService.BrowseSendclient(dto);
+                return Ok(new { success = true, dto.FilePath });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi gửi email hoặc tạo hợp đồng: {ex.Message}");
+            }
+        }
+
+        //admin Xác nhận hoàn tất
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost]
         public async Task<IActionResult> Insert([FromBody] SignAdminRequest request)

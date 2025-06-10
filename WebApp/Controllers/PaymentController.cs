@@ -1,8 +1,10 @@
 ﻿// PaymentController.cs
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Net.Http;
+using WebApp.DTO;
 using WebApp.Helpers; // Đảm bảo bạn có VnPayLibrary ở đây
 
 namespace WebApp.Controllers
@@ -16,6 +18,65 @@ namespace WebApp.Controllers
         {
             _configuration = configuration;
             _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<IActionResult> Index(string fileName, string email)
+        {
+            using (var client = new HttpClient())
+            {
+                var apiUrl = $"https://localhost:7190/api/admin/SeeContract_Sign/CheckStatus?fileName={fileName}&email={email}";
+
+                try
+                {
+                    var response = await client.GetAsync(apiUrl);
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var hopDong = JsonConvert.DeserializeObject<StatusSignClient>(jsonString);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ViewBag.ErrorMessage = "Không tìm thấy hợp đồng hoặc lỗi hệ thống.";
+                        return View("Error");
+                    }
+                    
+                    if (hopDong == null)
+                    {
+                        ViewBag.ErrorMessage = "Dữ liệu hợp đồng không hợp lệ.";
+                        return View("Error");
+                    }
+
+                    else if (hopDong.status == 5)
+                    {
+                        //return View("~/Views/SeeContract/Payment.cshtml", hopDong); 
+                        ViewBag.ErrorMessage = "Vui lòng chờ Hệ thống xác nhận hoàn tất hợp đồng";
+                        return View("Error");
+                    }
+
+                    else if (hopDong.status == 6)
+                    {
+                        //return View("~/Views/SeeContract/Payment.cshtml", hopDong); 
+                        ViewBag.ErrorMessage = "Vui lòng chờ Hệ thống xác nhận hoàn tất hợp đồng";
+                        return View("Error");
+                    }
+                    else if (hopDong.status == 4)
+                    {
+                        var apiUrl2 = $"https://localhost:7190/api/admin/Payment/GetByContractNumber?contractNumber={hopDong.contractnumber}";
+
+                        var response2 = await client.GetAsync(apiUrl2);
+                        var jsonString2 = await response2.Content.ReadAsStringAsync();
+                        var hopDong2 = JsonConvert.DeserializeObject<CompanyContractDTOs>(jsonString2);
+                        if (response.IsSuccessStatusCode)
+                        {
+                           // ViewBag.ContractNumber = hopDong2.contractnumber;
+                            return View(hopDong2);
+                        }
+                    }
+                    ViewBag.ErrorMessage = "Trạng thái hợp đồng không xác định.";
+                    return View("Error");
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest("Có lỗi khi gọi API: " + ex.Message);
+                }
+            }
         }
 
         public async Task<IActionResult> ThanhToanVNPAY(decimal soTien, string mahopdong)
@@ -132,7 +193,7 @@ namespace WebApp.Controllers
                         else
                         {
                             ViewBag.Message = "Thanh toán thất bại hoặc sai chữ ký.";
-                            return View("Error");
+                            return View("Thanhtoanthatbai");
                         }
                     }
                     else

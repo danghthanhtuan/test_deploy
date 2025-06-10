@@ -955,12 +955,29 @@
                             if (normalizedStatus ==2) {
                                 return `<span class="text-muted">Chờ khách hàng ký</span>`;
                             }
+                            
+                            if (normalizedStatus == 3) {
+                                const fileName = row.confileName;
+                                const folder = "signed-contracts"; // vì đã ký và chờ duyệt
+                                const realPath = `/${folder}/${fileName}`;
+                                return `
+                                    <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-sm btn-success btn-browse"
+                                                title="Duyệt hợp đồng"
+                                                data-contractnumber="${contractNumber}"
+                                                data-confilename="${fileName}"
+                                                data-filepath="${realPath}">
+                                            <i class="fa-solid fa-circle-check"></i> Duyệt hợp đồng
+                                        </button>
+                                    </div>`;
+                            }
+
                             //if (normalizedStatus === "Ký hoàn tất") {
-                            if (normalizedStatus ==3) {
+                            if (normalizedStatus ==4) {
                                 return `<span class="text-muted">Chờ thanh toán</span>`;
                             }
                             //if (normalizedStatus === "Đã thanh toán") {
-                            if (normalizedStatus ==4) {
+                            if (normalizedStatus ==5) {
                                 const fileName = row.confileName;
                                 const folder = "signed-contracts"; // vì đã ký và chờ duyệt
                                 const realPath = `/${folder}/${fileName}`;
@@ -971,7 +988,7 @@
                                                 data-contractnumber="${contractNumber}"
                                                 data-confilename="${fileName}"
                                                 data-filepath="${realPath}">
-                                            <i class="fa-solid fa-circle-check"></i> Duyệt hợp đồng
+                                            <i class="fa-solid fa-circle-check"></i> Xác nhận hoàn tất
                                         </button>
                                     </div>`;
                             }
@@ -1039,6 +1056,7 @@
 
     let signedPdfBlob = null;
 
+    //boss ký
     document.getElementById("signBtn").addEventListener("click", async () => {
         const pfxFile = document.getElementById("certInput").files[0];
         const password = document.getElementById("certPassword").value;
@@ -1102,7 +1120,7 @@
 
     });
 
-    // Khi admin xác nhận lưu file ký đè lên file gốc
+    // Khi boss xác nhận lưu file ký đè lên file gốc
     document.getElementById("confirmSaveBtn").addEventListener("click", async () => {
         if (!signedPdfBlob) {
             showError("Chưa có hợp đồng ký tạm để lưu");
@@ -1141,7 +1159,6 @@
         }
     });
 
-
     // //nút ký của Director
     // $('#btnSignContract').on('click', function () {
     //     const contractNumber = $(this).data('contractNumber');
@@ -1177,9 +1194,8 @@
     //     });
     // });
 
-    //gửi cho client
     
-    //nút gửi đi của admin
+    //gửi cho client ký
     $('#pendingContracts').on('click', '.btn-send-client', function () {
         const contractNumber = $(this).data('contractnumber');
         //const fileName = $(this).data('confilename');
@@ -1217,7 +1233,45 @@
         });
     });
 
-    //duyệt
+    //duyệt file hợp đồng
+    $('#pendingContracts').on('click', '.btn-browse', function () {
+        const contractNumber = $(this).data('contractnumber');
+        //const fileName = $(this).data('confilename');
+        const filePath = $(this).data('filepath');
+
+        $.ajax({
+            url: '/admin/Account/BrowseSignofClient',
+            type: 'POST',
+            headers: {
+                "Authorization": "Bearer " + tokenJWT
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                StaffId: StaffId,
+                FilePath: filePath,
+                ContractNumber: contractNumber
+            }),
+            success: function (res) {
+                if (res.success) {
+                    // showSuccess("Duyệt hợp đồng thành công!");
+                    document.getElementById("contentModalSuccess").innerHTML = "Đã gửi hợp đồng thành công!";
+                    $("#ModalSuccess").modal("show");
+                    // backBtn3.click();
+                    // init("", "Tất cả");
+                    $('#pdfViewer').addClass('hidden');
+                    $('#pendingContracts').DataTable().ajax.reload(null, false); // Reload bảng không mất trang
+                } else {
+                    showError("Gửi hợp đồng thất bại: " + (res.message || ""));
+                }
+            },
+            error: function () {
+                console.error("Lỗi khi duyệt:", error);
+                showError("Lỗi khi duyệt hợp đồng. Vui lòng thử lại.");
+            }
+        });
+    });
+
+    //xác nhận hoàn tất thủ tục 
     $('#pendingContracts').on('click', '.btn-approve', function () {
         const contractNumber = $(this).data('contractnumber');
         const realFilePath = $(this).data('filepath');
@@ -1228,7 +1282,7 @@
         }
 
         // Xác nhận
-        if (!confirm("Bạn có chắc chắn muốn duyệt hợp đồng này?")) return;
+        if (!confirm("Bạn có chắc chắn muốn xác nhận hoàn tất thủ tục hợp đồng này?")) return;
 
         $.ajax({
             url: "/admin/account/Insert", // 🔧 sửa đúng URL nếu khác
@@ -1245,19 +1299,19 @@
             success: function (res) {
                 if (res.success) {
                    // showSuccess("Duyệt hợp đồng thành công!");
-                    document.getElementById("contentModalSuccess").innerHTML = "Duyệt hợp đồng thành công!";
+                    document.getElementById("contentModalSuccess").innerHTML = "Xác nhận hoàn tất hợp đồng thành công!";
                     $("#ModalSuccess").modal("show");
                     backBtn3.click();
                     // Reload lại bảng để cập nhật UI
                     init("", "Tất cả");
                    // $('#pendingContracts').DataTable().ajax.reload(null, false);
                 } else {
-                    showError("Duyệt hợp đồng thất bại: " + (res.message || ""));
+                    showError("Xác nhận hoàn tất hợp đồng thất bại: " + (res.message || ""));
                 }
             },
             error: function (xhr, status, error) {
-                console.error("Lỗi khi duyệt:", error);
-                showError("Lỗi khi duyệt hợp đồng. Vui lòng thử lại.");
+                console.error("Lỗi khi Xác nhận hoàn tất hợp đồng:", error);
+                showError("Lỗi khi Xác nhận hoàn tất hợp đồng. Vui lòng thử lại.");
             }
         });
     });

@@ -404,12 +404,9 @@ namespace WebApi.Service.Admin
                             CompanyName = g.First().c.Companyname,
                             TaxCode = g.First().c.Taxcode,
                             CompanyAccount = g.First().c.Companyaccount,
-                            //AccountIssuedDate = c.Accountissueddate,
                             CPhoneNumber = g.First().c.Cphonenumber,
                             CAddress = g.First().c.Caddress,
-                            //CustomerType = h.Customertype,
-                            //ServiceType = q.ServiceTypename,
-                            //ContractNumber = h.Contractnumber,
+                           
                             RootAccount = g.First().a.Rootaccount,
                             RootName = g.First().a.Rootname,
                             RPhoneNumber = g.First().a.Rphonenumber,

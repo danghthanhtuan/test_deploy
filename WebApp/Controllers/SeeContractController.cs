@@ -55,16 +55,18 @@ namespace WebApp.Areas.Controllers
 
                     if (hopDong.status == 2)
                     {
-                        ViewBag.ContractNumber = hopDong.contractnumber; // 👈 thêm dòng này
-                        return View(); // index.cshtml
+                        ViewBag.ContractNumber = hopDong.contractnumber; 
+                        return View(); 
                     }
                     else if (hopDong.status == 3)
                     {
-                        return View("~/Views/SeeContract/Payment.cshtml", hopDong); 
+                        //return View("~/Views/SeeContract/Payment.cshtml", hopDong); 
+                        ViewBag.ErrorMessage = "Vui lòng chờ Hệ thống xác nhận hợp đồng";
+                        return View("Error");
                     }
                     else if (hopDong.status == 4)
                     {
-                        ViewBag.ErrorMessage = "Không thể truy cập Hợp đồng đã được thanh toán .";
+                        ViewBag.ErrorMessage = "Vui lòng vào link thanh toán đã được gửi đến Email của quý khách hàng";
                         return View("Error");
                     }
                     ViewBag.ErrorMessage = "Trạng thái hợp đồng không xác định.";

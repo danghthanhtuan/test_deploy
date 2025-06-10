@@ -1,0 +1,102 @@
+﻿@model WebApp.DTO.CompanyContractDTOs
+
+@{
+    Layout = "~/Views/Shared/_LayoutGuest.cshtml";
+    ViewBag.Title = "Thanh Toán Hợp Đồng";
+}
+
+<style>
+    .payment-container {
+        max-width: 700px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        font-family: "Segoe UI", sans-serif;
+    }
+
+        .payment-container h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+    .payment-info label {
+        font-weight: bold;
+        display: block;
+        margin-top: 10px;
+        color: #555;
+    }
+
+    .payment-info input[type="text"],
+    .payment-info input[type="number"] {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-top: 5px;
+        margin-bottom: 15px;
+    }
+
+    .payment-btn {
+        text-align: center;
+    }
+
+        .payment-btn input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+            .payment-btn input[type="submit"]:hover {
+                background-color: #0056b3;
+            }
+
+    .contract-details {
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+        .contract-details p {
+            margin: 5px 0;
+        }
+
+        .contract-details span {
+            font-weight: bold;
+        }
+</style>
+
+<div class="payment-container">
+    <h2>Thông tin thanh toán</h2>
+
+    <div class="contract-details">
+        <p><span>Tên công ty:</span> @Model.CompanyName</p>
+        <p><span>Mã số thuế:</span> @Model.TaxCode</p>
+        <p><span>Số hợp đồng:</span> @Model.ContractNumber</p>  
+        <p><span>Thời hạn hợp đồng:</span> @Model.Startdate?.ToString("dd/MM/yyyy") - @Model.Enddate?.ToString("dd/MM/yyyy")</p>
+        <p><span>Số tiền cần thanh toán:</span> @Model.Amount.ToString("N0") VND</p>
+        <p><span>Loại dịch vụ:</span> @Model.ServiceType</p>
+    </div>
+
+    <form method="post" asp-controller="Payment" asp-action="ThanhToanVNPAY" class="payment-info">
+        <label for="soTien">Số tiền thanh toán (VND):</label>
+        <input type="number" name="soTien" value="@Model.Amount" required />
+
+        <label for="orderInfo">Nội dung thanh toán:</label>
+        <input type="text" name="orderInfo" value="Thanh toán hợp đồng @Model.ConfileName" readonly />
+
+        <input type="hidden" name="maHopDong" value="@Model.ContractNumber" />
+
+        <div class="payment-btn">
+            <input type="submit" value="Thanh toán qua VNPAY" />
+        </div>
+    </form>
+</div>

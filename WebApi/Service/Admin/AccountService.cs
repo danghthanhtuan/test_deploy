@@ -47,7 +47,7 @@ namespace WebApi.Service.Admin
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id 
-                        where c.IsActive == true && b.Constatus ==5
+                        where c.IsActive == true && b.Constatus ==6
                         group new { c, a, b, h } by new
                         {
                             c.Customerid,
@@ -292,7 +292,7 @@ namespace WebApi.Service.Admin
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
-                        where c.IsActive == true && b.Constatus == 5
+                        where c.IsActive == true && b.Constatus == 6
                         group new { c, a, b } by new
                         {
                             c.Customerid,
@@ -561,7 +561,7 @@ namespace WebApi.Service.Admin
                         join h in fileJoin on b.Contractnumber equals h.Contractnumber
                         where 
                                 //(b.Constatus=="Chưa ký"||b.Constatus == "Đã ký" ||b.Constatus=="Chờ client ký"|| b.Constatus == "Ký hoàn tất" || b.Constatus == "Đã thanh toán")
-                                b.Constatus==0||b.Constatus == 1 ||b.Constatus==2|| b.Constatus == 3 || b.Constatus == 4
+                                b.Constatus==0||b.Constatus == 1 ||b.Constatus==2|| b.Constatus == 3 || b.Constatus == 4 || b.Constatus == 5
                         select new CompanyContractDTOs
                         {
                             ContractNumber = b.Contractnumber,
@@ -698,9 +698,7 @@ namespace WebApi.Service.Admin
             }
         }
 
-
-
-        //cập nhật sau khi gửi cho client 
+        //cập nhật sau khi gửi cho client ký
         public async Task<string> UploadSendclient(SignAdminRequest request)
         {
             try
@@ -762,6 +760,71 @@ namespace WebApi.Service.Admin
                 return "Lỗi khi xử lý file hoặc kết nối cơ sở dữ liệu.";
             }
         }
+
+        //cập nhật sau khi duyệt ký
+        public async Task<string> BrowseSendclient(SignAdminRequest request)
+        {
+            try
+            {
+                var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Contractnumber == request.ContractNumber);
+                if (contract == null)
+                    return "Không tìm thấy hợp đồng tương ứng";
+
+                var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Customerid == contract.Customerid);
+
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // Lưu trạng thái cũ để lưu vào lịch sử
+                    var oldStatus = contract.Constatus;
+
+                    // Cập nhật trạng thái hợp đồng
+                    contract.Constatus = 4;
+                    _context.Contracts.Update(contract);
+
+                    // Thêm thông tin file (không lưu file nữa, chỉ lưu tên và đường dẫn hiện tại)
+                    var newContractFile = new ContractFile
+                    {
+                        Contractnumber = request.ContractNumber,
+                        ConfileName = Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
+                        FilePath = request.FilePath,
+                        UploadedAt = DateTime.Now,
+                        FileStatus = 4,
+                    };
+                    _context.ContractFiles.Add(newContractFile);
+
+                    // Thêm lịch sử trạng thái hợp đồng
+                    var newContractStatusHistory = new ContractStatusHistory
+                    {
+                        Contractnumber = contract.Contractnumber,
+                        OldStatus = oldStatus,
+                        NewStatus = 4,
+                        ChangedAt = DateTime.Now,
+                        ChangedBy = request.StaffId,
+                    };
+                    _context.ContractStatusHistories.Add(newContractStatusHistory);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return "Cập nhật trạng thái và thông tin file thành công";
+                }
+                catch (Exception dbEx)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"[DB ERROR] {dbEx.Message}");
+                    return "Lỗi khi lưu dữ liệu vào cơ sở dữ liệu.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GENERAL ERROR] {ex.Message}");
+                return "Lỗi khi xử lý file hoặc kết nối cơ sở dữ liệu.";
+            }
+        }
+
+
         //Cập nhật cũng như lưu công ty đã chính thức
         public async Task<string?> Insert(SignAdminRequest request)
         {
@@ -781,7 +844,7 @@ namespace WebApi.Service.Admin
                 {
                     var oldStatus = contract.Constatus;
 
-                    contract.Constatus = 5;
+                    contract.Constatus = 6;
                     contract.IsActive = true;
                     _context.Contracts.Update(contract);
 
@@ -791,7 +854,7 @@ namespace WebApi.Service.Admin
                         ConfileName = Path.GetFileName(request.FilePath),
                         FilePath = request.FilePath,
                         UploadedAt = DateTime.Now,
-                        FileStatus = 5
+                        FileStatus = 6
                     };
                     _context.ContractFiles.Add(newContractFile);
 
@@ -799,7 +862,7 @@ namespace WebApi.Service.Admin
                     {
                         Contractnumber = contract.Contractnumber,
                         OldStatus = oldStatus,
-                        NewStatus = 5,
+                        NewStatus = 6,
                         ChangedAt = DateTime.Now,
                         ChangedBy = request.StaffId,
                     };

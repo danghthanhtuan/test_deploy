@@ -22,7 +22,7 @@ namespace WebApi.Service.Admin
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
                         join q in _context.Payments on b.Contractnumber equals q.Contractnumber
-                        where c.IsActive == true && b.Constatus == 5
+                        where c.IsActive == true && b.Constatus == 6
                         select new CompanyAccountDTO
                         {
                             CustomerId = c.Customerid,

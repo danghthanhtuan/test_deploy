@@ -58,7 +58,7 @@ namespace WebApi.Service.Client
             }
         }
         
-        //gửi hợp đồng cho client
+        //gửi hợp đồng cho client ký
         public async Task SendEmailtoclient(SignAdminRequest dto)
         {
             try
@@ -112,24 +112,78 @@ namespace WebApi.Service.Client
             }
         }
 
-        //gửi hợp đồng cho client
-        public async Task SendContractEmail(string toEmail, string companyName, string signingLink)
+        ////gửi hợp đồng cho client
+        //public async Task SendContractEmail(string toEmail, string companyName, string signingLink)
+        //{
+        //    try
+        //    {
+        //        var email = new MimeMessage();
+        //        email.Sender = MailboxAddress.Parse(_emailSettings.Email);
+        //        email.From.Add(MailboxAddress.Parse(_emailSettings.Email));
+        //        email.To.Add(MailboxAddress.Parse(toEmail)); 
+
+        //        email.Subject = "Yêu cầu ký hợp đồng dịch vụ";
+
+        //        var builder = new BodyBuilder();
+        //        builder.HtmlBody = $@"
+        //<p>Chào <strong>{companyName}</strong>,</p>
+        //<p>Hệ thống đã tạo hợp đồng dịch vụ cho công ty của bạn.</p>
+        //<p>Vui lòng nhấn vào liên kết sau để xem và ký hợp đồng:</p>
+        //<p><a href='{signingLink}'>Ký hợp đồng tại đây</a></p>
+        //<br/>
+        //<p>Trân trọng,<br/>{_emailSettings.Displayname}</p>";
+
+        //        email.Body = builder.ToMessageBody();
+
+        //        using var smtp = new MailKit.Net.Smtp.SmtpClient();
+        //        await smtp.ConnectAsync(_emailSettings.Host, _emailSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
+        //        await smtp.AuthenticateAsync(_emailSettings.Email, _emailSettings.Password);
+        //        await smtp.SendAsync(email);
+        //        await smtp.DisconnectAsync(true);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"❌ Lỗi gửi email: {ex.Message}");
+        //        throw;
+        //    }
+        //}
+        
+        //Gửi cho khách thanh toán
+        public async Task BrowseSignofClient(SignAdminRequest dto)
         {
             try
             {
+                ////Tạo link xem file PDF
+                string fileName = Path.GetFileName(dto.FilePath);
+                var result = await (from c in _context.Contracts
+                                    join comp in _context.Companies on c.Customerid equals comp.Customerid
+                                    join acc in _context.Accounts on comp.Customerid equals acc.Customerid
+                                    where c.Contractnumber == dto.ContractNumber
+                                    select new
+                                    {
+                                        Contract = c,
+                                        Company = comp,
+                                        Account = acc
+                                    }).FirstOrDefaultAsync();
+                if (result == null)
+                    throw new Exception("Không tìm thấy thông tin hợp đồng hoặc công ty.");
+                // Tạo link ký hợp đồng
+                string razorDomain = _config["App:RazorBaseUrl"] ?? "https://localhost:7176";
+                string signingLink = $"{razorDomain}/Payment/Index?fileName={fileName}&email={result.Account.Rootaccount}";
+
                 var email = new MimeMessage();
                 email.Sender = MailboxAddress.Parse(_emailSettings.Email);
                 email.From.Add(MailboxAddress.Parse(_emailSettings.Email));
-                email.To.Add(MailboxAddress.Parse(toEmail)); 
+                email.To.Add(MailboxAddress.Parse(result.Account.Rootaccount));
 
-                email.Subject = "Yêu cầu ký hợp đồng dịch vụ";
+                email.Subject = "Yêu cầu thanh toán hợp đồng dịch vụ";
 
                 var builder = new BodyBuilder();
                 builder.HtmlBody = $@"
-        <p>Chào <strong>{companyName}</strong>,</p>
-        <p>Hệ thống đã tạo hợp đồng dịch vụ cho công ty của bạn.</p>
-        <p>Vui lòng nhấn vào liên kết sau để xem và ký hợp đồng:</p>
-        <p><a href='{signingLink}'>Ký hợp đồng tại đây</a></p>
+        <p>Chào <strong>{result.Company.Companyname}</strong>,</p>
+        <p>Hệ thống đã duyệt hợp đồng dịch vụ cho công ty của bạn.</p>
+        <p>Vui lòng nhấn vào liên kết sau để thanh toán cho hợp đồng</p>
+        <p><a href='{signingLink}'>Thanh toán hợp đồng tại đây</a></p>
         <br/>
         <p>Trân trọng,<br/>{_emailSettings.Displayname}</p>";
 
@@ -147,7 +201,8 @@ namespace WebApi.Service.Client
                 throw;
             }
         }
-        
+
+
         public async Task SendAdminNotificationEmail(string adminEmail, string signerEmail, string contractUrl)
         {
             try

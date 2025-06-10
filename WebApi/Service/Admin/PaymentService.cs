@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using iText.Commons.Actions.Contexts;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Transactions;
 using WebApi.DTO;
@@ -33,7 +34,7 @@ namespace WebApi.Service.Admin
             return paymenttran;
         }
 
-        public bool ThanhToan(string ID, string maGiaoDich,  string phuongThuc, string tinhTrang)
+        public bool ThanhToan(string ID, string maGiaoDich, string phuongThuc, string tinhTrang)
         {
             if (!int.TryParse(ID, out int idInt))
             {
@@ -43,14 +44,14 @@ namespace WebApi.Service.Admin
             var paymenttransaction = _context.PaymentTransactions
                 .FirstOrDefault(p => p.Id == idInt);
 
-            var payment = _context.Payments.FirstOrDefault(p=> p.Id == paymenttransaction.PaymentId);
+            var payment = _context.Payments.FirstOrDefault(p => p.Id == paymenttransaction.PaymentId);
             if (payment == null) return false;
 
             bool PaymentResultint;
-            if (tinhTrang =="Thanh cong")
+            if (tinhTrang == "Thanh cong")
             {
-               PaymentResultint = true;
-            }   
+                PaymentResultint = true;
+            }
             else
             {
                 PaymentResultint = false;
@@ -60,7 +61,7 @@ namespace WebApi.Service.Admin
             paymenttransaction.PaymentDate = DateTime.Now;
             paymenttransaction.PaymentMethod = phuongThuc;
             paymenttransaction.PaymentResult = PaymentResultint;
-            
+
             _context.PaymentTransactions.Update(paymenttransaction);
 
             if (tinhTrang == "Thanh cong")
@@ -73,14 +74,14 @@ namespace WebApi.Service.Admin
 
                 if (contract != null)
                 {
-                    contract.Constatus = 4; // Đã thanh toán
-                    _context.Contracts.Update(contract);    
+                    contract.Constatus = 5; // Đã thanh toán
+                    _context.Contracts.Update(contract);
 
                     var statusHistory = new ContractStatusHistory
                     {
                         Contractnumber = payment.Contractnumber,
-                        OldStatus = 3,
-                        NewStatus = 4,
+                        OldStatus = 4,
+                        NewStatus = 5,
                         ChangedAt = DateTime.Now,
                         ChangedBy = account.Rootaccount
                     };
@@ -95,7 +96,7 @@ namespace WebApi.Service.Admin
                             ConfileName = oldContractFile.ConfileName,
                             FilePath = oldContractFile.FilePath,
                             UploadedAt = DateTime.Now,
-                            FileStatus = 4
+                            FileStatus = 5
                         };
                         _context.ContractFiles.Add(newContractFile);
                     }
@@ -104,6 +105,48 @@ namespace WebApi.Service.Admin
 
             _context.SaveChanges();
             return true;
+        }
+
+        public async Task<CompanyContractDTOs?> GetByContractNumberAsync(string contractNumber)
+        {
+            contractNumber = contractNumber?.Trim();
+            var result = await (
+                from c in _context.Companies
+                join a in _context.Accounts on c.Customerid equals a.Customerid
+                join h in _context.Contracts on c.Customerid equals h.Customerid
+                join q in _context.ServiceTypes on h.ServiceTypeid equals q.Id
+                join f in _context.ContractFiles on h.Contractnumber equals f.Contractnumber into fileJoin
+                from file in fileJoin.DefaultIfEmpty()
+                join p in _context.Payments on h.Contractnumber equals p.Contractnumber into paymentJoin
+                from payment in paymentJoin.DefaultIfEmpty()
+                where h.Contractnumber == contractNumber
+                select new CompanyContractDTOs
+                {
+                    CustomerId = c.Customerid,
+                    CompanyName = c.Companyname,
+                    TaxCode = c.Taxcode,
+                    CompanyAccount = c.Companyaccount,
+                    AccountIssuedDate = c.Accountissueddate,
+                    CPhoneNumber = c.Cphonenumber,
+                    CAddress = c.Caddress,
+                    RootAccount = a.Rootaccount,
+                    RootName = a.Rootname,
+                    RPhoneNumber = a.Rphonenumber,
+                    DateOfBirth = a.Dateofbirth,
+                    Gender = a.Gender,
+                    ContractNumber = h.Contractnumber,
+                    Startdate = h.Startdate,
+                    Enddate = h.Enddate,
+                    CustomerType = h.Customertype,
+                    ServiceType = q.ServiceTypename,
+                    ConfileName = file.ConfileName,
+                    FilePath = file.FilePath,
+                    Amount = payment.Amount,
+                    Constatus = h.Constatus
+                }
+            ).FirstOrDefaultAsync();
+
+            return result;
         }
     }
 }

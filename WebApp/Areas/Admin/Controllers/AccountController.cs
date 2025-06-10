@@ -300,45 +300,45 @@ namespace WebApp.Areas.Admin.Controllers
         }
 
         //hàm boss ký. 
-        [HttpPost]
-        [Route("SignPdfWithAdminCertificate")]
-        public async Task<IActionResult> SignPdfWithAdminCertificate([FromBody] SignAdminRequest request)
-        {
-            try
-            {
-                // Lấy token từ Header
-                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(token))
-                    return Unauthorized(new { success = false, message = "Thiếu token." });
+        //[HttpPost]
+        //[Route("SignPdfWithAdminCertificate")]
+        //public async Task<IActionResult> SignPdfWithAdminCertificate([FromBody] SignAdminRequest request)
+        //{
+        //    try
+        //    {
+        //        // Lấy token từ Header
+        //        string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        //        if (string.IsNullOrEmpty(token))
+        //            return Unauthorized(new { success = false, message = "Thiếu token." });
 
-                // Thiết lập Authorization Header
-                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        //        // Thiết lập Authorization Header
+        //        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                // Gửi request đến API ký hợp đồng
-                var httpContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/account/SignPdfWithAdminCertificate", httpContent);
+        //        // Gửi request đến API ký hợp đồng
+        //        var httpContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+        //        HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/account/SignPdfWithAdminCertificate", httpContent);
 
-                // Đọc nội dung phản hồi từ API
-                string responseBody = await response.Content.ReadAsStringAsync();
-                var apiResponse = JsonConvert.DeserializeObject<JObject>(responseBody);
+        //        // Đọc nội dung phản hồi từ API
+        //        string responseBody = await response.Content.ReadAsStringAsync();
+        //        var apiResponse = JsonConvert.DeserializeObject<JObject>(responseBody);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string signedFilePath = apiResponse["signedFilePath"]?.ToString();
-                    return Ok(new { success = true, signedFilePath });
-                }
-                else
-                {
-                    string errorMessage = apiResponse["message"]?.ToString() ?? "Ký thất bại.";
-                    return BadRequest(new { success = false, message = errorMessage });
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
-                return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau." });
-            }
-        }
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            string signedFilePath = apiResponse["signedFilePath"]?.ToString();
+        //            return Ok(new { success = true, signedFilePath });
+        //        }
+        //        else
+        //        {
+        //            string errorMessage = apiResponse["message"]?.ToString() ?? "Ký thất bại.";
+        //            return BadRequest(new { success = false, message = errorMessage });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+        //        return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau." });
+        //    }
+        //}
 
         //gửi client
         [HttpPost]
@@ -374,6 +374,40 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
+        //DUYỆT FILE KÝ
+        [HttpPost]
+        [Route("BrowseSignofClient")]
+        public async Task<IActionResult> BrowseSignofClient([FromBody] SignAdminRequest dto)
+        {
+            try
+            {
+                // Lấy token từ header để truyền qua API service
+                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(token))
+                    return Unauthorized(new { success = false, message = "Thiếu token." });
+                var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/account/BrowseSignofClient", content);
+
+                var result = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Có thể trả về success + link để frontend xử lý
+                    return Ok(new { success = true, message = "Duyệt hợp đồng thành công!", data = JsonConvert.DeserializeObject(result) });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = result });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        //xác nhận hoàn tất thủ tục 
         [HttpPost]
         [Route("Insert")]
         public async Task<IActionResult> Insert([FromBody] SignAdminRequest request)
@@ -422,6 +456,7 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
+        //hàm boss ký. 
         [HttpPost]
         [Route("SignPdfWithPfx")]
         public async Task<IActionResult> SignPdfWithPfx(IFormFile pfxFile, string password, string fileName, string staffid)
@@ -500,7 +535,7 @@ namespace WebApp.Areas.Admin.Controllers
             public string Message { get; set; }
         }
 
-
+        //hàm boss lưu chữ ký. 
         [HttpPost]
         [Route("SaveSignedPdf")]
         public async Task<IActionResult> SaveSignedPdf(IFormFile signedPdf, string fileName,  string contractNumber, string staffid)

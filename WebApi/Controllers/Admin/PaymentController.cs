@@ -40,6 +40,18 @@ namespace WebApi.Controllers.Admin
             return BadRequest("Cập nhật thanh toán thất bại.");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetByContractNumber([FromQuery] string contractNumber)
+        {
+            if (string.IsNullOrEmpty(contractNumber))
+                return BadRequest("Contract number is required");
 
+            var data = await _PaymentService.GetByContractNumberAsync(contractNumber);
+
+            if (data == null)
+                return NotFound("Không tìm thấy hợp đồng");
+
+            return Ok(data);
+        }
     }
 }
