@@ -173,6 +173,23 @@
         </div>
     </div>
 </body>
+<!-- Modal thông báo lỗi -->
+<div class="modal fade" id="ModalError" tabindex="-1" aria-labelledby="ModalErrorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="ModalErrorLabel">Lỗi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="contentModalError"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
@@ -248,7 +265,6 @@
                 },
                 error: function (xhr, status, error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
-                    // alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
                     showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
 
                 }
@@ -310,6 +326,21 @@
                 "defaultContent": "-",
                 "targets": "_all"
             }]
+        });
+    }
+    function showError(message) {
+        document.getElementById("contentModalError").innerText = message;
+
+        // Khởi tạo modal bằng Bootstrap 5
+        var errorModal = new bootstrap.Modal(document.getElementById("ModalError"), {
+            keyboard: true, // Cho phép bấm phím ESC để đóng
+            backdrop: 'static' // Không đóng modal khi bấm ngoài
+        });
+        // Hiển thị modal
+        errorModal.show();
+        // Gán sự kiện đóng modal vào nút "Đóng"
+        document.getElementById("btnCloseModal").addEventListener("click", function () {
+            errorModal.hide();
         });
     }
 </script>

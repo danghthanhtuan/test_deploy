@@ -1331,7 +1331,8 @@
                     });
                 },
                 error: function () {
-                    alert('Không lấy được danh sách loại dịch vụ!');
+                    showError("Không lấy được danh sách loại dịch vụ!");
+
                 }
             });
         });
@@ -1487,7 +1488,7 @@
                     }
                 },
                 error: function () {
-                    alert('Cập nhật thất bại!');
+                    showError("Cập nhật thất bại");
                 }
             });
         }

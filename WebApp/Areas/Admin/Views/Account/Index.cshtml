@@ -581,7 +581,6 @@
         timeGiahanSelect.addEventListener("change", function () {
             const value = this.value;
             if (!value) {
-                //alert("Vui lòng chọn thời gian gia hạn!");
                 showError("Vui lòng chọn thời gian gia hạn!");
                 return;
             }
@@ -737,7 +736,6 @@
                 },
                 error: function () {
                     showError("Không lấy được danh sách loại dịch vụ!");
-                   // alert('Không lấy được danh sách loại dịch vụ!');
                 }
             });
 
@@ -888,7 +886,6 @@
                     },
                     error: function (xhr, status, error) {
                         console.error("Lỗi khi lấy dữ liệu:", error);
-                        // alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
                         showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
 
                     }
@@ -1025,7 +1022,7 @@
 
         if (!contractNumber || !confileName || !folder) {
             console.error("Thiếu thông tin hợp đồng (contractNumber, confileName, folder)");
-            alert("Không thể hiển thị hợp đồng. Thiếu thông tin cần thiết.");
+            showError("Không thể hiển thị hợp đồng. Thiếu thông tin cần thiết");
             return;
         }
         const pdfUrl = `https://localhost:7190/${folder}/${confileName}`;
@@ -1398,7 +1395,6 @@
                 },
                 error: function (xhr, status, error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
-                    // alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
                     showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
 
                 }

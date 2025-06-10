@@ -677,7 +677,7 @@
         timeGiahanSelect.addEventListener("change", function () {
             const value = this.value;
             if (!value) {
-                alert("Vui lòng chọn thời gian gia hạn!");
+                showError("Vui lòng chọn thời gian gia hạn!");
                 return;
             }
 
@@ -729,7 +729,7 @@
         timeGiahanSelect.addEventListener("change", function () {
             const value = this.value;
             if (!value) {
-                alert("Vui lòng chọn thời gian gia hạn!");
+                showError("Vui lòng chọn thời gian gia hạn!");
                 return;
             }
 
@@ -908,7 +908,8 @@
 
                 },
                 error: function () {
-                    alert('Không lấy được danh sách loại dịch vụ!');
+                    showError("Không lấy được danh sách loại dịch vụ!");
+
                 }
             });
            // refresh();
@@ -988,7 +989,6 @@
                 },
                 error: function (xhr, status, error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
-                    // alert("Không thể tải danh sách công ty. Vui lòng thử lại!");
                     showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
                 }
             },
@@ -1470,13 +1470,13 @@
                         $("#unitPriceHidden").val(matchedService.price);
                         $("#unitIDHidden").val(matchedService.serviceGroupid);
                     } else {
-                        alert("Không tìm thấy dịch vụ phù hợp");
+                        showError("Không tìm thấy dịch vụ phù hợp");
                     }
 
                     updateTongTien();
                 },
                 error: function () {
-                    alert('Không lấy được danh sách loại dịch vụ!');
+                    showError("Không lấy được danh sách loại dịch vụ!");
                 }
             });
         }
@@ -1688,13 +1688,15 @@
                         $("#unitIDHidden3").val(matchedService.serviceGroupid);
 
                     } else {
-                        alert("Không tìm thấy dịch vụ phù hợp");
+                        showError("Không tìm thấy dịch vụ phù hợp");
                     }
 
                     updateTongTien3();
                 },
                 error: function () {
-                    alert('Không lấy được danh sách loại dịch vụ!');
+                    showError("Không lấy được danh sách loại dịch vụ!");
+
+
                 }
             });
         }

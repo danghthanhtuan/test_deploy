@@ -618,7 +618,7 @@
 
                 error: function (xhr, status, error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
-                    alert("Không thể tải danh sách yêu cầu. Vui lòng thử lại!");
+                    showErrorModal("Không thể tải danh sách yêu cầu. Vui lòng thử lại!");
                 }
             },
             columns: [
@@ -749,13 +749,13 @@
                 if (response.success && response.listHis) {
                     showDetails(response.listHis); // Không cần .length vì đây là object
                 } else {
-                    alert("Không tìm thấy thông tin yêu cầu.");
+                    showErrorModal("Không tìm thấy thông tin yêu cầu");
                 }
 
             },
             error: function (xhr, status, error) {
                 console.error("Lỗi khi lấy chi tiết yêu cầu:", error);
-                alert("Không thể tải chi tiết yêu cầu. Vui lòng thử lại!");
+                showErrorModal("Không thể tải chi tiết yêu cầu. Vui lòng thử lại!");
             }
         });
     }

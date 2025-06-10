@@ -238,7 +238,7 @@
 
         async function saveSignature() {
             if (signaturePad.isEmpty()) {
-                alert("Vui lòng ký tên trước!");
+                showError("Vui lòng ký tên trước");
                 return;
             }
             const dataURL = signaturePad.toDataURL();

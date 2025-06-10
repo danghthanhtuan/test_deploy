@@ -363,7 +363,7 @@
             },
             error: function (status) {
                 // Hiển thị cảnh báo nếu có lỗi
-                alert("Không tìm thấy dữ liệu");
+                showError("Không tìm thấy dữ liệu");
             }
         });
     }
@@ -597,6 +597,21 @@
                     }
                 }
             });
+        });
+    }
+    function showError(message) {
+        document.getElementById("contentModalError").innerText = message;
+
+        // Khởi tạo modal bằng Bootstrap 5
+        var errorModal = new bootstrap.Modal(document.getElementById("ModalError"), {
+            keyboard: true, // Cho phép bấm phím ESC để đóng
+            backdrop: 'static' // Không đóng modal khi bấm ngoài
+        });
+        // Hiển thị modal
+        errorModal.show();
+        // Gán sự kiện đóng modal vào nút "Đóng"
+        document.getElementById("btnCloseModal").addEventListener("click", function () {
+            errorModal.hide();
         });
     }
 </script>
