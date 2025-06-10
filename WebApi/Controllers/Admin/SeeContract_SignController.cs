@@ -60,7 +60,11 @@ namespace WebApi.Controllers.Admin
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Lỗi khi ký PDF: {ex.Message}");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"{ex.Message}"
+                });
             }
         }
 

@@ -1,6 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using iText.Bouncycastle.Crypto;
+using iText.Bouncycastle.X509;
+using iText.Commons.Bouncycastle.Cert;
+using iText.IO.Font;
+using iText.IO.Font.Constants;
+using iText.Kernel.Font;
+using iText.Kernel.Pdf;
+using iText.Signatures;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Ocsp;
+using Org.BouncyCastle.Pkcs;
+using System.Security.Claims;
 using System.Text;
 using WebApi.Content;
 using WebApi.DTO;
@@ -16,12 +27,16 @@ namespace WebApi.Service.Admin
         private readonly IEmailService _emailService;
         //private readonly IConnectionMultiplexer _redis;
         private readonly ILogger<AccountService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IWebHostEnvironment _env;
 
-        public AccountService(ManagementDbContext context, IEmailService emailService, ILogger<AccountService> logger)
+        public AccountService(ManagementDbContext context, IEmailService emailService, ILogger<AccountService> logger, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env)
         {
             _context = context;
             _emailService = emailService;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
+            _env = env;
         }
 
         //lấy những công ty đã chính thức isactive = true và hợp đồng đã duyệt
@@ -588,67 +603,102 @@ namespace WebApi.Service.Admin
         }
 
         //Boss  ký 
-        public async Task<string> UploadDirectorSigned(SignAdminRequest request)
+        public async Task<string> UploadDirectorSigned(IFormFile signedPdf, string fileName, string contractNumber, string staffid)
         {
             try
             {
-                var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Contractnumber == request.ContractNumber);
+                var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Contractnumber == contractNumber);
                 if (contract == null)
                     return "Không tìm thấy hợp đồng tương ứng";
 
                 var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Customerid == contract.Customerid);
+                if (account == null)
+                    return "Không tìm thấy tài khoản khách hàng";
+
+                var staff = await _context.Staff.FirstOrDefaultAsync(s => s.Staffid == staffid);
+                if (staff == null)
+                    return "Nhân viên không tồn tại";
+
+                // Tạo tên file mới: giữ nguyên tên gốc + _yyyyMMdd_HHmmss
+                var fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+                var extension = Path.GetExtension(fileName);
+                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                var newFileName = $"{fileNameWithoutExt}_{timestamp}{extension}";
+
+                // Thư mục đích signed
+                var signedDir = Path.Combine(_env.WebRootPath, "signed-contracts");
+                Directory.CreateDirectory(signedDir);
+                var signedFilePath = Path.Combine(signedDir, newFileName);
+
+                // Lưu file được gửi từ web vào thư mục signed
+                using (var stream = new FileStream(signedFilePath, FileMode.Create))
+                {
+                    await signedPdf.CopyToAsync(stream);
+                }
+
+                // Xóa file cũ trong thư mục temp-pdfs nếu có
+                var tempDir = Path.Combine(_env.WebRootPath, "temp-pdfs");
+                var tempFilePath = Path.Combine(tempDir, fileName);
+                if (System.IO.File.Exists(tempFilePath))
+                {
+                    System.IO.File.Delete(tempFilePath);
+                }
 
                 await using var transaction = await _context.Database.BeginTransactionAsync();
 
                 try
                 {
-                    // Lưu trạng thái cũ để lưu vào lịch sử
                     var oldStatus = contract.Constatus;
 
                     // Cập nhật trạng thái hợp đồng
                     contract.Constatus = 1;
                     _context.Contracts.Update(contract);
 
-                    // Thêm thông tin file (không lưu file nữa, chỉ lưu tên và đường dẫn hiện tại)
+                    // Lưu file mới
                     var newContractFile = new ContractFile
                     {
-                        Contractnumber = request.ContractNumber,
-                        ConfileName = Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
-                        FilePath = request.FilePath,
+                        Contractnumber = contractNumber,
+                        ConfileName = newFileName,
+                        FilePath = Path.Combine("signed-contracts", newFileName).Replace("\\", "/"),
                         UploadedAt = DateTime.Now,
-                        FileStatus = 1,
+                        FileStatus = 1
                     };
                     _context.ContractFiles.Add(newContractFile);
 
-                    // Thêm lịch sử trạng thái hợp đồng
+                    // Ghi lịch sử thay đổi trạng thái
                     var newContractStatusHistory = new ContractStatusHistory
                     {
                         Contractnumber = contract.Contractnumber,
                         OldStatus = oldStatus,
                         NewStatus = 1,
                         ChangedAt = DateTime.Now,
-                        ChangedBy = request.StaffId,
+                        ChangedBy = staff.Staffid,
                     };
                     _context.ContractStatusHistories.Add(newContractStatusHistory);
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    return "Cập nhật trạng thái và thông tin file thành công";
+                    return "Cập nhật trạng thái và lưu file đã ký thành công";
                 }
                 catch (Exception dbEx)
                 {
                     await transaction.RollbackAsync();
-                    Console.WriteLine($"[DB ERROR] {dbEx.Message}");
-                    return "Lỗi khi lưu dữ liệu vào cơ sở dữ liệu.";
+
+                    // Xóa file đã lưu nếu có lỗi
+                    if (System.IO.File.Exists(signedFilePath))
+                        System.IO.File.Delete(signedFilePath);
+
+                    return $"Lỗi khi lưu dữ liệu vào cơ sở dữ liệu: {dbEx.Message}";
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[GENERAL ERROR] {ex.Message}");
-                return "Lỗi khi xử lý file hoặc kết nối cơ sở dữ liệu.";
+                return $"Lỗi khi xử lý file hoặc kết nối CSDL: {ex.Message}";
             }
         }
+
+
 
         //cập nhật sau khi gửi cho client 
         public async Task<string> UploadSendclient(SignAdminRequest request)
@@ -825,6 +875,8 @@ namespace WebApi.Service.Admin
             return $"https://localhost:7190/signed-contracts/{fileName}";
 
         }
-
+        
     }
 }
+
+

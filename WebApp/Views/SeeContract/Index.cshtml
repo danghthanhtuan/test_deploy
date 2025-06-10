@@ -147,8 +147,10 @@
                         body: formData
                     });
 
-                    if (!res.ok) throw new Error("Ký thất bại");
-
+                    if (!res.ok) {
+                        const errJson = await res.json();
+                        throw new Error(errJson.message || "Ký thất bại");
+                    }
                     signedPdfBlob = await res.blob();
 
                     // Hiển thị PDF ký tạm trong pdfViewer

@@ -501,12 +501,15 @@
 
                     <!-- iframe hiển thị PDF -->
                     <div id="pdfViewer" class="hidden mt-3">
-                        <iframe src="" width="100%" height="600px" style="border:none;"></iframe>
+@*                         <iframe src="" width="100%" height="400px" style="border:none;"></iframe>
+ *@                        <iframe id="pdfFrame" src="" width="100%" height="400px" style="border:none;"></iframe>
 
-                        <div class="mt-2">
-                            <button id="btnSignContract" class="btn btn-success hidden">
-                                ✍️ Ký hợp đồng
-                            </button>
+                        <div class="mt-2" id="pfxSection" class="hidden">
+                            <!-- Chọn file chứng thư số (.pfx) -->
+                            <input type="file" id="certInput" accept=".pfx" />
+                            <input type="password" id="certPassword" placeholder="Mật khẩu chứng thư số" />
+                            <button id="signBtn" class="btn btn-primary">✍️ Ký hợp đồng      </button>
+                            <button id="confirmSaveBtn" class="btn btn-success" disabled>Lưu hợp đồng đã ký</button>
                         </div>
                     </div>
                 </div>
@@ -917,7 +920,8 @@
                                data-id="${row.contractNumber}"
                                data-confilename="${fileName}"
                                data-realpath="${row.filePath}"
-                               data-folder="${folder}">
+                               data-folder="${folder}"
+                               data-email="${row.rootAccount}">
                                 <i class="fa-solid fa-file-pdf text-danger" style="font-size: 1.3rem;"></i>Xem hợp đồng
                             </a>`;
                         }
@@ -998,14 +1002,10 @@
         const confileName = $link.attr('data-confilename'); // dùng attr thay vì data
         const realFilePath = $link.attr('data-realpath'); // ✅ đường dẫn thực
         const folder = $link.attr('data-folder'); 
-
+        const rootaccount = $link.attr('data-email');
         console.log("Clicked contract", contractNumber);
         console.log("confileName", confileName);
 
-        // if (!confileName) {
-        //     console.error("Không lấy được confileName");
-        //     return;
-        // }
         if (!contractNumber || !confileName || !folder) {
             console.error("Thiếu thông tin hợp đồng (contractNumber, confileName, folder)");
             alert("Không thể hiển thị hợp đồng. Thiếu thông tin cần thiết.");
@@ -1013,60 +1013,173 @@
         }
         const pdfUrl = `https://localhost:7190/${folder}/${confileName}`;
 
-        $('#btnSignContract').data('contractNumber', contractNumber);
-        $('#btnSignContract').data('filePath', realFilePath); // ✅ gán đúng key là filePath
+        $('#signBtn').data('fileName', confileName);
+        $('#signBtn').data('email', rootaccount);
+        $('#signBtn').data('contractNumber', contractNumber);
+        $('#signBtn').data('realFilePath', realFilePath);
+
+        // $('#btnSignContract').data('contractNumber', contractNumber);
+        // $('#btnSignContract').data('filePath', realFilePath); // ✅ gán đúng key là filePath
         $('#pdfViewer iframe').attr('src', pdfUrl);
         $('#pdfViewer').removeClass('hidden');
         const signed = signedStateMap[contractNumber.toLowerCase()];
         if (signed === 1) {
-            $('#btnSignContract').addClass('hidden');
-        } else {
+          //  $('#btnSignContract').addClass('hidden');
+            $('#pfxSection').addClass('hidden');
 
+        } else {
             if (Department === "Admin") {
-                $('#btnSignContract').addClass('hidden');
+                $('#pfxSection').addClass('hidden');
             } else if (Department === "Director") {
-                $('#btnSignContract').removeClass('hidden');
+                $('#pfxSection').removeClass('hidden');
             }
             //$('#btnSignContract').removeClass('hidden');
         }
     });
 
-    //nút ký của Director
-    $('#btnSignContract').on('click', function () {
-        const contractNumber = $(this).data('contractNumber');
-        const filePath = $(this).data('filePath'); // ✅ Đúng đường dẫn nội bộ
+    let signedPdfBlob = null;
 
-        $.ajax({
-            url: `/admin/account/SignPdfWithAdminCertificate`, // Không cần truyền staffId trong URL nữa
-            type: "POST",
-            contentType: "application/json",
-            headers: {
-                "Authorization": "Bearer " + tokenJWT
-            },
-            data: JSON.stringify({
-                StaffId: StaffId,
-                FilePath: filePath,
-                ContractNumber: contractNumber
-            }),
-            success: function (res) {
-                if (res.success) {
-                    signedStateMap[contractNumber] = 1; // Cập nhật trạng thái
-                    $('#btnSignContract').addClass('hidden');
-                    $('#pdfViewer').addClass('hidden');
-                    $('#pendingContracts').DataTable().ajax.reload(null, false); // Reload bảng không mất trang
-                    document.getElementById("contentModalSuccess").innerHTML = "Ký hợp đồng thành công!";
-                    $("#ModalSuccess").modal("show");
-                } else {
-                    showError("Không thể ký hợp đồng. Vui lòng thử lại.");
+    document.getElementById("signBtn").addEventListener("click", async () => {
+        const pfxFile = document.getElementById("certInput").files[0];
+        const password = document.getElementById("certPassword").value;
+        const fileName = $('#signBtn').data('fileName');
+
+        if (!pfxFile || !password) {
+            showError("Vui lòng chọn file chứng thư số và nhập mật khẩu");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("pfxFile", pfxFile);
+        formData.append("password", password);
+        formData.append("fileName", fileName);
+        formData.append("staffid", StaffId);
+
+        // Hiển thị modal xác nhận
+        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn ký với thông tin này không?";
+        const modalConfirmEl = document.getElementById("confirmModal");
+        const modalConfirm = new bootstrap.Modal(modalConfirmEl);
+        modalConfirm.show();
+
+        // Xử lý khi bấm nút xác nhận
+        $("#confirmButton1").off("click").on("click", async function () {
+            modalConfirm.hide();
+            try {
+                const res = await fetch("/admin/account/SignPdfWithPfx", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + tokenJWT
+                    },
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    const errJson = await res.json();
+                    throw new Error(errJson.message || "Ký thất bại");
                 }
-            },
-            error: function (xhr) {
-                showError("Lỗi khi gọi API ký hợp đồng!");
+
+                signedPdfBlob = await res.blob();
+                const url = URL.createObjectURL(signedPdfBlob);
+
+                // ✅ Gán vào iframe chứ không phải div
+                document.getElementById("pdfFrame").src = url;
+
+                // ✅ Hiện vùng xem file PDF đã ký
+                document.getElementById("pdfViewer").classList.remove("hidden");
+
+                // ✅ Hiển thị modal thành công
+                document.getElementById("contentModalSuccess").innerHTML =
+                    "Ký hợp đồng thành công, xem hợp đồng đã ký bên trên";
+
+                const modal = new bootstrap.Modal(document.getElementById("ModalSuccess"));
+                modal.show();
+                document.getElementById("confirmSaveBtn").disabled = false;
+
+            } catch (err) {
+                showError("Ký thất bại: " + err.message);
             }
         });
+
     });
 
+    // Khi admin xác nhận lưu file ký đè lên file gốc
+    document.getElementById("confirmSaveBtn").addEventListener("click", async () => {
+        if (!signedPdfBlob) {
+            showError("Chưa có hợp đồng ký tạm để lưu");
+            return;
+        }
+
+        try {
+            // ✅ Lấy dữ liệu từ button đã được gán trước đó
+            const fileName = $('#signBtn').data('fileName');
+            const email = $('#signBtn').data('email');
+            const contractNumber = $('#signBtn').data('contractNumber');
+
+            const formData = new FormData();
+            formData.append("fileName", fileName);
+            formData.append("signedPdf", signedPdfBlob, "signed_" + fileName); // tên file mới để lưu
+            formData.append("contractNumber", contractNumber);
+            formData.append("staffid", StaffId);
+
+            const res = await fetch("/admin/account/SaveSignedPdf", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                body: formData
+            });
+
+            if (!res.ok) throw new Error("Lưu file ký thất bại");
+
+            document.getElementById("contentModalSuccess").innerHTML = "Lưu hợp đồng đã ký thành công!";
+            $("#ModalSuccess").modal("show");
+            document.getElementById("confirmSaveBtn").disabled = true;
+
+        } catch (err) {
+            showError("Lưu thất bại: " + err.message);
+            return;
+        }
+    });
+
+
+    // //nút ký của Director
+    // $('#btnSignContract').on('click', function () {
+    //     const contractNumber = $(this).data('contractNumber');
+    //     const filePath = $(this).data('filePath'); // ✅ Đúng đường dẫn nội bộ
+
+    //     $.ajax({
+    //         url: `/admin/account/SignPdfWithAdminCertificate`, // Không cần truyền staffId trong URL nữa
+    //         type: "POST",
+    //         contentType: "application/json",
+    //         headers: {
+    //             "Authorization": "Bearer " + tokenJWT
+    //         },
+    //         data: JSON.stringify({
+    //             StaffId: StaffId,
+    //             FilePath: filePath,
+    //             ContractNumber: contractNumber
+    //         }),
+    //         success: function (res) {
+    //             if (res.success) {
+    //                 signedStateMap[contractNumber] = 1; // Cập nhật trạng thái
+    //                 $('#btnSignContract').addClass('hidden');
+    //                 $('#pdfViewer').addClass('hidden');
+    //                 $('#pendingContracts').DataTable().ajax.reload(null, false); // Reload bảng không mất trang
+    //                 document.getElementById("contentModalSuccess").innerHTML = "Ký hợp đồng thành công!";
+    //                 $("#ModalSuccess").modal("show");
+    //             } else {
+    //                 showError("Không thể ký hợp đồng. Vui lòng thử lại.");
+    //             }
+    //         },
+    //         error: function (xhr) {
+    //             showError("Lỗi khi gọi API ký hợp đồng!");
+    //         }
+    //     });
+    // });
+
     //gửi cho client
+    
+    //nút gửi đi của admin
     $('#pendingContracts').on('click', '.btn-send-client', function () {
         const contractNumber = $(this).data('contractnumber');
         //const fileName = $(this).data('confilename');

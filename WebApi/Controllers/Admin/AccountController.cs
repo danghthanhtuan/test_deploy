@@ -200,87 +200,87 @@ namespace WebApi.Controllers.Admin
         }
 
         //boss kí
-        [Authorize(Policy = "DirectorPolicy")]
-        [HttpPost]
-        public async Task<IActionResult> SignPdfWithAdminCertificate([FromBody] SignAdminRequest request)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(request.FilePath) || string.IsNullOrEmpty(request.StaffId) || string.IsNullOrEmpty(request.ContractNumber))
-                    return BadRequest(new { success = false, message = "Thiếu thông tin file, mã hợp đồng hoặc nhân viên." });
+        //[Authorize(Policy = "DirectorPolicy")]
+        //[HttpPost]
+        //public async Task<IActionResult> SignPdfWithAdminCertificate([FromBody] SignAdminRequest request)
+        //{
+        //    try
+        //    {
+        //        if (string.IsNullOrEmpty(request.FilePath) || string.IsNullOrEmpty(request.StaffId) || string.IsNullOrEmpty(request.ContractNumber))
+        //            return BadRequest(new { success = false, message = "Thiếu thông tin file, mã hợp đồng hoặc nhân viên." });
 
-                //if (!System.IO.File.Exists(request.FilePath))
-                //return NotFound(new { success = false, message = "File hợp đồng không tồn tại." });
+        //        //if (!System.IO.File.Exists(request.FilePath))
+        //        //return NotFound(new { success = false, message = "File hợp đồng không tồn tại." });
 
-                // Convert từ đường dẫn web sang vật lý
-                string physicalPath = Path.Combine(
-                    _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"),
-                    request.FilePath.TrimStart('/')
-                );
+        //        // Convert từ đường dẫn web sang vật lý
+        //        string physicalPath = Path.Combine(
+        //            _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"),
+        //            request.FilePath.TrimStart('/')
+        //        );
 
-                if (!System.IO.File.Exists(physicalPath))
-                    return NotFound(new { success = false, message = "File hợp đồng không tồn tại." });
+        //        if (!System.IO.File.Exists(physicalPath))
+        //            return NotFound(new { success = false, message = "File hợp đồng không tồn tại." });
 
-                // Đọc file gốc từ đường dẫn vật lý
-                byte[] originalPdfBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
+        //        // Đọc file gốc từ đường dẫn vật lý
+        //        byte[] originalPdfBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
 
 
-                // Ký file
-                byte[] signedPdfBytes = _pdfService.SignPdfWithAdminCertificate(originalPdfBytes, request.StaffId);
+        //        // Ký file
+        //        byte[] signedPdfBytes = _pdfService.SignPdfWithAdminCertificate(originalPdfBytes, request.StaffId);
 
-                // 3. Tạo đường dẫn lưu file mới
-                var folderPath = Path.Combine(
-                    _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"),
-                    "signed-contracts"
-                );
-                if (!Directory.Exists(folderPath))
-                    Directory.CreateDirectory(folderPath);
+        //        // 3. Tạo đường dẫn lưu file mới
+        //        var folderPath = Path.Combine(
+        //            _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"),
+        //            "signed-contracts"
+        //        );
+        //        if (!Directory.Exists(folderPath))
+        //            Directory.CreateDirectory(folderPath);
 
-                // 4. Tạo tên file mới theo timestamp
-                string baseFileName = Path.GetFileNameWithoutExtension(request.FilePath);
-                string newFileName = $"{baseFileName}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
-                string newFilePath = Path.Combine(folderPath, newFileName);
+        //        // 4. Tạo tên file mới theo timestamp
+        //        string baseFileName = Path.GetFileNameWithoutExtension(request.FilePath);
+        //        string newFileName = $"{baseFileName}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+        //        string newFilePath = Path.Combine(folderPath, newFileName);
 
-                // 5. Ghi file đã ký vào thư mục mới
-                await System.IO.File.WriteAllBytesAsync(newFilePath, signedPdfBytes);
+        //        // 5. Ghi file đã ký vào thư mục mới
+        //        await System.IO.File.WriteAllBytesAsync(newFilePath, signedPdfBytes);
 
-                try
-                {
-                    if (System.IO.File.Exists(physicalPath))
-                        System.IO.File.Delete(physicalPath);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Không thể xóa file gốc tại {physicalPath}: {ex.Message}");
-                }
+        //        try
+        //        {
+        //            if (System.IO.File.Exists(physicalPath))
+        //                System.IO.File.Delete(physicalPath);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"Không thể xóa file gốc tại {physicalPath}: {ex.Message}");
+        //        }
 
-                // Gán lại đường dẫn mới để lưu DB (tương đối)
-                string relativePath = Path.Combine("/signed-contracts", newFileName).Replace("\\", "/");
-                request.FilePath = relativePath;
+        //        // Gán lại đường dẫn mới để lưu DB (tương đối)
+        //        string relativePath = Path.Combine("/signed-contracts", newFileName).Replace("\\", "/");
+        //        request.FilePath = relativePath;
 
-                // Gọi hàm cập nhật DB (không lưu file nữa, chỉ cập nhật trạng thái, lịch sử, ContractFile)
-                string result = await _accountService.UploadDirectorSigned(request);
+        //        // Gọi hàm cập nhật DB (không lưu file nữa, chỉ cập nhật trạng thái, lịch sử, ContractFile)
+        //        string result = await _accountService.UploadDirectorSigned(request);
 
-                // Trả về phản hồi thành công nếu update cũng thành công
-                if (result.Contains("thành công") || result.EndsWith(".pdf"))
-                {
-                    return Ok(new
-                    {
-                        success = true,
-                        message = "Đã ký thành công và cập nhật dữ liệu.",
-                        signedFilePath = relativePath
-                    });
-                }
+        //        // Trả về phản hồi thành công nếu update cũng thành công
+        //        if (result.Contains("thành công") || result.EndsWith(".pdf"))
+        //        {
+        //            return Ok(new
+        //            {
+        //                success = true,
+        //                message = "Đã ký thành công và cập nhật dữ liệu.",
+        //                signedFilePath = relativePath
+        //            });
+        //        }
 
-                // Nếu UploadSignedContract trả về lỗi
-                return StatusCode(500, new { success = false, message = result });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Lỗi khi ký hợp đồng: {ex.Message}");
-                return StatusCode(500, new { success = false, message = "Lỗi hệ thống khi ký file." });
-            }
-        }
+        //        // Nếu UploadSignedContract trả về lỗi
+        //        return StatusCode(500, new { success = false, message = result });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Lỗi khi ký hợp đồng: {ex.Message}");
+        //        return StatusCode(500, new { success = false, message = "Lỗi hệ thống khi ký file." });
+        //    }
+        //}
 
         //Gửi client
         [Authorize(Policy = "AdminPolicy")]
@@ -328,5 +328,66 @@ namespace WebApi.Controllers.Admin
             }
 
         }
+
+        //boss ký
+        [Authorize(Policy = "DirectorPolicy")]
+        [HttpPost]
+        public async Task<IActionResult> SignPdfWithPfx(IFormFile pfxFile, [FromForm] string password, [FromForm] string fileName, [FromForm] string staffid)
+        {
+            Console.WriteLine("---- Log đầu vào ----");
+            Console.WriteLine("fileName: " + fileName);
+            Console.WriteLine("staffid: " + staffid);
+            Console.WriteLine("password: " + password);
+            Console.WriteLine("pfxFile: " + (pfxFile != null ? pfxFile.FileName : "null"));
+            if (pfxFile == null || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("Thiếu thông tin bắt buộc");
+            }
+            try
+            {
+                // Xác định đường dẫn đến thư mục chứa file PDF cần ký
+                var pdfFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp-pdfs");
+                var filePath = Path.Combine(pdfFolder, fileName);
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return NotFound("Không tìm thấy file PDF gốc để ký.");
+                }
+
+                var originalPdfBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+                using var pfxStream = pfxFile.OpenReadStream();
+
+                var signedPdfBytes = _pdfService.SignPdfWithAdminCertificate(originalPdfBytes, pfxStream, password, staffid);
+
+                // Trả về file PDF đã ký
+                return File(signedPdfBytes, "application/pdf", "signed-contracts" + fileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"{ex.Message}"   
+                });
+            }
+        }
+
+        //boss lưu lại file đã ký
+        [Authorize(Policy = "DirectorPolicy")]
+        [HttpPost]
+        public async Task<IActionResult> SaveSignedPdf(IFormFile signedPdf, [FromForm] string fileName, [FromForm] string contractNumber,[FromForm] string staffid)
+        {
+            if (signedPdf == null || string.IsNullOrEmpty(fileName) ||  string.IsNullOrEmpty(contractNumber))
+                return BadRequest("Thiếu thông tin đầu vào");
+
+            var result = await _accountService.UploadDirectorSigned(signedPdf, fileName, contractNumber, staffid);
+
+            if (result != "Cập nhật trạng thái và lưu file đã ký thành công")
+                return StatusCode(500, result);
+
+            return Ok(result);
+        }
+
     }
 }

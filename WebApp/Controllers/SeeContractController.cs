@@ -12,6 +12,8 @@ using System.Text.RegularExpressions;
 using NuGet.Protocol;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using static WebApp.Areas.Admin.Controllers.AccountController;
+using System.Text.Json;
 
 namespace WebApp.Areas.Controllers
 {
@@ -107,8 +109,31 @@ namespace WebApp.Areas.Controllers
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var err = await response.Content.ReadAsStringAsync();
-                    return StatusCode((int)response.StatusCode, $"Ký không thành công: {err}");
+                    var errContent = await response.Content.ReadAsStringAsync();
+
+                    try
+                    {
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+
+                        var errObj = System.Text.Json.JsonSerializer.Deserialize<ApiErrorResponse>(errContent, options);
+
+                        return StatusCode((int)response.StatusCode, new
+                        {
+                            success = false,
+                            message = errObj?.Message ?? "Lỗi không xác định"
+                        });
+                    }
+                    catch
+                    {
+                        return StatusCode((int)response.StatusCode, new
+                        {
+                            success = false,
+                            message = "Lỗi không xác định hoặc định dạng phản hồi không hợp lệ"
+                        });
+                    }
                 }
 
                 var pdfSignedBytes = await response.Content.ReadAsByteArrayAsync();

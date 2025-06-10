@@ -1,4 +1,5 @@
-﻿using Humanizer;
+﻿using AutoMapper;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Ocsp;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using WebApp.DTO;
@@ -419,5 +421,133 @@ namespace WebApp.Areas.Admin.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau." });
             }
         }
+
+        [HttpPost]
+        [Route("SignPdfWithPfx")]
+        public async Task<IActionResult> SignPdfWithPfx(IFormFile pfxFile, string password, string fileName, string staffid)
+        {
+            // Lấy token từ header Authorization
+            if (!Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(new { success = false, message = "Thiếu token." });
+
+            string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+            if (string.IsNullOrEmpty(token))
+                return Unauthorized(new { success = false, message = "Token không hợp lệ." });
+
+            if (pfxFile == null || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("Thiếu dữ liệu đầu vào");
+            }
+
+            using (var client = new HttpClient())
+            {
+
+                var apiUrl = "https://localhost:7190/api/admin/Account/SignPdfWithPfx";
+                var formData = new MultipartFormDataContent();
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                // Copy stream thành mảng byte
+                using var ms = new MemoryStream();
+                await pfxFile.CopyToAsync(ms);
+                var pfxBytes = ms.ToArray();
+
+                // Gửi file dưới dạng ByteArrayContent với Content-Type đúng
+                var byteContent = new ByteArrayContent(pfxBytes);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/x-pkcs12");
+
+                formData.Add(byteContent, "pfxFile", pfxFile.FileName);
+                formData.Add(new StringContent(password), "password");
+                formData.Add(new StringContent(fileName), "fileName");
+                formData.Add(new StringContent(staffid), "staffid");
+
+                var response = await _client.PostAsync(apiUrl, formData);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errContent = await response.Content.ReadAsStringAsync();
+
+                    try
+                    {
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        };
+
+                        var errObj = System.Text.Json.JsonSerializer.Deserialize<ApiErrorResponse>(errContent, options);
+
+                        return StatusCode((int)response.StatusCode, new
+                        {
+                            success = false,
+                            message = errObj?.Message ?? "Lỗi không xác định"
+                        });
+                    }
+                    catch
+                    {
+                        return StatusCode((int)response.StatusCode, new
+                        {
+                            success = false,
+                            message = "Lỗi không xác định hoặc định dạng phản hồi không hợp lệ"
+                        });
+                    }
+                }
+
+                var pdfSignedBytes = await response.Content.ReadAsByteArrayAsync();
+                return File(pdfSignedBytes, "application/pdf");
+            }
+        }
+       public class ApiErrorResponse
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+        }
+
+
+        [HttpPost]
+        [Route("SaveSignedPdf")]
+        public async Task<IActionResult> SaveSignedPdf(IFormFile signedPdf, string fileName,  string contractNumber, string staffid)
+        {
+            // Lấy token từ header Authorization
+            if (!Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(new { success = false, message = "Thiếu token." });
+
+            string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+            if (string.IsNullOrEmpty(token))
+                return Unauthorized(new { success = false, message = "Token không hợp lệ." });
+
+            try
+            {
+
+                using var client = new HttpClient();
+                var apiUrl = "https://localhost:7190/api/admin/account/SaveSignedPdf";
+                var formData = new MultipartFormDataContent();
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                using var ms = new MemoryStream();
+                await signedPdf.CopyToAsync(ms);
+                var pdfBytes = ms.ToArray();
+
+                var byteContent = new ByteArrayContent(pdfBytes);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+
+                formData.Add(byteContent, "signedPdf", signedPdf.FileName);
+                formData.Add(new StringContent(fileName), "fileName");
+                formData.Add(new StringContent(contractNumber), "contractNumber");
+                formData.Add(new StringContent(staffid), "staffid");
+
+                var response = await _client.PostAsync(apiUrl, formData);
+
+                var result = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    return StatusCode((int)response.StatusCode, $"Lỗi API: {result}");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi khi gọi API: {ex.Message}");
+            }
+        }
+
     }
 }

@@ -26,6 +26,7 @@ using ImgProc = SixLabors.ImageSharp.Processing;
 using ImgPixel = SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Png;
 using System.Text.RegularExpressions;
+using iText.IO.Font;
 
 
 namespace WebApi.Service.Admin
@@ -143,77 +144,77 @@ namespace WebApi.Service.Admin
             return document.GeneratePdf();
         }
 
-        public byte[] SignPdfWithAdminCertificate(byte[] originalPdfBytes, string staffId)
-        {
-            string pfxPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "certificates", "demo_test.pfx");
-            string pfxPassword = "123456";
+        //public byte[] SignPdfWithAdminCertificate(byte[] originalPdfBytes, string staffId)
+        //{
+        //    string pfxPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "certificates", "demo_test.pfx");
+        //    string pfxPassword = "123456";
 
-            // Load certificate
-            Pkcs12Store store = new Pkcs12StoreBuilder().Build();
-            using (FileStream fs = new FileStream(pfxPath, FileMode.Open, FileAccess.Read))
-            {
-                store.Load(fs, pfxPassword.ToCharArray());
-            }
+        //    // Load certificate
+        //    Pkcs12Store store = new Pkcs12StoreBuilder().Build();
+        //    using (FileStream fs = new FileStream(pfxPath, FileMode.Open, FileAccess.Read))
+        //    {
+        //        store.Load(fs, pfxPassword.ToCharArray());
+        //    }
 
-            string alias = store.Aliases.Cast<string>().FirstOrDefault(store.IsKeyEntry);
-            AsymmetricKeyParameter privateKey = store.GetKey(alias).Key;
+        //    string alias = store.Aliases.Cast<string>().FirstOrDefault(store.IsKeyEntry);
+        //    AsymmetricKeyParameter privateKey = store.GetKey(alias).Key;
 
-            var chain = store.GetCertificateChain(alias)
-                .Select(c => new X509CertificateBC(c.Certificate))
-                .Cast<IX509Certificate>()
-                .ToList();
+        //    var chain = store.GetCertificateChain(alias)
+        //        .Select(c => new X509CertificateBC(c.Certificate))
+        //        .Cast<IX509Certificate>()
+        //        .ToList();
 
-            var iPrivateKey = new PrivateKeyBC(privateKey);
+        //    var iPrivateKey = new PrivateKeyBC(privateKey);
 
-            using var signedPdfStream = new MemoryStream();
-            using var originalPdfStream = new MemoryStream(originalPdfBytes);
-            var reader = new PdfReader(originalPdfStream);
-            var signer = new PdfSigner(reader, signedPdfStream, new StampingProperties());
+        //    using var signedPdfStream = new MemoryStream();
+        //    using var originalPdfStream = new MemoryStream(originalPdfBytes);
+        //    var reader = new PdfReader(originalPdfStream);
+        //    var signer = new PdfSigner(reader, signedPdfStream, new StampingProperties());
 
-            (string keyword, float offsetY) = ("Đại diện Bên B", 80f);
-            var (textRect, page) = FindTextPosition(originalPdfBytes, keyword);
+        //    (string keyword, float offsetY) = ("Đại diện Bên B", 80f);
+        //    var (textRect, page) = FindTextPosition(originalPdfBytes, keyword);
 
-            float offsetX = -40f;
+        //    float offsetX = -40f;
 
-            // Giảm chiều rộng và chiều cao khung chữ ký
-            float signatureWidth = 200f;  // từ 240 → 200 (hoặc 180 nếu cần)
-            float signatureHeight = 50f;  // từ 60 → 50
+        //    // Giảm chiều rộng và chiều cao khung chữ ký
+        //    float signatureWidth = 200f;  // từ 240 → 200 (hoặc 180 nếu cần)
+        //    float signatureHeight = 50f;  // từ 60 → 50
 
-            Rectangle rect = new Rectangle(
-                textRect.GetX() + offsetX,
-                textRect.GetY() - offsetY,
-                signatureWidth,
-                signatureHeight
-            );
+        //    Rectangle rect = new Rectangle(
+        //        textRect.GetX() + offsetX,
+        //        textRect.GetY() - offsetY,
+        //        signatureWidth,
+        //        signatureHeight
+        //    );
 
-            // Font và Appearance
-            PdfFont font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+        //    // Font và Appearance
+        //    PdfFont font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
-            var appearance = signer.GetSignatureAppearance();
-            appearance
-                .SetPageRect(rect)
-                .SetPageNumber(page)
-                .SetLocation("Hệ thống")
-                .SetLayer2Font(font)
-                .SetLayer2FontSize(9)
-                .SetReason("Ký bởi Admin")
-                .SetLayer2Text($"Ký bởi {staffId}\nNgày: {DateTime.Now:dd/MM/yyyy}")
-                .SetRenderingMode(PdfSignatureAppearance.RenderingMode.DESCRIPTION);
+        //    var appearance = signer.GetSignatureAppearance();
+        //    appearance
+        //        .SetPageRect(rect)
+        //        .SetPageNumber(page)
+        //        .SetLocation("Hệ thống")
+        //        .SetLayer2Font(font)
+        //        .SetLayer2FontSize(9)
+        //        .SetReason("Ký bởi Admin")
+        //        .SetLayer2Text($"Ký bởi {staffId}\nNgày: {DateTime.Now:dd/MM/yyyy}")
+        //        .SetRenderingMode(PdfSignatureAppearance.RenderingMode.DESCRIPTION);
 
-            signer.SetFieldName("Signature2");
+        //    signer.SetFieldName("Signature2");
 
-            IExternalSignature externalSignature = new PrivateKeySignature(iPrivateKey, DigestAlgorithms.SHA256);
-            IExternalDigest digest = new BouncyCastleDigest();
+        //    IExternalSignature externalSignature = new PrivateKeySignature(iPrivateKey, DigestAlgorithms.SHA256);
+        //    IExternalDigest digest = new BouncyCastleDigest();
 
-            signer.SignDetached(
-                digest, externalSignature,
-                chain.ToArray(), null, null, null,
-                0, PdfSigner.CryptoStandard.CADES
-            );
+        //    signer.SignDetached(
+        //        digest, externalSignature,
+        //        chain.ToArray(), null, null, null,
+        //        0, PdfSigner.CryptoStandard.CADES
+        //    );
 
-            return signedPdfStream.ToArray();
+        //    return signedPdfStream.ToArray();
 
-        }
+        //}
 
         private (Rectangle rect, int page) FindTextPosition(byte[] pdfBytes, string keyword)
         {
@@ -237,24 +238,50 @@ namespace WebApi.Service.Admin
 
         public byte[] SignPdfWithClientCertificate(byte[] originalPdfBytes, Stream clientPfxStream, string pfxPassword, string clientName)
         {
-            // Load certificate từ stream
             Pkcs12Store store = new Pkcs12StoreBuilder().Build();
-            store.Load(clientPfxStream, pfxPassword.ToCharArray());
+
+            try
+            {
+                store.Load(clientPfxStream, pfxPassword.ToCharArray());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Mật khẩu chứng thư số không chính xác hoặc file không hợp lệ.");
+            }
 
             string alias = store.Aliases.Cast<string>().FirstOrDefault(store.IsKeyEntry);
+            if (alias == null)
+                throw new Exception("Không tìm thấy khóa bí mật trong file chứng thư số.");
+
+            // Lấy khóa và chuỗi chứng chỉ
             AsymmetricKeyParameter privateKey = store.GetKey(alias).Key;
 
-            var chain = store.GetCertificateChain(alias)
+            var certChain = store.GetCertificateChain(alias);
+            var chain = certChain
                 .Select(c => new X509CertificateBC(c.Certificate))
                 .Cast<IX509Certificate>()
                 .ToList();
 
             var iPrivateKey = new PrivateKeyBC(privateKey);
 
+            var cert = certChain[0].Certificate;
+            DateTime now = DateTime.Now;
+
+            if (now < cert.NotBefore.ToLocalTime() || now > cert.NotAfter.ToLocalTime())
+            {
+                throw new Exception("Chứng thư số đã hết hạn hoặc chưa có hiệu lực.");
+            }
+
+            string signerName = cert.SubjectDN.ToString();
+            DateTime notBefore = cert.NotBefore.ToLocalTime();
+            DateTime notAfter = cert.NotAfter.ToLocalTime();
+
+            // Ký PDF
             using var signedPdfStream = new MemoryStream();
             using var originalPdfStream = new MemoryStream(originalPdfBytes);
             var reader = new PdfReader(originalPdfStream);
             var signer = new PdfSigner(reader, signedPdfStream, new StampingProperties());
+
 
             // Tìm vị trí chữ ký theo từ khóa
             (string keyword, float offsetY) = ("Đại diện Bên A", 113f);
@@ -262,7 +289,7 @@ namespace WebApi.Service.Admin
 
             float offsetX = 55f;
             float signatureWidth = 200f;
-            float signatureHeight = 50f;
+            float signatureHeight = 70f;
 
             Rectangle rect = new Rectangle(
                 textRect.GetX() + offsetX,
@@ -270,10 +297,11 @@ namespace WebApi.Service.Admin
                 signatureWidth,
                 signatureHeight
             );
+            // Font chữ Unicode
+            var fontPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "fonts", "tahoma.ttf");
+            PdfFont font = PdfFontFactory.CreateFont(fontPath, PdfEncodings.IDENTITY_H);
 
-           
-            // Font và appearance
-            PdfFont font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+            string layerText = $"Ký bởi: {clientName}\nNgười dùng: {signerName}\nHiệu lực: {notBefore:dd/MM/yyyy} - {notAfter:dd/MM/yyyy}\nNgày ký: {DateTime.Now:dd/MM/yyyy}";
 
             var appearance = signer.GetSignatureAppearance();
             appearance
@@ -281,9 +309,9 @@ namespace WebApi.Service.Admin
                 .SetPageNumber(page)
                 .SetLocation("Client Upload")
                 .SetLayer2Font(font)
-                .SetLayer2FontSize(9)
+                .SetLayer2FontSize(9f)
                 .SetReason("Ký bởi Khách hàng")
-                .SetLayer2Text($"Ký bởi {clientName}\nNgày: {DateTime.Now:dd/MM/yyyy}")
+                .SetLayer2Text(layerText)
                 .SetRenderingMode(PdfSignatureAppearance.RenderingMode.DESCRIPTION);
 
             signer.SetFieldName("SignatureClient");
@@ -360,58 +388,7 @@ namespace WebApi.Service.Admin
                  .ToLowerInvariant();
         }
 
-        //public async Task<byte[]> InsertSignatureToContractAsync(Stream signatureImageStream)
-        //{
-        //    // Bước 1: Load ảnh chữ ký và xóa nền trắng
-        //    using var signatureImage = ImgSharp.Image.Load<ImgPixel.Rgba32>(signatureImageStream);
-        //    signatureImage.ProcessPixelRows(accessor =>
-        //    {
-        //        for (int y = 0; y < accessor.Height; y++)
-        //        {
-        //            Span<ImgPixel.Rgba32> pixelRow = accessor.GetRowSpan(y);
-        //            for (int x = 0; x < pixelRow.Length; x++)
-        //            {
-        //                var pixel = pixelRow[x];
-        //                if (pixel.R > 230 && pixel.G > 230 && pixel.B > 230)
-        //                {
-        //                    pixelRow[x] = new ImgPixel.Rgba32(255, 255, 255, 0); // xóa nền trắng (alpha 0)
-        //                }
-        //            }
-        //        }
-        //    });
-
-        //    // Bước 2: Chuyển ảnh thành byte[] PNG
-        //    byte[] imageBytes;
-        //    using (var ms = new MemoryStream())
-        //    {
-        //        signatureImage.Save(ms, new PngEncoder());
-        //        imageBytes = ms.ToArray();
-        //    }
-        //    // Bước 3: Load PDF gốc
-        //    var originalPdfPath = "wwwroot/pdf/HopDongGoc.pdf";
-        //    using var pdfReader = new PdfReader(originalPdfPath);
-        //    using var outputStream = new MemoryStream();
-        //    using var pdfWriter = new PdfWriter(outputStream);
-        //    using var pdfDoc = new PdfDocument(pdfReader, pdfWriter);
-
-        //    // Bước 4: Tìm vị trí từ khóa trong PDF
-        //    var (textRect, pageNumber) = FindTextPosition2(await File.ReadAllBytesAsync(originalPdfPath), "Đại diện Bên A");
-
-        //    // Bước 5: Load ảnh PNG vào iText ImageData
-        //    var image = new iText.Layout.Element.Image(ImageDataFactory.Create(imageBytes));
-
-        //    // Bước 6: Vẽ ảnh lên PDF tại vị trí xác định
-        //    float x = textRect.GetX() + 55f;
-        //    float y = textRect.GetY() - 113f;
-        //    float width = 200f;
-        //    float height = 50f;
-        //    image.SetFixedPosition(pageNumber, x, y);
-        //    image.ScaleAbsolute(width, height);
-
-        //    // Bước 7: Kết thúc
-        //    pdfDoc.Close();
-        //    return outputStream.ToArray();
-        //}
+        
         public byte[] InsertSignatureImageToPdf(byte[] originalPdfBytes, string signatureBase64, string keyword, float offsetX = 55f, float offsetY = 113f, float width = 200f, float height = 50f)
         {
             using var pdfStream = new MemoryStream(originalPdfBytes);
@@ -443,5 +420,99 @@ namespace WebApi.Service.Admin
             doc.Close();
             return outputPdfStream.ToArray();
         }
+
+        public byte[] SignPdfWithAdminCertificate(byte[] originalPdfBytes, Stream clientPfxStream, string pfxPassword, string staffId)
+        {
+            // Load PFX từ client
+            Pkcs12Store store = new Pkcs12StoreBuilder().Build();
+
+            try
+            {
+                store.Load(clientPfxStream, pfxPassword.ToCharArray());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Mật khẩu chứng thư số không chính xác hoặc file không hợp lệ.");
+            }
+
+            string alias = store.Aliases.Cast<string>().FirstOrDefault(store.IsKeyEntry);
+            if (alias == null)
+                throw new Exception("Không tìm thấy khóa bí mật trong file chứng thư số.");
+
+            // Lấy khóa và chuỗi chứng chỉ
+            AsymmetricKeyParameter privateKey = store.GetKey(alias).Key;
+
+            var certChain = store.GetCertificateChain(alias);
+            var chain = certChain
+                .Select(c => new X509CertificateBC(c.Certificate))
+                .Cast<IX509Certificate>()
+                .ToList();
+
+            var iPrivateKey = new PrivateKeyBC(privateKey);
+
+            var cert = certChain[0].Certificate;
+            DateTime now = DateTime.Now;
+
+            if (now < cert.NotBefore.ToLocalTime() || now > cert.NotAfter.ToLocalTime())
+            {
+                throw new Exception("Chứng thư số đã hết hạn hoặc chưa có hiệu lực.");
+            }
+
+            string signerName = cert.SubjectDN.ToString();
+            DateTime notBefore = cert.NotBefore.ToLocalTime();
+            DateTime notAfter = cert.NotAfter.ToLocalTime();
+
+            // Ký PDF
+            using var signedPdfStream = new MemoryStream();
+            using var originalPdfStream = new MemoryStream(originalPdfBytes);
+            var reader = new PdfReader(originalPdfStream);
+            var signer = new PdfSigner(reader, signedPdfStream, new StampingProperties());
+
+            // Tìm vị trí ký
+            (string keyword, float offsetY) = ("Đại diện Bên B", 80f);
+            var (textRect, page) = FindTextPosition(originalPdfBytes, keyword);
+
+            float offsetX = -40f;
+            float signatureWidth = 200f;
+            float signatureHeight = 70f;
+
+            Rectangle rect = new Rectangle(
+                textRect.GetX() + offsetX,
+                textRect.GetY() - offsetY,
+                signatureWidth,
+                signatureHeight
+            );
+
+            // Font chữ Unicode
+            var fontPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "fonts", "tahoma.ttf");
+            PdfFont font = PdfFontFactory.CreateFont(fontPath, PdfEncodings.IDENTITY_H);
+
+            string layerText = $"Ký bởi: {staffId}\nNgười dùng: {signerName}\nHiệu lực: {notBefore:dd/MM/yyyy} - {notAfter:dd/MM/yyyy}\nNgày ký: {DateTime.Now:dd/MM/yyyy}";
+
+            var appearance = signer.GetSignatureAppearance();
+            appearance
+                .SetPageRect(rect)
+                .SetPageNumber(page)
+                .SetLocation("Hệ thống")
+                .SetLayer2Font(font)
+                .SetLayer2FontSize(8)
+                .SetReason("Ký bởi Admin")
+                .SetLayer2Text(layerText)
+                .SetRenderingMode(PdfSignatureAppearance.RenderingMode.DESCRIPTION);
+
+            signer.SetFieldName("Signature2");
+
+            IExternalSignature externalSignature = new PrivateKeySignature(iPrivateKey, DigestAlgorithms.SHA256);
+            IExternalDigest digest = new BouncyCastleDigest();
+
+            signer.SignDetached(
+                digest, externalSignature,
+                chain.ToArray(), null, null, null,
+                0, PdfSigner.CryptoStandard.CADES
+            );
+
+            return signedPdfStream.ToArray();
+        }
+
     }
 }
