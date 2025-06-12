@@ -48,6 +48,20 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
+        [AuthorizeToken]
+        [Route("ContractApproval")]
+        public IActionResult ContractApproval()
+        {
+            if (User.IsInRole("HanhChinh") || User.IsInRole("KyThuat"))
+            {
+                return RedirectToAction("Index", "phanquyen");
+            }
+            else
+            {
+                return View();
+            }
+        }
+
         [HttpPost]
         [Route("GetAllCompany")]
         public async Task<IActionResult> GetAllCompany([FromBody] GetListCompanyPaging req)

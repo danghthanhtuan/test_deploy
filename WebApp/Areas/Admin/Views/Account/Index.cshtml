@@ -168,11 +168,9 @@
                         <button class="btn btn-warning btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;" onclick=" exportToCsv(event)">📥 Xuất Excel</button>
                         <button class="btn btn-success btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;" onclick="refresh()">➕ Làm mới</button>
                         <button id="createAccountBtn" class="btn btn-danger btn-sm flex-grow-1 px-3" style="padding: 5px;">👤 Tạo tài khoản</button>
-
-                        <button id="pendingContractsBtn" class="btn btn-outline-secondary btn-sm flex-grow-1 px-3" type="button" style="padding: 5px;">
+                       @*  <button id="pendingContractsBtn" class="btn btn-outline-secondary btn-sm flex-grow-1 px-3" type="button" style="padding: 5px;">
                             ⏳ Chờ duyệt
-                        </button>
-
+                        </button> *@
                     </form>
                 </div>
             </div>
@@ -462,60 +460,7 @@
                 </div>
             </div>
         </div>
-    </div>
-    @* CHỜ DUYỆT *@
-    <div id="pendingContractsSection" class="container-fluid d-flex flex-column vh-100" style="display: none;">
-        <div class="row flex-shrink-0">
-            <div class="col-12">
-                <div class="card p-2">
-                    <form class="d-flex align-items-center w-100" style="gap: 10px;">
-
-                        <button id="backBtn3" class="btn btn-secondary btn-sm px-3">
-                            🔙 Quay lại
-                        </button>
-                    </form>
-
-                </div>
-            </div>
-        </div>
-        
-        <div class="row flex-grow-1 overflow-auto">
-            <div class="col-12">
-                <div class="card-body">
-                    <h5>Danh sách hợp đồng chờ duyệt</h5>
-        
-                    <table id="pendingContracts" class="table table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>STT</th>
-                                <th>Mã hợp đồng</th>
-                                <th>Tên công ty</th>
-                                <th>File đã ký</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dữ liệu hợp đồng chờ duyệt sẽ render ở đây -->
-                        </tbody>
-                    </table>
-
-                    <!-- iframe hiển thị PDF -->
-                    <div id="pdfViewer" class="hidden mt-3">
-@*                         <iframe src="" width="100%" height="400px" style="border:none;"></iframe>
- *@                        <iframe id="pdfFrame" src="" width="100%" height="400px" style="border:none;"></iframe>
-
-                        <div class="mt-2" id="pfxSection" class="hidden">
-                            <!-- Chọn file chứng thư số (.pfx) -->
-                            <input type="file" id="certInput" accept=".pfx" />
-                            <input type="password" id="certPassword" placeholder="Mật khẩu chứng thư số" />
-                            <button id="signBtn" class="btn btn-primary">✍️ Ký hợp đồng      </button>
-                            <button id="confirmSaveBtn" class="btn btn-success" disabled>Lưu hợp đồng đã ký</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </div>    
 </body>
 
 <!-- Modal confirm -->
@@ -664,33 +609,33 @@
         const companyListContainer = document.getElementById("companyListContainer");
         const createAccountContainer = document.getElementById("createAccountContainer");
         const updateAccountContainer = document.getElementById("updateAccountContainer");
-        const pendingContractsContainer = document.getElementById("pendingContractsSection");
+        //const pendingContractsContainer = document.getElementById("pendingContractsSection");
 
         const createAccountBtn = document.getElementById("createAccountBtn");
         const pendingContractsBtn = document.getElementById("pendingContractsBtn");
 
         const backBtn = document.getElementById("backBtn");
         const backBtn2 = document.getElementById("backBtn2");
-        const backBtn3 = document.getElementById("backBtn3");
+        //const backBtn3 = document.getElementById("backBtn3");
 
 
         console.log("companyListContainer:", companyListContainer);
         console.log("createAccountContainer:", createAccountContainer);
         console.log("updateAccountContainer:", updateAccountContainer);
-        console.log("pendingContractsContainer:", pendingContractsContainer);
+        //console.log("pendingContractsContainer:", pendingContractsContainer);
 
         console.log("createAccountBtn:", createAccountBtn);
         console.log("pendingContractsBtn:", pendingContractsBtn);
 
         console.log("backBtn:", backBtn);
         console.log("backBtn2:", backBtn2);
-        console.log("backBtn3:", backBtn3);
+        //console.log("backBtn3:", backBtn3);
 
 
         // Ẩn form tạo tài khoản mặc định
         createAccountContainer.classList.add("hidden");
         updateAccountContainer.classList.add("hidden");
-        pendingContractsContainer.classList.add("hidden");
+        //pendingContractsContainer.classList.add("hidden");
 
         // Khi click "Tạo tài khoản"
         createAccountBtn.addEventListener("click", function (event) {
@@ -701,7 +646,7 @@
             companyListContainer.classList.add("hidden");
             createAccountContainer.classList.remove("hidden");
             updateAccountContainer.classList.add("hidden");
-            pendingContractsContainer.classList.add("hidden");
+            //pendingContractsContainer.classList.add("hidden");
 
 
             $.ajax({
@@ -750,7 +695,7 @@
             companyListContainer.classList.remove("hidden");
             createAccountContainer.classList.add("hidden");
             updateAccountContainer.classList.add("hidden");
-            pendingContractsContainer.classList.add("hidden");
+            //pendingContractsContainer.classList.add("hidden");
 
             init("", "Tất cả");
 
@@ -762,21 +707,21 @@
             companyListContainer.classList.remove("hidden");
             createAccountContainer.classList.add("hidden");
             updateAccountContainer.classList.add("hidden");
-            pendingContractsContainer.classList.add("hidden");
+           // pendingContractsContainer.classList.add("hidden");
 
             init("", "Tất cả");
         });
 
-        backBtn3.addEventListener("click", function (event) {
-            event.preventDefault();
-            console.log("Nhấn Quay lại!");
-            companyListContainer.classList.remove("hidden");
-            createAccountContainer.classList.add("hidden");
-            updateAccountContainer.classList.add("hidden");
-            pendingContractsContainer.classList.add("hidden");
+        // backBtn3.addEventListener("click", function (event) {
+        //     event.preventDefault();
+        //     console.log("Nhấn Quay lại!");
+        //     companyListContainer.classList.remove("hidden");
+        //     createAccountContainer.classList.add("hidden");
+        //     updateAccountContainer.classList.add("hidden");
+        //     pendingContractsContainer.classList.add("hidden");
 
-            init("", "Tất cả");
-        });
+        //     init("", "Tất cả");
+        // });
 
         // Thêm sự kiện cho nút "Cập nhật"
         document.addEventListener("click", function (event) {
@@ -789,550 +734,12 @@
                 companyListContainer.classList.add("hidden");
                 createAccountContainer.classList.add("hidden");
                 updateAccountContainer.classList.remove("hidden");
-                pendingContractsContainer.classList.add("hidden");
+                //pendingContractsContainer.classList.add("hidden");
 
                 //refresh();
             }
         });
     
-        // Khi click "Chờ duyệt"
-        pendingContractsBtn.addEventListener("click", function (event) {
-            event.preventDefault(); // Ngăn chặn load lại trang nếu là <button>
-            console.log("Nhấn hợp đồng chờ duyệt!");
-
-            // Ẩn các form khác và hiển thị form tạo tài khoản
-            companyListContainer.classList.add("hidden");
-            createAccountContainer.classList.add("hidden");
-            updateAccountContainer.classList.add("hidden");
-            pendingContractsContainer.classList.remove("hidden");
-
-            if ($.fn.DataTable.isDataTable("#pendingContracts")) {
-                $("#pendingContracts").DataTable().destroy(); // Xóa DataTable cũ trước khi tạo lại
-            }
-
-            var table = $('#pendingContracts').DataTable({
-                processing: true,
-                serverSide: true,
-                paging: true,
-                searching: false,
-                searchDelay: 400,
-                // scrollY: false,
-                iDisplayLength: 7,
-                bLengthChange: false,
-                language: {
-                    info: "Hiển thị _START_ đến _END_ của _TOTAL_ tài khoản",
-                    lengthMenu: "Hiển thị _MENU_  tài khoản",
-                    //search: "Tìm kiếm",
-                    processing: "Đang tải dữ liệu...",
-                    paginate: {
-                        previous: "Trước",
-                        next: "Tiếp theo",
-                        last: "Cuối"
-                    }
-                },
-
-                ajax: {
-                    url: "/admin/account/GetListPending",
-                    type: "POST",
-                    headers: {
-                        "Authorization": "Bearer " + tokenJWT
-                    },
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    beforeSend: function () {
-                        // Optional: Show loading indicator
-                    },
-                    data: function (data) {
-                        var pendingContractsA = $("#pendingContracts").DataTable();
-                        var settings = pendingContractsA.settings();
-                        var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
-
-                        return JSON.stringify({
-                            PageSize: 7,
-                            Page: currentPageIndex,
-                            Keyword: "", // Lấy giá trị từ input tìm kiếm
-                            Category: ""
-                        });
-                    },
-                    dataSrc: function (res) {
-                        signedStateMap = {}; // Reset map trạng thái
-                        console.log("Ket qua hop dong cho duyet",res.pendingContracts);
-
-                        if (res.success && res.pendingContracts.results) {
-                            res.pendingContracts.results.forEach(contract => {
-                                const key = contract.contractNumber.toLowerCase(); // dùng lowercase để tránh sai sót
-                                //const status = contract.constatus.trim().toLowerCase();
-                                //signedStateMap[key] = (status === "ký hoàn tất") ? 1 : 0;
-                                const status = contract.constatus;
-                              //  signedStateMap[key] = (status === "Đã ký") ? 1 : 0;
-                                signedStateMap[key] = (status ==1 ) ? 1 : 0;
-
-                            });
-                            return res.pendingContracts.results;
-                        }
-
-                        return [];
-                    },
-                    dataFilter: function (data) {
-                        var page = $.parseJSON(data);
-                        if (!page.success || !page.pendingContracts) {
-                            page.recordsTotal = 0;
-                            page.recordsFiltered = 0;
-                            return JSON.stringify(page);
-                        }
-                        page.recordsTotal = page.pendingContracts.rowCount || 0;
-                        page.recordsFiltered = page.pendingContracts.rowCount || 0;
-                        return JSON.stringify(page);
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Lỗi khi lấy dữ liệu:", error);
-                        showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
-
-                    }
-                },
-                columns: [
-                    {
-                        data: null,
-                        width: "5%",
-                        render: function (data, type, row, meta) {
-                            return meta.row + 1;
-                        }
-                    },
-                    { data: "contractNumber", width: "20%" },
-                    { data: "companyName", width: "25%" },
-                    {
-                        data: "confileName",
-                        width: "25%",
-                        render: function (data, type, row) {
-                            if (!data) return "<span class='text-muted'>Chưa có file</span>";
-
-                            const fileName = data.split('/').pop();
-                            //const folder = row.constatus === "Chưa ký" ? "temp-pdfs" : "signed-contracts";
-                            const folder = row.constatus ==0 ? "temp-pdfs" : "signed-contracts";
-
-                            return `
-                            <a href="/temp-pdfs/${fileName}"
-                               target="_blank"
-                               class="pdf-link"
-                               data-id="${row.contractNumber}"
-                               data-confilename="${fileName}"
-                               data-realpath="${row.filePath}"
-                               data-folder="${folder}"
-                               data-email="${row.rootAccount}">
-                                <i class="fa-solid fa-file-pdf text-danger" style="font-size: 1.3rem;"></i>Xem hợp đồng
-                            </a>`;
-                        }
-                    },
-                    {
-                        data: "constatus",
-                        width: "25%",
-                        render: function (data, type, row) {
-                            const contractNumber = row.contractNumber;
-                            const normalizedStatus = row.constatus;
-
-                            //if (normalizedStatus === "Chưa ký") {
-                            if (normalizedStatus ==0) {
-                                return `<span class="text-muted">Chờ người phụ trách ký</span>`;
-                            }
-                                
-                           // if (normalizedStatus === "Đã ký") {
-                            if (normalizedStatus ==1 ) {
-                                return `
-                                <div class="d-flex justify-content-center gap-2">
-                                    <button class="btn btn-sm btn-primary btn-send-client"
-                                            title="Gửi mail cho khách ký"
-                                            data-contractnumber="${contractNumber}"
-                                                data-confilename="${row.confileName}"
-                                                data-filepath="${row.filePath}">
-                                        <i class="fa-solid fa-paper-plane"></i> Gửi khách ký
-                                    </button>
-                                </div>`;
-                            } 
-                            //if (normalizedStatus === "Chờ client ký") {
-                            if (normalizedStatus ==2) {
-                                return `<span class="text-muted">Chờ khách hàng ký</span>`;
-                            }
-                            
-                            if (normalizedStatus == 3) {
-                                const fileName = row.confileName;
-                                const folder = "signed-contracts"; // vì đã ký và chờ duyệt
-                                const realPath = `/${folder}/${fileName}`;
-                                return `
-                                    <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-sm btn-success btn-browse"
-                                                title="Duyệt hợp đồng"
-                                                data-contractnumber="${contractNumber}"
-                                                data-confilename="${fileName}"
-                                                data-filepath="${realPath}">
-                                            <i class="fa-solid fa-circle-check"></i> Duyệt hợp đồng
-                                        </button>
-                                    </div>`;
-                            }
-
-                            //if (normalizedStatus === "Ký hoàn tất") {
-                            if (normalizedStatus ==4) {
-                                return `<span class="text-muted">Chờ thanh toán</span>`;
-                            }
-                            //if (normalizedStatus === "Đã thanh toán") {
-                            if (normalizedStatus ==5) {
-                                const fileName = row.confileName;
-                                const folder = "signed-contracts"; // vì đã ký và chờ duyệt
-                                const realPath = `/${folder}/${fileName}`;
-                                return `
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button class="btn btn-sm btn-success btn-approve"
-                                                title="Duyệt hợp đồng"
-                                                data-contractnumber="${contractNumber}"
-                                                data-confilename="${fileName}"
-                                                data-filepath="${realPath}">
-                                            <i class="fa-solid fa-circle-check"></i> Xác nhận hoàn tất
-                                        </button>
-                                    </div>`;
-                            }
-                            return `<span class="text-muted">Chưa ký</span>`;
-                        }
-                    }
-                ],
-
-                createdRow: function (row, data, dataIndex) {
-                    $(row).data("fullData", data); // Lưu toàn bộ dữ liệu vào row
-                },
-
-                columnDefs: [{
-                    "defaultContent": "-",
-                    "targets": "_all"
-                }]
-            });
-
-        });
-    });
-
-    //xem hợp đồng
-    $('#pendingContracts').on('click', '.pdf-link', function (e) {
-        e.preventDefault();
-
-        const $link = $(e.target).closest('.pdf-link');
-        const contractNumber = $link.attr('data-id');
-        const confileName = $link.attr('data-confilename'); // dùng attr thay vì data
-        const realFilePath = $link.attr('data-realpath'); // ✅ đường dẫn thực
-        const folder = $link.attr('data-folder'); 
-        const rootaccount = $link.attr('data-email');
-        console.log("Clicked contract", contractNumber);
-        console.log("confileName", confileName);
-
-        if (!contractNumber || !confileName || !folder) {
-            console.error("Thiếu thông tin hợp đồng (contractNumber, confileName, folder)");
-            showError("Không thể hiển thị hợp đồng. Thiếu thông tin cần thiết");
-            return;
-        }
-        const pdfUrl = `https://localhost:7190/${folder}/${confileName}`;
-
-        $('#signBtn').data('fileName', confileName);
-        $('#signBtn').data('email', rootaccount);
-        $('#signBtn').data('contractNumber', contractNumber);
-        $('#signBtn').data('realFilePath', realFilePath);
-
-        //('#pdfViewer iframe').attr('src', pdfUrl);
-        //$('#pdfViewer').removeClass('hidden');\
-        const $pdfViewer = $('#pdfViewer');
-        const currentSrc = $('#pdfViewer iframe').attr('src');
-
-        if (currentSrc === pdfUrl && !$pdfViewer.hasClass('hidden')) {
-            // Đã mở đúng file này rồi => toggle ẩn
-            $pdfViewer.addClass('hidden');
-            $('#pdfViewer iframe').attr('src', '');
-        } else {
-            // Mở file mới
-            $('#pdfViewer iframe').attr('src', pdfUrl);
-            $pdfViewer.removeClass('hidden');
-        }
-
-        const signed = signedStateMap[contractNumber.toLowerCase()];
-        if (signed === 1) {
-          //  $('#btnSignContract').addClass('hidden');
-            $('#pfxSection').addClass('hidden');
-
-        } else {
-            if (Department === "Admin") {
-                $('#pfxSection').addClass('hidden');
-            } else if (Department === "Director") {
-                $('#pfxSection').removeClass('hidden');
-            }
-            //$('#btnSignContract').removeClass('hidden');
-        }
-    });
-
-    let signedPdfBlob = null;
-
-    //boss ký
-    document.getElementById("signBtn").addEventListener("click", async () => {
-        const pfxFile = document.getElementById("certInput").files[0];
-        const password = document.getElementById("certPassword").value;
-        const fileName = $('#signBtn').data('fileName');
-
-        if (!pfxFile || !password) {
-            showError("Vui lòng chọn file chứng thư số và nhập mật khẩu");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("pfxFile", pfxFile);
-        formData.append("password", password);
-        formData.append("fileName", fileName);
-        formData.append("staffid", StaffId);
-
-        // Hiển thị modal xác nhận
-        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn ký với thông tin này không?";
-        const modalConfirmEl = document.getElementById("confirmModal");
-        const modalConfirm = new bootstrap.Modal(modalConfirmEl);
-        modalConfirm.show();
-
-        // Xử lý khi bấm nút xác nhận
-        $("#confirmButton1").off("click").on("click", async function () {
-            modalConfirm.hide();
-            try {
-                const res = await fetch("/admin/account/SignPdfWithPfx", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": "Bearer " + tokenJWT
-                    },
-                    body: formData
-                });
-
-                if (!res.ok) {
-                    const errJson = await res.json();
-                    throw new Error(errJson.message || "Ký thất bại");
-                }
-
-                signedPdfBlob = await res.blob();
-                const url = URL.createObjectURL(signedPdfBlob);
-
-                // ✅ Gán vào iframe chứ không phải div
-                document.getElementById("pdfFrame").src = url;
-
-                // ✅ Hiện vùng xem file PDF đã ký
-                document.getElementById("pdfViewer").classList.remove("hidden");
-
-                // ✅ Hiển thị modal thành công
-                document.getElementById("contentModalSuccess").innerHTML =
-                    "Ký hợp đồng thành công, xem hợp đồng đã ký bên trên";
-
-                const modal = new bootstrap.Modal(document.getElementById("ModalSuccess"));
-                modal.show();
-                document.getElementById("confirmSaveBtn").disabled = false;
-
-
-            } catch (err) {
-                showError("Ký thất bại: " + err.message);
-            }
-        });
-
-    });
-
-    // Khi boss xác nhận lưu file ký đè lên file gốc
-    document.getElementById("confirmSaveBtn").addEventListener("click", async () => {
-        if (!signedPdfBlob) {
-            showError("Chưa có hợp đồng ký tạm để lưu");
-            return;
-        }
-
-        try {
-            // ✅ Lấy dữ liệu từ button đã được gán trước đó
-            const fileName = $('#signBtn').data('fileName');
-            const email = $('#signBtn').data('email');
-            const contractNumber = $('#signBtn').data('contractNumber');
-
-            const formData = new FormData();
-            formData.append("fileName", fileName);
-            formData.append("signedPdf", signedPdfBlob, "signed_" + fileName); // tên file mới để lưu
-            formData.append("contractNumber", contractNumber);
-            formData.append("staffid", StaffId);
-
-            const res = await fetch("/admin/account/SaveSignedPdf", {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + tokenJWT
-                },
-                body: formData
-            });
-
-            if (!res.ok) throw new Error("Lưu file ký thất bại");
-
-            document.getElementById("contentModalSuccess").innerHTML = "Lưu hợp đồng đã ký thành công!";
-            
-            $("#ModalSuccess").modal("show");
-
-            // ✅ Đóng viewer sau khi lưu thành công
-            $('#pdfViewer iframe').attr('src', '');
-            $('#pdfViewer').addClass('hidden');
-            document.getElementById("confirmSaveBtn").disabled = true;
-
-            $('#pendingContracts').DataTable().ajax.reload(null, false);
-
-
-        } catch (err) {
-            showError("Lưu thất bại: " + err.message);
-            return;
-        }
-    });
-
-    // //nút ký của Director
-    // $('#btnSignContract').on('click', function () {
-    //     const contractNumber = $(this).data('contractNumber');
-    //     const filePath = $(this).data('filePath'); // ✅ Đúng đường dẫn nội bộ
-
-    //     $.ajax({
-    //         url: `/admin/account/SignPdfWithAdminCertificate`, // Không cần truyền staffId trong URL nữa
-    //         type: "POST",
-    //         contentType: "application/json",
-    //         headers: {
-    //             "Authorization": "Bearer " + tokenJWT
-    //         },
-    //         data: JSON.stringify({
-    //             StaffId: StaffId,
-    //             FilePath: filePath,
-    //             ContractNumber: contractNumber
-    //         }),
-    //         success: function (res) {
-    //             if (res.success) {
-    //                 signedStateMap[contractNumber] = 1; // Cập nhật trạng thái
-    //                 $('#btnSignContract').addClass('hidden');
-    //                 $('#pdfViewer').addClass('hidden');
-    //                 $('#pendingContracts').DataTable().ajax.reload(null, false); // Reload bảng không mất trang
-    //                 document.getElementById("contentModalSuccess").innerHTML = "Ký hợp đồng thành công!";
-    //                 $("#ModalSuccess").modal("show");
-    //             } else {
-    //                 showError("Không thể ký hợp đồng. Vui lòng thử lại.");
-    //             }
-    //         },
-    //         error: function (xhr) {
-    //             showError("Lỗi khi gọi API ký hợp đồng!");
-    //         }
-    //     });
-    // });
-
-    
-    //gửi cho client ký
-    $('#pendingContracts').on('click', '.btn-send-client', function () {
-        const contractNumber = $(this).data('contractnumber');
-        //const fileName = $(this).data('confilename');
-        const filePath = $(this).data('filepath');
-
-        $.ajax({
-            url: '/admin/Account/SendEmailtoclient',
-            type: 'POST',
-            headers: {
-                "Authorization": "Bearer " + tokenJWT
-            },
-            contentType: 'application/json',
-            data: JSON.stringify({
-                StaffId: StaffId,
-                FilePath: filePath,
-                ContractNumber: contractNumber
-            }),
-            success: function (res) {
-                if (res.success) {
-                    document.getElementById("contentModalSuccess").innerHTML = "Đã gửi hợp đồng thành công!";
-                    $("#ModalSuccess").modal("show");
-                    
-                    $('#pdfViewer').addClass('hidden');
-                    $('#pendingContracts').DataTable().ajax.reload(null, false);
-
-                } else {
-                    showError("Gửi hợp đồng thất bại: " + (res.message || ""));
-                }
-            },
-            error: function () {
-                console.error("Lỗi khi duyệt:", error);
-                showError("Lỗi khi duyệt hợp đồng. Vui lòng thử lại.");
-            }
-        });
-    });
-
-    //duyệt file hợp đồng
-    $('#pendingContracts').on('click', '.btn-browse', function () {
-        const contractNumber = $(this).data('contractnumber');
-        //const fileName = $(this).data('confilename');
-        const filePath = $(this).data('filepath');
-
-        $.ajax({
-            url: '/admin/Account/BrowseSignofClient',
-            type: 'POST',
-            headers: {
-                "Authorization": "Bearer " + tokenJWT
-            },
-            contentType: 'application/json',
-            data: JSON.stringify({
-                StaffId: StaffId,
-                FilePath: filePath,
-                ContractNumber: contractNumber
-            }),
-            success: function (res) {
-                if (res.success) {
-                    document.getElementById("contentModalSuccess").innerHTML = "Đã gửi hợp đồng thành công!";
-                    $("#ModalSuccess").modal("show");
-                 
-                    $('#pdfViewer').addClass('hidden');
-                    $('#pendingContracts').DataTable().ajax.reload(null, false); 
-                } else {
-                    showError("Gửi hợp đồng thất bại: " + (res.message || ""));
-                }
-            },
-            error: function () {
-                console.error("Lỗi khi duyệt:", error);
-                showError("Lỗi khi duyệt hợp đồng. Vui lòng thử lại.");
-            }
-        });
-    });
-
-    //xác nhận hoàn tất thủ tục 
-    $('#pendingContracts').on('click', '.btn-approve', function () {
-        const contractNumber = $(this).data('contractnumber');
-        const realFilePath = $(this).data('filepath');
-
-        if (!contractNumber) {
-            showError("Không tìm thấy mã hợp đồng.");
-            return;
-        }
-
-        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc chắn muốn xác nhận hoàn tất thủ tục hợp đồng này?";
-        const modalConfirmEl = document.getElementById("confirmModal");
-        const modalConfirm = new bootstrap.Modal(modalConfirmEl);
-        modalConfirm.show();
-
-        // Xử lý khi bấm nút xác nhận
-        $("#confirmButton1").off("click").on("click", async function () {
-            modalConfirm.hide();
-            $.ajax({
-                url: "/admin/account/Insert", // 🔧 sửa đúng URL nếu khác
-                type: "POST",
-                contentType: "application/json",
-                headers: {
-                    "Authorization": "Bearer " + tokenJWT
-                },
-                data: JSON.stringify({
-                    StaffId: StaffId,
-                    FilePath: realFilePath,
-                    ContractNumber: contractNumber
-                }),
-                success: function (res) {
-                    if (res.success) {
-                       // showSuccess("Duyệt hợp đồng thành công!");
-                        document.getElementById("contentModalSuccess").innerHTML = "Xác nhận hoàn tất hợp đồng thành công!";
-                        $("#ModalSuccess").modal("show");
-                        backBtn3.click();
-                        // Reload lại bảng để cập nhật UI
-                        init("", "Tất cả");
-                    } else {
-                        showError("Xác nhận hoàn tất hợp đồng thất bại: " + (res.message || ""));
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Lỗi khi Xác nhận hoàn tất hợp đồng:", error);
-                    showError("Lỗi khi Xác nhận hoàn tất hợp đồng. Vui lòng thử lại.");
-                }
-            });
-        });
     });
 
     $(document).ready(function () {
