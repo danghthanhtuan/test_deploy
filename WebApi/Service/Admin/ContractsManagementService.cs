@@ -14,7 +14,7 @@ namespace WebApi.Service.Admin
             _context = context;
         }
 
-        //Lấy thông tin công ty chính thức và  tồn tại hợp đồng đã duyệt
+        //Lấy thông tin công ty chính thức và hợp đồng đã duyệt
         public async Task<PagingResult<CompanyAccountDTO>> GetAllCompany(GetListCompanyPaging req)
         {
             var query = from c in _context.Companies
@@ -385,7 +385,6 @@ namespace WebApi.Service.Admin
         }
 
         //lấy thông tin cty search để tạo phiếu yêu cầu
-                    
                 //đã thêm kiểm tra điều kiện hạn hợp đồng còn, vaf  hoat dong.          Bỏ
         //vì ở đây chỉ lấy thông tin cty để insert nên không cần lấy theo nhiều loại dịch vụ hợp đồng. 
         public async Task<List<CompanyAccountDTO>> GetAllInfor(string req)
@@ -471,6 +470,295 @@ namespace WebApi.Service.Admin
                         Customertype = dto.CustomerType,
                         IsActive = false,
                         Constatus = 0
+                    };
+                    var newPayment = new Payment
+                    {
+                        Contractnumber = newContractNumber,
+                        Amount = dto.Amount,
+                        Paymentstatus = false,
+                    };
+                    _context.Payments.Add(newPayment);
+                    _context.Contracts.Add(newContract);
+
+                    var newContractfile = new ContractFile
+                    {
+                        Contractnumber = newContractNumber,
+                        ConfileName = dto.ConfileName,
+                        FilePath = dto.FilePath,
+                        UploadedAt = DateTime.Now,
+                        FileStatus = 0,
+                    };
+
+                    var newContractStatusHistory = new ContractStatusHistory
+                    {
+                        Contractnumber = newContractNumber,
+                        OldStatus = 0,
+                        NewStatus = 0,
+                        ChangedAt = DateTime.Now,
+                        ChangedBy = dto.ChangedBy,
+                    };
+                    _context.ContractFiles.Add(newContractfile);
+                    _context.ContractStatusHistories.Add(newContractStatusHistory);
+
+                    _context.SaveChanges();
+                    transaction.Commit();
+
+                    return newContractNumber;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                    return "Lỗi hệ thống, vui lòng thử lại sau.";
+                }
+            }
+        }
+
+        //Lấy thông tin khách hàng để tạo hợp đồng gia hạn
+        public async Task<CompanyAccountDTO?> GetByContractNumberAsync(string contractNumber)
+        {
+            contractNumber = contractNumber?.Trim();
+            var result = await (
+                from c in _context.Companies
+                join a in _context.Accounts on c.Customerid equals a.Customerid
+                join h in _context.Contracts on c.Customerid equals h.Customerid
+                join q in _context.ServiceTypes on h.ServiceTypeid equals q.Id
+                join f in _context.ContractFiles on h.Contractnumber equals f.Contractnumber into fileJoin
+                from file in fileJoin.DefaultIfEmpty()
+                join p in _context.Payments on h.Contractnumber equals p.Contractnumber into paymentJoin
+                from payment in paymentJoin.DefaultIfEmpty()
+                where h.Contractnumber == contractNumber
+                select new CompanyAccountDTO
+                {
+                    CustomerId = c.Customerid,
+                    CompanyName = c.Companyname,
+                    TaxCode = c.Taxcode,
+                    CompanyAccount = c.Companyaccount,
+                    AccountIssuedDate = c.Accountissueddate,
+                    CPhoneNumber = c.Cphonenumber,
+                    CAddress = c.Caddress,
+                    RootAccount = a.Rootaccount,
+                    RootName = a.Rootname,
+                    RPhoneNumber = a.Rphonenumber,
+                    DateOfBirth = a.Dateofbirth,
+                    Gender = a.Gender,
+                    ContractNumber = h.Contractnumber,
+                    Startdate = h.Startdate,
+                    Enddate = h.Enddate,
+                    CustomerType = h.Customertype,
+                    ServiceType = q.ServiceTypename,
+                    //ConfileName = file.ConfileName,
+                    // FilePath = file.FilePath,
+                    Amount = payment.Amount,
+                    //Constatus = h.Constatus
+                }
+            ).FirstOrDefaultAsync();
+
+            return result;
+        }
+
+        //check hợp đồng gia hạn hoặc nâng cấp còn sót  
+        public async Task<string?> CheckExistingIncompleteExtension(string contractNumber)
+        {
+            var incomplete = await _context.Contracts
+                .Where(c => c.Original == contractNumber && c.Constatus != 6)
+                .FirstOrDefaultAsync();
+
+            return incomplete?.Contractnumber;
+        }
+
+        //Tính toán thời gian gia hạn
+        public (DateTime newStartDate, DateTime newEndDate, string? originalContract) CalculateNewContractPeriod( ContractDTO contractDTO)
+        {
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                DateTime newStartDate;
+                DateTime newEndDate;
+                string? originalContract = null;
+                // Tìm toàn bộ chuỗi hợp đồng gốc + gia hạn
+                var contractChain = _context.Contracts
+                    .Where(c => c.Contractnumber == contractDTO.ContractNumber || c.Original == contractDTO.ContractNumber)
+                    .ToList();
+
+                // Tìm hợp đồng có ngày kết thúc lớn nhất
+                var latestContract = contractChain.OrderByDescending(c => c.Enddate).First();
+
+                if (latestContract.Enddate < DateTime.Today)
+                {
+                    // Hợp đồng đã hết hạn → tạo mới
+                    newStartDate = DateTime.Today;
+                    newEndDate = newStartDate.AddMonths(contractDTO.chooseMonth);
+                    originalContract = null;
+                    return (newStartDate, newEndDate, originalContract);
+                }
+
+                else
+                {
+                    // Hợp đồng còn hạn → gia hạn từ ngày hết hạn cũ + 1 đến ngày người dùng chọn
+                    newStartDate = latestContract.Enddate.AddDays(1);
+                    newEndDate = contractDTO.Enddate;
+                    originalContract = latestContract.Contractnumber;
+                    return (newStartDate, newEndDate, originalContract);
+                }
+            }
+        }
+
+        public async Task<string?> SaveContractExtend(CompanyContractDTOs dto, ContractDTO contractDTO, string id)
+        {
+            if (dto == null || contractDTO == null)
+            {
+                return "Dữ liệu không hợp lệ.";
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == id);
+                    if (staff == null)
+                    {
+                        return $"Nhân viên với mã nhân viên = {id} không tồn tại";
+                    }
+
+                    var oldContract = _context.Contracts
+                       .FirstOrDefault(c => c.Contractnumber == contractDTO.ContractNumber);
+
+                    if (oldContract == null)
+                    {
+                        return $"Hợp đồng với mã {contractDTO.ContractNumber} không tồn tại.";
+                    }
+
+                    // Tạo số hợp đồng mới
+                    var lastContract = _context.Contracts
+                        .OrderByDescending(c => c.Contractnumber)
+                        .FirstOrDefault();
+
+                    int nextContractNumber = lastContract != null
+                        ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1
+                        : 1;
+
+                    string newContractNumber = $"SV{nextContractNumber:D4}";
+
+                    // Tìm loại dịch vụ
+                    var serviceType = _context.ServiceTypes
+                        .FirstOrDefault(st => st.ServiceTypename == contractDTO.ServiceType);
+
+                    if (serviceType == null)
+                    {
+                        return $"Loại dịch vụ '{contractDTO.ServiceType}' không tồn tại.";
+                    }
+
+                    var newContract = new Contract
+                    {
+                        Contractnumber = newContractNumber,
+                        Startdate = (DateTime)dto.Startdate,
+                        Enddate = (DateTime)dto.Enddate,
+                        ServiceTypeid = serviceType.Id,
+                        Customerid = dto.CustomerId,
+                        Customertype = dto.CustomerType,
+                        IsActive = false,
+                        Constatus = 0, 
+                        Original = dto.Original,
+                    };
+                    var newPayment = new Payment
+                    {
+                        Contractnumber = newContractNumber,
+                        Amount = dto.Amount,
+                        Paymentstatus = false,
+                    };
+                    _context.Payments.Add(newPayment);
+                    _context.Contracts.Add(newContract);
+
+                    var newContractfile = new ContractFile
+                    {
+                        Contractnumber = newContractNumber,
+                        ConfileName = dto.ConfileName,
+                        FilePath = dto.FilePath,
+                        UploadedAt = DateTime.Now,
+                        FileStatus = 0,
+                    };
+
+                    var newContractStatusHistory = new ContractStatusHistory
+                    {
+                        Contractnumber = newContractNumber,
+                        OldStatus = 0,
+                        NewStatus = 0,
+                        ChangedAt = DateTime.Now,
+                        ChangedBy = dto.ChangedBy,
+                    };
+                    _context.ContractFiles.Add(newContractfile);
+                    _context.ContractStatusHistories.Add(newContractStatusHistory);
+
+                    _context.SaveChanges();
+                    transaction.Commit();
+
+                    return newContractNumber;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                    return "Lỗi hệ thống, vui lòng thử lại sau.";
+                }
+            }
+        }
+
+        public async Task<string?> SaveContractUpgrade(CompanyContractDTOs dto,  string id)
+        {
+            if (dto == null )
+            {
+                return "Dữ liệu không hợp lệ.";
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var staff = _context.Staff.FirstOrDefault(s => s.Staffid == id);
+                    if (staff == null)
+                    {
+                        return $"Nhân viên với mã nhân viên = {id} không tồn tại";
+                    }
+
+                    var oldContract = _context.Contracts
+                       .FirstOrDefault(c => c.Contractnumber == dto.ContractNumber);
+
+                    if (oldContract == null)
+                    {
+                        return $"Hợp đồng với mã {dto.ContractNumber} không tồn tại.";
+                    }
+
+                    // Tạo số hợp đồng mới
+                    var lastContract = _context.Contracts
+                        .OrderByDescending(c => c.Contractnumber)
+                        .FirstOrDefault();
+
+                    int nextContractNumber = lastContract != null
+                        ? int.Parse(lastContract.Contractnumber.Substring(2)) + 1
+                        : 1;
+
+                    string newContractNumber = $"SV{nextContractNumber:D4}";
+
+                    // Tìm loại dịch vụ
+                    var serviceType = _context.ServiceTypes
+                        .FirstOrDefault(st => st.ServiceTypename == dto.ServiceType);
+
+                    if (serviceType == null)
+                    {
+                        return $"Loại dịch vụ '{dto.ServiceType}' không tồn tại.";
+                    }
+
+                    var newContract = new Contract
+                    {
+                        Contractnumber = newContractNumber,
+                        Startdate = (DateTime)dto.Startdate,
+                        Enddate = (DateTime)dto.Enddate,
+                        ServiceTypeid = serviceType.Id,
+                        Customerid = dto.CustomerId,
+                        Customertype = dto.CustomerType,
+                        IsActive = false,
+                        Constatus = 0,
+                        Original = dto.Original,
                     };
                     var newPayment = new Payment
                     {

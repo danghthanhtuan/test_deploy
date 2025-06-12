@@ -659,7 +659,7 @@ namespace WebApi.Service.Admin
                     {
                         Contractnumber = contractNumber,
                         ConfileName = newFileName,
-                        FilePath = Path.Combine("signed-contracts", newFileName).Replace("\\", "/"),
+                        FilePath = "/" + Path.Combine("signed-contracts", newFileName).Replace("\\", "/"),
                         UploadedAt = DateTime.Now,
                         FileStatus = 1
                     };
@@ -724,7 +724,7 @@ namespace WebApi.Service.Admin
                     var newContractFile = new ContractFile
                     {
                         Contractnumber = request.ContractNumber,
-                        ConfileName = Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
+                        ConfileName =  Path.GetFileName(request.FilePath), // Lấy tên file từ đường dẫn
                         FilePath = request.FilePath,
                         UploadedAt = DateTime.Now,
                         FileStatus = 2,
@@ -831,7 +831,24 @@ namespace WebApi.Service.Admin
             if (request == null)
                 return "Dữ liệu không hợp lệ.";
 
+            //tìm hợp đồng đang hoàn tất
             var contract = await _context.Contracts.FirstOrDefaultAsync(c => c.Contractnumber == request.ContractNumber);
+
+
+            if (contract != null && contract.Customertype == true && contract.Original != null)
+            {
+                //// Cập nhật loại khách hàng cho các hợp đồng chính có contract giống mã orinal của phụ
+                var relatedContracts = _context.Contracts
+                    .Where(c => c.Contractnumber == contract.Original || c.Original == contract.Original)
+                    .ToList();
+
+                foreach (var contractupdate in relatedContracts)
+                {
+                    contractupdate.Customertype = true;
+                    _context.Contracts.Update(contractupdate);  
+                }
+            }
+
             if (contract == null)
                 return "Không tìm thấy hợp đồng tương ứng";
 
@@ -885,10 +902,11 @@ namespace WebApi.Service.Admin
                             Passwordclient = hashedPassword
                         };
                         _context.Loginclients.Add(newLogin);
+
+                        // Gửi email TRƯỚC khi commit DB
+                        await SendPasswordEmail(account.Rootaccount, generatedPassword);
                     }
 
-                    // Gửi email TRƯỚC khi commit DB
-                    await SendPasswordEmail(account.Rootaccount, generatedPassword);
                     string contractLink = GenerateContractLink(request.FilePath);
                     await _emailService.SendFinalContractToCustomer(account.Rootaccount, contractLink);
 

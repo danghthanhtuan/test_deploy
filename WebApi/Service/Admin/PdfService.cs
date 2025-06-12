@@ -287,7 +287,7 @@ namespace WebApi.Service.Admin
             (string keyword, float offsetY) = ("Đại diện Bên A", 113f);
             var (textRect, page) = FindTextPosition2(originalPdfBytes, keyword);
 
-            float offsetX = 55f;
+            float offsetX = 30f;
             float signatureWidth = 200f;
             float signatureHeight = 70f;
 
@@ -389,7 +389,7 @@ namespace WebApi.Service.Admin
         }
 
         
-        public byte[] InsertSignatureImageToPdf(byte[] originalPdfBytes, string signatureBase64, string keyword, float offsetX = 55f, float offsetY = 113f, float width = 200f, float height = 50f)
+        public byte[] InsertSignatureImageToPdf(byte[] originalPdfBytes, string signatureBase64, string keyword, float offsetX = 30f, float offsetY = 113f, float width = 200f, float height = 70f)
         {
             using var pdfStream = new MemoryStream(originalPdfBytes);
             using var outputPdfStream = new MemoryStream();
