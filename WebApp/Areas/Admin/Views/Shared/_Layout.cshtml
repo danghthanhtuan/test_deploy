@@ -65,7 +65,8 @@
             <!-- Left navbar links -->
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a  data-widget="pushmenu" href="#" role="button" style="padding-right:10px"><i class="fas fa-bars"></i></a>
+                    <a data-widget="pushmenu" href="#" role="button" style="padding-right:10px"><i class="fas fa-bars"></i></a>
+
                 </li>
                 <li class="nav-item d-none d-sm-inline-block">
                     <h4>
@@ -96,7 +97,13 @@
                         <i class="far fa-comments"></i>
                         @*<span class="badge badge-danger navbar-badge">3</span>*@
                     </a>
-                    
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                        <span class="dropdown-item dropdown-header">Menu</span>
+                        <div class="dropdown-divider"></div>
+
+
+                        <div class="dropdown-divider"></div>
+                    </div>
                 </li>
 
                 <!-- Notifications Dropdown Menu -->
@@ -178,6 +185,8 @@
 
     @*<script src="https://cdn.rawgit.com/ashl1/datatables-rowsgroup/v1.0.0/dataTables.rowsGroup.js"></script>*@
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
     <!-- Page specific script -->
     <script>
         $(function () {
@@ -253,7 +262,50 @@
             $("input[data-bootstrap-switch]").each(function () {
                 $(this).bootstrapSwitch('state', $(this).prop('checked'));
             })
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("https://localhost:7190/notificationHub", {
+                    withCredentials: true // nếu server yêu cầu
+                })
+                .build();
 
+            connection.on("UserGuest", function (userName) {
+                var data = {
+                    page: 1,
+                    pageSize: 10,
+                    isRead: -1,
+                };
+
+                $.ajax({
+                    url: "/Notification/GetListNotification",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function (result) {
+                        //$('#successModal').modal('show');
+
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("Lỗi khi gửi yêu cầu AJAX:", xhr.responseText);
+                        // document.getElementById("contentModalError").innerHTML = "Tạo liên hệ không thành công!";
+                        // $('#failModal').modal('show');
+                    }
+                });
+            });
+
+            function start() {
+                connection.start()
+                    .then(() => console.log("SignalR connected"))
+                    .catch(err => {
+                        setTimeout(start, 5000);
+                    });
+            }
+
+            connection.onclose(() => {
+                setTimeout(start, 5000);
+            });
+
+            start();
         })
         // BS-Stepper Init
         document.addEventListener('DOMContentLoaded', function () {

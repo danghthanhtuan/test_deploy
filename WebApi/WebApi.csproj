@@ -31,7 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <Folder Include="wwwroot\signed-contracts\" />
     <Folder Include="wwwroot\temp-pdfs\" />
   </ItemGroup>

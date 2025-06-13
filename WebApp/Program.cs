@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
+using WebApp.Configs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,8 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = "localhost:6379"; // địa chỉ Redis
 });
 builder.Services.AddHttpClient();
+
+builder.Services.Configure<ApiConfigs>(builder.Configuration.GetSection("ApiConfigs"));
 
 // thêm dịch vụ authentication
 builder.Services.AddAuthentication(option =>
@@ -101,7 +104,8 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+       pattern: "{controller=HomeGuest}/{action=Index}/{id?}");
+
 
 
 app.Run();

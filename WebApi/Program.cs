@@ -128,7 +128,10 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
+builder.Services.AddSignalR();
+builder.Services.AddCors(options => {
+    options.AddPolicy("CORSPolicy", builder => builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((hosts) => true));
+});
 
 // Đăng ký IHttpContextAccessor để tránh lỗi thiếu dependency
 builder.Services.AddHttpContextAccessor();
@@ -155,6 +158,8 @@ builder.Services.AddTransient<SeeContract_SignService>();
 builder.Services.AddTransient<PaymentService>();
 
 builder.Services.AddTransient<TransactionService>();
+builder.Services.AddTransient<ContactService>();
+builder.Services.AddTransient<INotificationService, NotificationService>();
 
 //builder.Services.AddTransient<TextLocationStrategy>();
 
@@ -176,6 +181,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("CORSPolicy");
+
 app.UseAuthentication();  // ✅ Xác thực trước middleware JWT
 //app.UseMiddleware<TokenValidationMiddleware>(); // Đăng ký Middleware
 app.UseAuthorization();   // ✅ Ủy quyền sau khi đã xác thực
@@ -183,6 +190,7 @@ app.UseAuthorization();   // ✅ Ủy quyền sau khi đã xác thực
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+    app.MapHub<NotificationHub>("/notificationHub");
 });
 
 app.Run();

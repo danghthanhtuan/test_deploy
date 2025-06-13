@@ -1,0 +1,249 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutIntroduce.cshtml";
+}
+<style>
+    .show {
+        display: block !important;
+    }
+</style>
+
+<section class="hero-wrap hero-wrap-2" style="background-image: url('./Content2/images/bg_3.jpg');" data-stellar-background-ratio="0.5">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row no-gutters slider-text align-items-end justify-content-center">
+            <div class="col-md-9 ftco-animate pb-5 text-center">
+                <h1 class="mb-3 bread">Contact us</h1>
+                <p class="breadcrumbs"><span class="mr-2"><a href="index.html">Home <i class="fa fa-chevron-right"></i></a></span> <span>Contact us <i class="fa fa-chevron-right"></i></span></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="ftco-section bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="wrapper px-md-4">
+                    <div class="row mb-5">
+                        <div class="col-md-3">
+                            <div class="dbox w-100 text-center">
+                                <div class="icon d-flex align-items-center justify-content-center">
+                                    <span class="fa fa-map-marker"></span>
+                                </div>
+                                <div class="text">
+                                    <p><span>Address:</span> 198 West 21th Street, Suite 721 New York NY 10016</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="dbox w-100 text-center">
+                                <div class="icon d-flex align-items-center justify-content-center">
+                                    <span class="fa fa-phone"></span>
+                                </div>
+                                <div class="text">
+                                    <p><span>Phone:</span> <a href="tel://1234567920">+ 1235 2355 98</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="dbox w-100 text-center">
+                                <div class="icon d-flex align-items-center justify-content-center">
+                                    <span class="fa fa-paper-plane"></span>
+                                </div>
+                                <div class="text">
+                                    <p><span>Email:</span> <a href="mailto:info@yoursite.com">info&#64;it.com</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="dbox w-100 text-center">
+                                <div class="icon d-flex align-items-center justify-content-center">
+                                    <span class="fa fa-globe"></span>
+                                </div>
+                                <div class="text">
+                                    <p><span>Website</span> <a href="#">yoursite.com</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row no-gutters">
+                        <div class="col-md-7">
+                            <div class="contact-wrap w-100 p-md-5 p-4">
+                                <h3 class="mb-4">Contact Us</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="label" for="name">Full Name</label>
+                                            <input type="text" class="form-control" name="name" id="name" placeholder="Name">
+                                            <div class="invalid-feedback" id="name-error"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="label" for="email">Email Address</label>
+                                            <input type="email" class="form-control" name="email" id="email" placeholder="Email">
+                                            <div class="invalid-feedback" id="email-error"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="label" for="subject">Phone</label>
+                                            <input type="text" class="form-control" name="phone" id="phone" placeholder="Phone">
+                                            <div class="invalid-feedback" id="phone-error"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="label" for="subject">Subject</label>
+                                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="label" for="#">Message</label>
+                                            <textarea name="message" class="form-control" id="message" cols="30" rows="4" placeholder="Message"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <input type="button" value="Send Message" onclick="validateAndCreateContact()" class="btn btn-primary">
+                                            @* <div class="submitting"></div> *@
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5 order-md-first d-flex align-items-stretch">
+                            <div id="map" class="map"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@section Modals {
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Thành công!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tạo thành công.
+            </div>
+            <div class="modal-footer">
+                <button id="buttonCloseModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal thông báo -->
+<div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="failModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="failModalLabel">Tạo thất bại</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span id="contentModalError"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+            fullHeight();
+            loader();
+            scrollWindow();
+            contentWayPoint();
+            counter();
+            highlightTabActive();
+
+
+        });
+    </script>
+    <script>
+        function validateAndCreateContact() {
+
+            // Xóa thông báo cũ
+            document.getElementById('name-error').innerHTML = '';
+            document.getElementById('email-error').innerHTML = '';
+            document.getElementById('phone-error').innerHTML = '';
+
+
+            var name = document.getElementById("name").value.trim();
+            var email = document.getElementById("email").value.trim();
+            var subject = document.getElementById("subject").value.trim();
+            var message = document.getElementById("message").value.trim();
+            var phone = document.getElementById("phone").value.trim();
+
+            if (name === '') {
+                document.getElementById('name-error').innerHTML = 'Vui lòng nhập họ tên';
+                document.getElementById('name-error').classList.add('show');
+                return;
+            }
+
+            if (email === '') {
+                document.getElementById('email-error').innerHTML = 'Vui lòng nhập email';
+                document.getElementById('email-error').classList.add('show');
+                return;
+            }
+            else
+
+                if (!validateEmail(email)) {
+                    document.getElementById('email-error').innerHTML = 'Email không hợp lệ';
+                    document.getElementById('email-error').classList.add('show');
+                    return;
+                }
+
+            if (phone === '') {
+                document.getElementById('phone-error').innerHTML = 'Vui lòng nhập số điện thoại';
+                document.getElementById('phone-error').classList.add('show');
+                return;
+            }
+
+            var data = {
+                name: name,
+                email: email,
+                subject: subject,
+                message: message,
+                phone: phone
+            };
+
+            $.ajax({
+                url: "/ContactGuest/CreateContact",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(data),
+                success: function (result) {
+                    $('#successModal').modal('show');
+                },
+                error: function (xhr, status, error) {
+                    console.log("Lỗi khi gửi yêu cầu AJAX:", xhr.responseText);
+                    document.getElementById("contentModalError").innerHTML = "Tạo liên hệ không thành công!";
+                    $('#failModal').modal('show');
+                }
+            });
+        }
+
+    </script>
+
+    @Html.Raw(@"
+            <script>
+            function validateEmail(email) {
+            var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+            }
+            </script>
+            ")
+}
