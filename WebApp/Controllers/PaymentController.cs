@@ -63,7 +63,7 @@ namespace WebApp.Controllers
                         var response2 = await client.GetAsync(apiUrl2);
                         var jsonString2 = await response2.Content.ReadAsStringAsync();
                         var hopDong2 = JsonConvert.DeserializeObject<CompanyContractDTOs>(jsonString2);
-                        if (response.IsSuccessStatusCode)
+                        if (response2.IsSuccessStatusCode)
                         {
                            // ViewBag.ContractNumber = hopDong2.contractnumber;
                             return View(hopDong2);
@@ -94,7 +94,7 @@ namespace WebApp.Controllers
 
             var responseData = await response.Content.ReadAsStringAsync();
             var json = JObject.Parse(responseData);
-            string paymentId = json["id"].ToString();
+            string paymentId = json["transactionCode"].ToString();
 
             // 🔗 Bước 2: Tạo link thanh toán VNPAY
             return ThanhToan(paymentId, soTien); // Không cần `Redirect(...)` nữa
@@ -135,41 +135,122 @@ namespace WebApp.Controllers
             return Redirect(url); // Chuyển hướng luôn từ đây
         }
 
+        //[HttpGet]
+        //public async Task<IActionResult> KetQuaThanhToan()
+        //{
+        //    var vnpay = new VnPayLibrary();
+        //    var response = Request.Query;
+
+        //    foreach (var key in response.Keys)
+        //    {
+        //        Console.WriteLine($"{key} = {response[key]}");
+        //        //vnpay.AddResponseData(key, response[key]);
+        //        vnpay.AddResponseData(key, response[key].ToString().Trim());
+
+        //    }
+
+        //    string vnp_HashSecret = _configuration["VNPAY:vnp_HashSecret"];
+        //    bool checkSignature = vnpay.ValidateSignature(response["vnp_SecureHash"], vnp_HashSecret);
+
+        //    string transactionStatus = response["vnp_TransactionStatus"];
+        //    string responseCode = response["vnp_ResponseCode"];
+        //    string id = response["vnp_TxnRef"];
+        //    string maGiaoDich = response["vnp_TransactionNo"];
+        //    string fullInfo = response["vnp_OrderInfo"];
+
+        //    string email = "";
+        //    if (!string.IsNullOrEmpty(fullInfo) && fullInfo.Contains("Email:"))
+        //    {
+        //        email = fullInfo.Split("Email:")[1].Trim();
+        //    }
+
+        //    string paymentMethod = "VNPAY";
+        //    string tinhTrang = (transactionStatus == "00" && responseCode == "00") ? "Thanh cong" : "That bai";
+
+        //    if (!checkSignature)
+        //    {
+        //        tinhTrang = "Sai chữ ký"; // ❗ Cho biết là lỗi chữ ký
+        //    }
+
+        //    try
+        //    {
+        //        using (var httpClient = new HttpClient())
+        //        {
+        //            var requestBody = new
+        //            {
+        //                ID = id,
+        //                MaGiaoDich = maGiaoDich,
+        //                PhuongThuc = paymentMethod,
+        //                TinhTrang = tinhTrang
+        //            };
+
+        //            var responseApi = await httpClient.PostAsJsonAsync("https://localhost:7190/api/admin/payment/CapNhatThanhToan", requestBody);
+
+        //            if (responseApi.IsSuccessStatusCode)
+        //            {
+        //                if (checkSignature && tinhTrang == "Thanh cong")
+        //                    return View("KetQuaThanhToanThanhCong");
+        //                else
+        //                {
+        //                    ViewBag.Message = "Thanh toán thất bại hoặc sai chữ ký.";
+        //                    return View("Thanhtoanthatbai");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                string err = await responseApi.Content.ReadAsStringAsync();
+        //                ViewBag.Message = $"Kết nối thành công nhưng cập nhật thất bại: {err}";
+        //                return View("Error");
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ViewBag.Message = $"Lỗi hệ thống khi gửi dữ liệu thanh toán: {ex.Message}";
+        //        return View("Error");
+        //    }
+        //}
         [HttpGet]
         public async Task<IActionResult> KetQuaThanhToan()
         {
             var vnpay = new VnPayLibrary();
             var response = Request.Query;
 
+            // Thêm tất cả tham số vào thư viện để kiểm tra hash
             foreach (var key in response.Keys)
             {
-                Console.WriteLine($"{key} = {response[key]}");
-                //vnpay.AddResponseData(key, response[key]);
                 vnpay.AddResponseData(key, response[key].ToString().Trim());
-
             }
 
             string vnp_HashSecret = _configuration["VNPAY:vnp_HashSecret"];
             bool checkSignature = vnpay.ValidateSignature(response["vnp_SecureHash"], vnp_HashSecret);
 
-            string transactionStatus = response["vnp_TransactionStatus"];
-            string responseCode = response["vnp_ResponseCode"];
-            string id = response["vnp_TxnRef"];
-            string maGiaoDich = response["vnp_TransactionNo"];
-            string fullInfo = response["vnp_OrderInfo"];
+            // Lấy các tham số cần thiết
+            string vnp_TxnRef = response["vnp_TxnRef"];
+            string vnp_TransactionNo = response["vnp_TransactionNo"];
+            string vnp_Amount = response["vnp_Amount"];
+            string vnp_BankCode = response["vnp_BankCode"];
+            string vnp_BankTranNo = response["vnp_BankTranNo"];
+            string vnp_CardType = response["vnp_CardType"];
+            string vnp_OrderInfo = response["vnp_OrderInfo"];
+            string vnp_PayDate = response["vnp_PayDate"];
+            string vnp_ResponseCode = response["vnp_ResponseCode"];
+            string vnp_TransactionStatus = response["vnp_TransactionStatus"];
+            string vnp_TmnCode = response["vnp_TmnCode"];
 
+            // Xử lý thông tin thêm (ví dụ như lấy email từ OrderInfo)
             string email = "";
-            if (!string.IsNullOrEmpty(fullInfo) && fullInfo.Contains("Email:"))
+            if (!string.IsNullOrEmpty(vnp_OrderInfo) && vnp_OrderInfo.Contains("Email:"))
             {
-                email = fullInfo.Split("Email:")[1].Trim();
+                email = vnp_OrderInfo.Split("Email:")[1].Trim();
             }
 
             string paymentMethod = "VNPAY";
-            string tinhTrang = (transactionStatus == "00" && responseCode == "00") ? "Thanh cong" : "That bai";
+            string status = (vnp_TransactionStatus == "00" && vnp_ResponseCode == "00") ? "Thanh cong" : "That bai";
 
             if (!checkSignature)
             {
-                tinhTrang = "Sai chữ ký"; // ❗ Cho biết là lỗi chữ ký
+                status = "Sai chữ ký";
             }
 
             try
@@ -178,17 +259,26 @@ namespace WebApp.Controllers
                 {
                     var requestBody = new
                     {
-                        ID = id,
-                        MaGiaoDich = maGiaoDich,
+                        ID = vnp_TxnRef,
+                        MaGiaoDich = vnp_TransactionNo,
+                        SoTien = vnp_Amount,
+                        MaNganHang = vnp_BankCode,
+                        MaGiaoDichNganHang = vnp_BankTranNo,
+                        LoaiThe = vnp_CardType,
+                        NoiDung = vnp_OrderInfo,
+                        NgayThanhToan = vnp_PayDate,
+                        MaPhanHoi = vnp_ResponseCode,
+                        MaWebsite = vnp_TmnCode,
                         PhuongThuc = paymentMethod,
-                        TinhTrang = tinhTrang
+                        TinhTrang = status,
+                        Email = email
                     };
 
                     var responseApi = await httpClient.PostAsJsonAsync("https://localhost:7190/api/admin/payment/CapNhatThanhToan", requestBody);
 
                     if (responseApi.IsSuccessStatusCode)
                     {
-                        if (checkSignature && tinhTrang == "Thanh cong")
+                        if (checkSignature && status == "Thanh cong")
                             return View("KetQuaThanhToanThanhCong");
                         else
                         {
@@ -199,17 +289,18 @@ namespace WebApp.Controllers
                     else
                     {
                         string err = await responseApi.Content.ReadAsStringAsync();
-                        ViewBag.Message = $"Kết nối thành công nhưng cập nhật thất bại: {err}";
+                        ViewBag.Message = $"Cập nhật thất bại: {err}";
                         return View("Error");
                     }
                 }
             }
             catch (Exception ex)
             {
-                ViewBag.Message = $"Lỗi hệ thống khi gửi dữ liệu thanh toán: {ex.Message}";
+                ViewBag.Message = $"Lỗi hệ thống khi xử lý thanh toán: {ex.Message}";
                 return View("Error");
             }
         }
+
 
     }
 }

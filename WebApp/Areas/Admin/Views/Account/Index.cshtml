@@ -8,6 +8,7 @@
 
     .flex-shrink-0 {
         height: 60px;
+
     }
     /* Căn chỉnh toàn bảng */
     #listCompany {
@@ -352,8 +353,8 @@
             </div>
         </div>
     </div>
-    @* UPDATE *@
-    <div id="updateAccountContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
+    @* UPDATE*@
+        <div id="updateAccountContainer" class="container-fluid d-flex flex-column vh-100" style="display: none;">
         <div class="row flex-shrink-0">
             <div class="col-12">
                 <div class="card p-2">
@@ -513,7 +514,6 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    let signedStateMap = {};
     var Department = "@User.FindFirst("Department")?.Value";
     var StaffId = "@User.FindFirst("StaffId")?.Value";
 

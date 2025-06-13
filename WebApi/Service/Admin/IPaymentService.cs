@@ -1,9 +1,11 @@
-﻿namespace WebApi.Service.Admin
+﻿using WebApi.DTO;
+
+namespace WebApi.Service.Admin
 {
     public interface IPaymentService
     {
 
-        bool ThanhToan(string ID, string maGiaoDich, string phuongThuc, string tinhTrang);
+        bool ThanhToan(PaymentTr request);
     }
 
 }

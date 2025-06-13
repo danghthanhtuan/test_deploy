@@ -23,22 +23,22 @@ namespace WebApi.Controllers.Admin
                 return BadRequest(ModelState);
 
             var payment = await _PaymentService.CreatePaymentAsync(request);
-            return Ok(new { 
-                payment.Id,
-                payment.Amount
-            }); // lấy id của giao dịch mới insert
+            return Ok(new {
+                transactionCode = payment.TransactionCode,
+                amount = payment.Amount
+            });
         }
 
+   
         [HttpPost]
-        public IActionResult CapNhatThanhToan([FromBody] ThanhToanRequest request)
+        public IActionResult CapNhatThanhToan([FromBody] PaymentTr request)
         {
-            bool result = _PaymentService.ThanhToan(request.ID, request.MaGiaoDich,  request.PhuongThuc, request.TinhTrang);
+            bool result = _PaymentService.ThanhToan(request);
             if (result)
-            {
                 return Ok("Cập nhật thanh toán thành công.");
-            }
             return BadRequest("Cập nhật thanh toán thất bại.");
         }
+
 
         [HttpGet]
         public async Task<IActionResult> GetByContractNumber([FromQuery] string contractNumber)

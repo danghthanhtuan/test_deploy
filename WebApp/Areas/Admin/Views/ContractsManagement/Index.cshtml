@@ -918,8 +918,11 @@
                     return JSON.stringify(page);
                 },
                 error: function (xhr, status, error) {
-                    console.error("Lỗi khi lấy dữ liệu:", error);
-                    showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                    if (xhr.status === 403) {
+                        showError("Bạn không có quyền truy cập chức năng này.");
+                    } else {
+                        showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                    }
                 }
             },
             columns: [

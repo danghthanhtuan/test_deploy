@@ -154,6 +154,8 @@ builder.Services.AddTransient<PdfService>();
 builder.Services.AddTransient<SeeContract_SignService>();
 builder.Services.AddTransient<PaymentService>();
 
+builder.Services.AddTransient<TransactionService>();
+
 //builder.Services.AddTransient<TextLocationStrategy>();
 
 builder.Services.AddTransient<IEmailService, EmailService>();

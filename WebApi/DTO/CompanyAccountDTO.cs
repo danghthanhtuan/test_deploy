@@ -97,5 +97,13 @@
         public string ContractNumber { get; set; }
 
     }
+    public class GetListTransactionPaging
+    {
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public string Keyword { get; set; } = string.Empty;
+        public DateTime? Start { get; set; }
+        public DateTime End { get; set; }
 
+    }
 }
