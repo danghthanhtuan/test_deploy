@@ -88,7 +88,7 @@
 
     <form method="post" asp-controller="Payment" asp-action="ThanhToanVNPAY" class="payment-info">
         <label for="soTien">Số tiền thanh toán (VND):</label>
-        <input type="number" name="soTien" value="@Model.Amount" required />
+        <input type="number" name="soTien" value="@Model.Amount" readonly  required />
 
         <label for="orderInfo">Nội dung thanh toán:</label>
         <input type="text" name="orderInfo" value="Thanh toán hợp đồng @Model.ConfileName" readonly />

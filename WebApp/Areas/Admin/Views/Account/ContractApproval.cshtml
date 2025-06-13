@@ -532,49 +532,59 @@
 
     // Khi boss xác nhận lưu file ký đè lên file gốc
     document.getElementById("confirmSaveBtn").addEventListener("click", async () => {
+
         if (!signedPdfBlob) {
             showError("Chưa có hợp đồng ký tạm để lưu");
             return;
         }
+        // Hiển thị modal xác nhận
+        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn ký với thông tin này không?";
+        const modalConfirmEl = document.getElementById("confirmModal");
+        const modalConfirm = new bootstrap.Modal(modalConfirmEl);
+        modalConfirm.show();
 
-        try {
-            // ✅ Lấy dữ liệu từ button đã được gán trước đó
-            const fileName = $('#signBtn').data('fileName');
-            const email = $('#signBtn').data('email');
-            const contractNumber = $('#signBtn').data('contractNumber');
+        // Xử lý khi bấm nút xác nhận
+        $("#confirmButton1").off("click").on("click", async function () {
+            modalConfirm.hide();
+            try {
+                // ✅ Lấy dữ liệu từ button đã được gán trước đó
+                const fileName = $('#signBtn').data('fileName');
+                const email = $('#signBtn').data('email');
+                const contractNumber = $('#signBtn').data('contractNumber');
 
-            const formData = new FormData();
-            formData.append("fileName", fileName);
-            formData.append("signedPdf", signedPdfBlob, "signed_" + fileName); // tên file mới để lưu
-            formData.append("contractNumber", contractNumber);
-            formData.append("staffid", StaffId);
+                const formData = new FormData();
+                formData.append("fileName", fileName);
+                formData.append("signedPdf", signedPdfBlob, "signed_" + fileName); // tên file mới để lưu
+                formData.append("contractNumber", contractNumber);
+                formData.append("staffid", StaffId);
 
-            const res = await fetch("/admin/account/SaveSignedPdf", {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + tokenJWT
-                },
-                body: formData
-            });
+                const res = await fetch("/admin/account/SaveSignedPdf", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + tokenJWT
+                    },
+                    body: formData
+                });
 
-            if (!res.ok) throw new Error("Lưu file ký thất bại");
+                if (!res.ok) throw new Error("Lưu file ký thất bại");
 
-            document.getElementById("contentModalSuccess").innerHTML = "Lưu hợp đồng đã ký thành công!";
+                document.getElementById("contentModalSuccess").innerHTML = "Lưu hợp đồng đã ký thành công!";
 
-            $("#ModalSuccess").modal("show");
+                $("#ModalSuccess").modal("show");
 
-            // ✅ Đóng viewer sau khi lưu thành công
-            $('#pdfViewer iframe').attr('src', '');
-            $('#pdfViewer').addClass('hidden');
-            document.getElementById("confirmSaveBtn").disabled = true;
+                // ✅ Đóng viewer sau khi lưu thành công
+                $('#pdfViewer iframe').attr('src', '');
+                $('#pdfViewer').addClass('hidden');
+                document.getElementById("confirmSaveBtn").disabled = true;
 
-            $('#pendingContracts').DataTable().ajax.reload(null, false);
+                $('#pendingContracts').DataTable().ajax.reload(null, false);
 
 
-        } catch (err) {
-            showError("Lưu thất bại: " + err.message);
-            return;
-        }
+            } catch (err) {
+                showError("Lưu thất bại: " + err.message);
+                return;
+            }
+        });
     });
 
     // //nút ký của Director

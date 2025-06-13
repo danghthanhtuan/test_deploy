@@ -139,13 +139,10 @@ namespace WebApi.Controllers.Admin
 
                 // 3. Lưu file PDF chờ boss ký
                 string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp-pdfs");
-                if (!Directory.Exists(folderPath))
-                    Directory.CreateDirectory(folderPath);
-
+                
                 string fileName = $"{contractId}.pdf";
                 string fullPath = Path.Combine(folderPath, fileName);
                 //await System.IO.File.WriteAllBytesAsync(fullPath, signedPdfBytes);
-                await System.IO.File.WriteAllBytesAsync(fullPath, pdfBytes);
 
                 string relativePath = Path.Combine("/temp-pdfs", fileName).Replace("\\", "/");
 
@@ -180,6 +177,9 @@ namespace WebApi.Controllers.Admin
                 {
                     return BadRequest(new { success = false, message = result });
                 }
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+                await System.IO.File.WriteAllBytesAsync(fullPath, pdfBytes);
 
 
                 return Ok(new { success = true, fullPath });
