@@ -16,6 +16,7 @@ namespace WebApi.DTO
     {
         public int Id { get; set; }
         public string ServiceTypeNames { get; set; } = null!;
+        public string  Descriptionsr{ get; set; } = null!;
     }
 
 

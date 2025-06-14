@@ -276,6 +276,7 @@
         </div>
     </div>
 </div>
+
 <!-- Modal thêm dịch vụ-->
 <div class="modal fade" id="regulationModal" tabindex="-1" role="dialog" aria-labelledby="regulationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -304,14 +305,18 @@
                         </button>
                     </div>
 
-                    <div id="serviceTypeList">
-                        <div class="input-group mb-2">
-                            <input type="text" class="form-control service-type-input" name="serviceTypeNames" placeholder="Nhập tên dịch vụ">
-                            <button type="button" class="btn btn-outline-danger removeServiceType" style="display: none;">
-                                <i class="fa fa-trash"></i>
-                            </button>
+                        <div id="serviceTypeList">
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control service-type-input" name="serviceTypeNames" placeholder="Nhập tên dịch vụ">
+                                <button type="button" class="btn btn-outline-danger removeServiceType" style="display: none;">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                            <div class="form-group d-flex align-items-center w-100">
+                                <label class="w-25">Mô tả yêu cầu: <span style="color: red;">*</span></label>
+                                <textarea class="form-control w-75" name="serviceTypeDescriptions[]" style="height: 150px; resize: vertical; overflow-y: auto;"></textarea>
+                            </div>
                         </div>
-                    </div>
                 </form>
             </div>
 
@@ -385,15 +390,20 @@
             $('#groupName').val('');
             $('#price').val('');
 
-            // Reset danh sách dịch vụ: giữ lại 1 ô duy nhất
             $('#serviceTypeList').html(`
+            <div class="input-group mb-3 flex-column">
                 <div class="input-group mb-2">
-                    <input type="text" class="form-control service-type-input" name="serviceTypeNames" placeholder="Nhập tên dịch vụ">
+                    <input type="text" class="form-control service-type-input" name="serviceTypeNames[]" placeholder="Nhập tên dịch vụ">
                     <button type="button" class="btn btn-outline-danger removeServiceType" style="display: none;">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
-            `);
+                <div class="form-group d-flex align-items-center w-100">
+                    <label class="w-25">Mô tả yêu cầu: <span style="color: red;">*</span></label>
+                    <textarea class="form-control w-75" name="serviceTypeDescriptions[]" style="height: 150px; resize: vertical; overflow-y: auto;"></textarea>
+                </div>
+            </div>
+        `);
         });
 
         document.querySelector('.close').addEventListener('click', function () {
@@ -676,6 +686,7 @@
                         <tr>
                             <th style="width: 10%;">ID</th>
                             <th style="width: 70%;">Tên dịch vụ</th>
+                            <th style="width: 10%;">Chi tiết</th>
                             <th style="width: 10%;">Chỉnh sửa</th>
                             <th style="width: 10%;">Xoá</th>
                         </tr>
@@ -697,11 +708,19 @@
                         <td>${service.id}</td>
                         <td>${service.serviceTypeNames}</td>
                         <td class="text-center">
+                            <i class="fa-solid fa-circle-info text-primary toggle-description" style="cursor:pointer;" data-id="${service.id}" title="Xem mô tả"></i>
+                        </td>
+                        <td class="text-center">
                             <i class="fa-solid fa-pencil-alt text-info edit-btn-regulations" style="cursor:pointer;" title="Chỉnh sửa dịch vụ" data-id="${service.id}"></i>
                         </td>
                         <td class="text-center">
                             <i class="fa-solid fa-trash text-danger delete-btn-regulations" style="cursor:pointer;" title="Xóa dịch vụ" data-id="${service.id}"></i>
                         </td>
+                    </tr>
+                    <tr class="description-row descriptionsr" style="display: none;">
+                               <td colspan="5" class="bg-light text-muted" style="white-space: normal; word-break: break-word;">
+        <strong>Mô tả:</strong> ${service.descriptionsr || 'Không có mô tả'}
+    </td>
                     </tr>
                 `;
             });
@@ -716,115 +735,56 @@
         return html;
     }
 
-
-    let currentOpenRowEndow = null;
-
-    // Sự kiện khi nhấp vào cột có class 'dt-control'
-    $('#listEndow').on('click', 'td.dt-control', function (e) {
-        let tr = $(this).closest('tr');
-        let row = $('#listEndow').DataTable().row(tr);
-
-        // Nếu hàng đang mở và khác hàng hiện tại, đóng hàng đó
-        if (currentOpenRowEndow && currentOpenRowEndow !== row.node()) {
-            let oldRow = $('#listEndow').DataTable().row(currentOpenRowEndow);
-            oldRow.child.hide();
-            $(currentOpenRowEndow).removeClass('row-clicked');
-        }
-
-        // Nếu hàng đã mở và là hàng hiện tại, đóng hàng đó
-        if (currentOpenRowEndow === row.node()) {
-            row.child.hide();
-            tr.removeClass('row-clicked');
-            currentOpenRowEndow = null;
-        }
-        else {
-            // Mở hàng mới và đặt hàng mới làm hàng hiện tại
-            row.child(formatEndow(row.data())).show();
-            tr.addClass('row-clicked');
-            currentOpenRowEndow = row.node(); // Dùng row.node() thay vì index
-        }
-
-        // Loại bỏ lớp CSS cho các hàng khác
-        $('#listEndow tbody tr').not(tr).removeClass('row-clicked');
+    // Toggle hiển thị mô tả
+    $(document).on('click', '.toggle-description', function () {
+        const row = $(this).closest('tr');
+        const nextRow = row.next('.descriptionsr');
+        nextRow.slideToggle(150);
     });
 
-    function formatEndow(data) {
-        let html = `
-            <div class="p-2">
-                <strong>Chi tiết ưu đãi:</strong>
-                    <table class="table table-bordered  service-table mt-2">
-                    <thead>
-                        <tr>
-                            <th>Loại dịch vụ</th>
-                            <th>Hạn hợp đồng</th>
-                            <th>Giảm giá (%)</th>
-                            <th>Mô tả</th>
-                            <th>Cập nhật</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        const durationText = data.duration ? data.duration : 'Không có yêu cầu';
-        const discountText = data.discount != null ? `${data.discount}%` : '0%';
-        const descriptionText = data.descriptionendow ? data.descriptionendow : 'Không có mô tả';
-
-        html += `
-        <tr data-endowid="${data.endowid}" data-servicegroupid="${data.serviceGroupid}">
-            <td>${data.groupName}</td>
-            <td>${durationText}</td>
-            <td>${discountText}</td>
-            <td>${descriptionText}</td>
-            <td class="text-center">
-                <i class="fa-solid fa-pencil-alt text-info edit-btn-endow" style="cursor:pointer;" title="Chỉnh sửa ưu đãi"></i>
-            </td>
-        </tr>
-    `;
-
-
-        html += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        return html;
-    }
-
-    //thao tác với modal insert 
+    //thao tác với modal insert
     document.getElementById('addServiceType').addEventListener('click', function () {
         const container = document.getElementById('serviceTypeList');
 
         const div = document.createElement('div');
-        div.className = 'input-group mb-2';
+        div.className = 'service-item mb-3'; // div cha chứa cả input và textarea
 
         div.innerHTML = `
-                <input type="text" class="form-control service-type-input" name="serviceTypeNames[]" placeholder="Nhập tên dịch vụ">
-                <button type="button" class="btn btn-outline-danger removeServiceType">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control service-type-input" name="serviceTypeNames[]" placeholder="Nhập tên dịch vụ">
+                    <button type="button" class="btn btn-outline-danger removeServiceType">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+                <div class="form-group d-flex align-items-center w-100">
+                    <label class="w-25">Mô tả yêu cầu: <span style="color: red;">*</span></label>
+                    <textarea class="form-control w-75" name="serviceTypeDescriptions[]" style="height: 150px; resize: vertical; overflow-y: auto;"></textarea>
+                </div>
             `;
 
         container.appendChild(div);
     });
 
+    // Xóa loại dịch vụ
     document.getElementById('serviceTypeList').addEventListener('click', function (e) {
-        if (e.target.closest('.removeServiceType')) {
-            e.target.closest('.input-group').remove();
+        const removeBtn = e.target.closest('.removeServiceType');
+        if (removeBtn) {
+            const serviceItem = removeBtn.closest('.service-item');
+            if (serviceItem) serviceItem.remove();
         }
     });
-    
+
+    // document.addEventListener("click", function (e) {
+    //     if (e.target.closest(".removeServiceType")) {
+    //         e.target.closest(".input-group").remove();
+    //     }
+    // });
+
     document.getElementById("addServiceBtn").addEventListener("click", function (e) {
         e.preventDefault(); // Ngăn form submit lại trang
 
         const myModal = new bootstrap.Modal(document.getElementById('regulationModal'));
         myModal.show();
-    });
-    
-    document.addEventListener("click", function (e) {
-        if (e.target.closest(".removeServiceType")) {
-            e.target.closest(".input-group").remove();
-        }
     });
 
     // thêm nhóm dịch vụ mới
@@ -834,12 +794,18 @@
 
         // Lấy các input dịch vụ
         const serviceTypeInputs = document.querySelectorAll(".service-type-input");
+        const descriptionInputs = document.querySelectorAll("textarea[name='serviceTypeDescriptions[]']");
 
         const serviceTypeObjects = [];
-        serviceTypeInputs.forEach(input => {
-            const value = input.value.trim();
-            if (value !== "") {
-                serviceTypeObjects.push({ serviceTypeNames: value }); // phải đúng theo DTO
+        serviceTypeInputs.forEach((input, index) => {
+            const nameValue = input.value.trim();
+            const descValue = descriptionInputs[index]?.value.trim(); 
+
+            if (nameValue !== "") {
+                serviceTypeObjects.push({
+                    serviceTypeNames: nameValue,
+                    descriptionsr: descValue || "" 
+                });
             }
         });
 
@@ -891,7 +857,9 @@
                         document.getElementById("price").value = '';
                         document.getElementById("groupName").value = '';
                         serviceTypeInputs.forEach(input => input.value = '');
-
+                        // Reset mô tả
+                        const descriptionInputs = document.querySelectorAll("textarea[name='serviceTypeDescriptions[]']");
+                        descriptionInputs.forEach(desc => desc.value = '');
                         // Hiển thị Modal Success
                         $('#ModalSuccess').modal('show');
                         document.getElementById("contentModalSuccess").innerHTML = "Thêm dịch vụ thành công";
@@ -923,7 +891,6 @@
 
     }
 
-    
     //click vào update nhóm dịch vụ - bảng chính
     $(document).on("click", ".update-regulations", function () {
         const table = $("#listRegulations").DataTable();
@@ -1065,8 +1032,18 @@
                     <i class="fa-solid fa-save text-success save-btn-regulations" style="cursor:pointer;" title="Lưu dịch vụ"></i>
                 </td>
                 <td></td>
+                `; 
+                // Dòng nhập mô tả
+            const descriptionRow = document.createElement("tr");
+            descriptionRow.classList.add("description-input-row");
+            descriptionRow.innerHTML = `
+                <td colspan="4">
+                    <textarea class="form-control service-description-input" placeholder="Nhập mô tả dịch vụ" rows="3" style="resize: vertical;"></textarea>
+                </td>
             `;
             tableBody.appendChild(newRow);
+            tableBody.appendChild(descriptionRow);
+
         }
     });
 
@@ -1086,22 +1063,32 @@
             let serviceTypes = [];
             let isValid = true;
 
-            rows.forEach(row => {
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
                 const nameInput = row.querySelector(".service-name-input");
+
                 if (nameInput) {
                     const name = nameInput.value.trim();
-                    if (!name) {
-                        showError("Vui lòng nhập đầy đủ tên các dịch vụ.");
+
+                    const nextRow = rows[i + 1]; // Dòng sau là mô tả
+                    const descInput = nextRow?.querySelector(".service-description-input");
+                    const description = descInput ? descInput.value.trim() : "";
+
+                    if (!name || !description) {
+                        showError("Vui lòng nhập đầy đủ tên và mô tả cho dịch vụ.");
                         isValid = false;
-                        return;
+                        break;
                     }
 
                     serviceTypes.push({
-                        Id: 0, // Mặc định 0, vì đây là thêm mới
-                        ServiceTypeNames: name
+                        Id: 0,
+                        ServiceTypeNames: name,
+                        Descriptionsr: description
                     });
+
+                    i++; // Bỏ qua dòng mô tả
                 }
-            });
+            }
 
             if (!isValid || serviceTypes.length === 0) 
             {
@@ -1162,10 +1149,18 @@
         const $td = $tr.find("td:eq(1)");
         const currentName = $td.text().trim();
         const serviceId = $(this).data("id");
+        const $descRow = $tr.next(".descriptionsr");
+        $descRow.slideDown(150); // Mở nếu đang ẩn
 
         // Đổi sang input để chỉnh sửa
         $td.html(`<input type="text" class="form-control form-control-sm service-name-input" value="${currentName}" />`);
 
+        const $descCell = $descRow.find("td");
+        const currentDesc = $descCell.text().replace("Mô tả:", "").trim();
+        $descCell.html(`
+            <strong>Mô tả:</strong>
+            <textarea class="form-control form-control-sm service-desc-input mt-1" rows="2">${currentDesc}</textarea>
+        `);
         // Đổi icon thành nút lưu
         $(this).replaceWith(`
             <i class="fa-solid fa-floppy-disk text-success save-edit-regu"
@@ -1178,7 +1173,8 @@
         const row = $(this).closest("tr");
         const serviceName = row.find(".service-name-input").val().trim();
         const serviceTypeId = $(this).data("id");
-
+        const descRow = row.next(".descriptionsr");
+        const description = descRow.find(".service-desc-input").val().trim();
         if (!serviceName) {
             showError("Vui lòng nhập tên dịch vụ.");
             return;
@@ -1186,7 +1182,10 @@
 
         const container = $(this).closest(".p-2");
         const serviceGroupId = container.attr("data-service-group-id");
-
+        if (!description) {
+            showError("Vui lòng nhập mô tả dịch vụ.");
+            return;
+        }
         if (!serviceGroupId) {
             showError("Không tìm thấy ServiceGroupid.");
 
@@ -1200,7 +1199,9 @@
             ServiceTypes: [
                 {
                     Id: serviceTypeId, 
-                    ServiceTypeNames: serviceName
+                    ServiceTypeNames: serviceName,
+                    Descriptionsr: description
+
                 }
             ]
         };
@@ -1254,7 +1255,8 @@
             ServiceTypes: [
                 {
                     Id: serviceId,  // Đảm bảo sử dụng serviceId ở đây
-                    ServiceTypeNames: serviceName
+                    ServiceTypeNames: serviceName, 
+                    descriptionsr: ""
                 }
             ]
         };
@@ -1307,6 +1309,81 @@
         });
     });
 
+    let currentOpenRowEndow = null;
+
+    // Sự kiện khi nhấp vào cột có class 'dt-control'
+    $('#listEndow').on('click', 'td.dt-control', function (e) {
+        let tr = $(this).closest('tr');
+        let row = $('#listEndow').DataTable().row(tr);
+
+        // Nếu hàng đang mở và khác hàng hiện tại, đóng hàng đó
+        if (currentOpenRowEndow && currentOpenRowEndow !== row.node()) {
+            let oldRow = $('#listEndow').DataTable().row(currentOpenRowEndow);
+            oldRow.child.hide();
+            $(currentOpenRowEndow).removeClass('row-clicked');
+        }
+
+        // Nếu hàng đã mở và là hàng hiện tại, đóng hàng đó
+        if (currentOpenRowEndow === row.node()) {
+            row.child.hide();
+            tr.removeClass('row-clicked');
+            currentOpenRowEndow = null;
+        }
+        else {
+            // Mở hàng mới và đặt hàng mới làm hàng hiện tại
+            row.child(formatEndow(row.data())).show();
+            tr.addClass('row-clicked');
+            currentOpenRowEndow = row.node(); // Dùng row.node() thay vì index
+        }
+
+        // Loại bỏ lớp CSS cho các hàng khác
+        $('#listEndow tbody tr').not(tr).removeClass('row-clicked');
+    });
+
+    function formatEndow(data) {
+        let html = `
+                <div class="p-2">
+                    <strong>Chi tiết ưu đãi:</strong>
+                        <table class="table table-bordered  service-table mt-2">
+                        <thead>
+                            <tr>
+                                <th>Loại dịch vụ</th>
+                                <th>Hạn hợp đồng</th>
+                                <th>Giảm giá (%)</th>
+                                <th>Mô tả</th>
+                                <th>Cập nhật</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+        const durationText = data.duration ? data.duration : 'Không có yêu cầu';
+        const discountText = data.discount != null ? `${data.discount}%` : '0%';
+        const descriptionText = data.descriptionendow ? data.descriptionendow : 'Không có mô tả';
+
+        html += `
+            <tr data-endowid="${data.endowid}" data-servicegroupid="${data.serviceGroupid}">
+                <td>${data.groupName}</td>
+                <td>${durationText}</td>
+                <td>${discountText}</td>
+                <td>${descriptionText}</td>
+                <td class="text-center">
+                    <i class="fa-solid fa-pencil-alt text-info edit-btn-endow" style="cursor:pointer;" title="Chỉnh sửa ưu đãi"></i>
+                </td>
+            </tr>
+        `;
+
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+        return html;
+    }
+
+    
     //list service name và insert 
     $(document).ready(function () {
         $('#addDiscountBtn').click(function (e) {

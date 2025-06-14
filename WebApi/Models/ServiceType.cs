@@ -11,6 +11,8 @@ public partial class ServiceType
 
     public string ServiceTypename { get; set; } = null!;
 
+    public string DescriptionSr { get; set; } = null!;
+
     public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
 
     public virtual ServiceGroup ServiceGroup { get; set; } = null!;

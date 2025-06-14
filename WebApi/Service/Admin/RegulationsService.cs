@@ -15,7 +15,7 @@ namespace WebApi.Service.Admin
             _context = context;
         }
         public async Task<PagingResult<RegulationsDTO>> GetAllRegulations(GetListReq req)
-        {
+            {
             // Lấy danh sách các nhóm dịch vụ cần thiết
             var regulationsWithGroups = await (from r in _context.Regulations
                                                join g in _context.ServiceGroups on r.ServiceGroupid equals g.ServiceGroupid
@@ -42,7 +42,9 @@ namespace WebApi.Service.Admin
                         .Select(st => new ServiceTypeDTO
                         {
                             Id = st.Id,
-                            ServiceTypeNames = st.ServiceTypename
+                            ServiceTypeNames = st.ServiceTypename, 
+                            Descriptionsr = st.DescriptionSr,
+
                         })
                         .ToList()
                 }).ToList();
@@ -154,6 +156,7 @@ namespace WebApi.Service.Admin
                         {
                             ServiceGroupid = newServiceGroupId,
                             ServiceTypename = serviceGroup.ServiceTypeNames,
+                            DescriptionSr = serviceGroup.Descriptionsr,
                         };
                         _context.ServiceTypes.Add(newServiceType);
                     }
@@ -215,7 +218,6 @@ namespace WebApi.Service.Admin
                         return "Mã dịch vụ không tồn tại";
                     }
                     existingRegu.Price = regu.Price;
-                   
                     _context.Regulations.Update(existingRegu);
                     _context.SaveChanges();
 
@@ -267,6 +269,7 @@ namespace WebApi.Service.Admin
 
                             ServiceGroupid = regu.ServiceGroupid,
                             ServiceTypename = serviceGroup.ServiceTypeNames,
+                            DescriptionSr = serviceGroup.Descriptionsr,
                         };
                         _context.ServiceTypes.Add(newServiceType);
                     }
@@ -311,7 +314,9 @@ namespace WebApi.Service.Admin
 
                         // Cập nhật tên dịch vụ
                         existingType.ServiceTypename = serviceTypeDto.ServiceTypeNames;
+                        existingType.DescriptionSr = serviceTypeDto.Descriptionsr;
                         _context.ServiceTypes.Update(existingType);
+
                     }
 
                     _context.SaveChanges();

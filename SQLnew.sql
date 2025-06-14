@@ -68,6 +68,7 @@ CREATE TABLE SERVICE_TYPE (
     ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,  
     SERVICE_GROUPID VARCHAR(10) NOT NULL,
     SERVICE_TYPENAME NVARCHAR(255) NOT NULL,
+	DESCRIPTION_SR NVARCHAR(MAX) NOT NULL,  -- Mô tả chi tiết về loại dịch vụ
     FOREIGN KEY (SERVICE_GROUPID) REFERENCES SERVICE_GROUP(SERVICE_GROUPID)
 );
 
@@ -231,7 +232,7 @@ CREATE TABLE PAYMENT_TRANSACTION (
 );
 
 
--- tạo bảng ưu đãi
+-- tạo bảng giá dịch vụ 
 CREATE TABLE REGULATIONS
 (
 	ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL, 
@@ -323,25 +324,25 @@ INSERT INTO SERVICE_GROUP (SERVICE_GROUPID, GROUP_NAME) VALUES
 ('SER0004', N'Hợp đồng & Đối tác');
 
 -- Thêm loại dịch vụ
-INSERT INTO SERVICE_TYPE (SERVICE_GROUPID, SERVICE_TYPEName) VALUES 
-('SER0001', N'Đầu số thoại'),
-('SER0001', N'Kênh truyền'),
-('SER0001', N'Tổng đài'),
-('SER0001', N'Hội nghị truyền hình'),
-('SER0001', N'Tin nhắn'),
-('SER0001', N'Dịch vụ truyền hình'),
-('SER0002', N'Cloud partner'),
-('SER0002', N'Điện toán đám mây'),
-('SER0002', N'Dịch vụ điện tử'),
-('SER0002', N'Dịch vụ phần mềm (SaaS)'),
-('SER0003', N'An toàn thông tin'),
-('SER0003', N'Giám sát'),
-('SER0003', N'Trung tâm dữ liệu'),
-('SER0003', N'Thiết bị'),
-('SER0003', N'Hỗ trợ CNTT'),
-('SER0004', N'Hợp đồng tích hợp/dự án'),
-('SER0004', N'Hợp đồng hợp tác'),
-('SER0004', N'Đối tác');
+INSERT INTO SERVICE_TYPE (SERVICE_GROUPID, SERVICE_TYPEName,DESCRIPTION_SR) VALUES 
+('SER0001', N'Đầu số thoại', N'Cung cấp đầu số điện thoại cố định hoặc di động cho doanh nghiệp. Hỗ trợ đăng ký, chuyển đổi, và duy trì hoạt động đầu số phục vụ tổng đài hoặc hệ thống liên lạc nội bộ.'),
+('SER0001', N'Kênh truyền', N'Cung cấp kênh truyền dữ liệu chuyên biệt (leased line, MPLS, VPN...). Đảm bảo kết nối ổn định, bảo mật cao giữa các chi nhánh/doanh nghiệp.'),
+('SER0001', N'Tổng đài', N'Triển khai hệ thống tổng đài nội bộ (IPPBX, VoIP) hỗ trợ gọi nội bộ, gọi ra ngoài, ghi âm cuộc gọi, định tuyến thông minh. Hỗ trợ vận hành, bảo trì và xử lý sự cố.'),
+('SER0001', N'Hội nghị truyền hình', N'Cung cấp nền tảng và thiết bị hội nghị trực tuyến chất lượng cao, hỗ trợ kết nối đa điểm, chia sẻ màn hình và ghi hình cuộc họp.'),
+('SER0001', N'Tin nhắn', N'Dịch vụ gửi tin nhắn SMS/Brandname phục vụ truyền thông, chăm sóc khách hàng, OTP. Có báo cáo thống kê và hỗ trợ API tích hợp.'),
+('SER0001', N'Dịch vụ truyền hình', N'Triển khai hệ thống truyền hình IPTV hoặc truyền hình doanh nghiệp, hỗ trợ truyền phát nội dung tùy chỉnh theo nhu cầu khách hàng.'),
+('SER0002', N'Cloud partner', N'Tư vấn, triển khai và đồng hành cùng khách hàng trong quá trình sử dụng dịch vụ từ các nhà cung cấp Cloud lớn (AWS, Azure, GCP...).'),
+('SER0002', N'Điện toán đám mây', N'Cung cấp dịch vụ hạ tầng ảo hóa (IaaS), lưu trữ, máy chủ ảo trên nền tảng cloud. Đảm bảo tính sẵn sàng cao, bảo mật và linh hoạt trong mở rộng.'),
+('SER0002', N'Dịch vụ điện tử', N'Triển khai và hỗ trợ các nền tảng giao dịch điện tử như ký số, hóa đơn điện tử, cổng thanh toán, chứng thực số,...'),
+('SER0002', N'Dịch vụ phần mềm (SaaS)', N'Cung cấp các phần mềm dạng dịch vụ (CRM, ERP, quản lý nhân sự, ticket support...) qua nền tảng web, không cần cài đặt, hỗ trợ vận hành và bảo trì.'),
+('SER0003', N'An toàn thông tin', N'Cung cấp giải pháp bảo mật mạng, bảo vệ dữ liệu, giám sát tấn công, quản lý rủi ro an ninh. Có đội ngũ SOC hỗ trợ 24/7.'),
+('SER0003', N'Giám sát', N'Giải pháp giám sát hệ thống CNTT: hiệu năng hệ thống, ứng dụng, mạng; cảnh báo sự cố sớm để giảm thiểu gián đoạn.'),
+('SER0003', N'Trung tâm dữ liệu', N'Dịch vụ đặt máy chủ (Colocation), thuê chỗ (hosting), và các giải pháp lưu trữ tại Data Center đạt chuẩn Tier III trở lên.'),
+('SER0003', N'Thiết bị', N'Cung cấp, lắp đặt và cấu hình thiết bị mạng, máy chủ, thiết bị bảo mật (firewall, switch, router...) kèm dịch vụ bảo trì.'),
+('SER0003', N'Hỗ trợ CNTT', N'Dịch vụ Helpdesk/IT outsourcing hỗ trợ người dùng cuối, khắc phục sự cố, bảo trì định kỳ, tư vấn tối ưu hệ thống CNTT doanh nghiệp.'),
+('SER0004', N'Hợp đồng tích hợp/dự án', N'Cung cấp giải pháp tổng thể theo yêu cầu doanh nghiệp: từ tư vấn, thiết kế, triển khai, đến bảo trì hệ thống CNTT/viễn thông.'),
+('SER0004', N'Hợp đồng hợp tác', N'Các hợp đồng hợp tác chiến lược giữa hai bên để cùng khai thác dịch vụ, chia sẻ lợi ích, thúc đẩy chuyển đổi số hoặc phát triển hạ tầng.'),
+('SER0004', N'Đối tác', N'Thiết lập và duy trì mối quan hệ với các đối tác chiến lược nhằm mở rộng thị trường, nâng cao năng lực cung cấp dịch vụ và tạo ra giá trị cộng hưởng. Hỗ trợ tư vấn mô hình hợp tác, chia sẻ hạ tầng, công nghệ và khai thác dịch vụ chung.');
 
 insert into REGULATIONS (SERVICE_GROUPID,PRICE) values ('SER0001','1000000')
 insert into REGULATIONS (SERVICE_GROUPID,PRICE) values ('SER0002','1500000')
@@ -482,3 +483,4 @@ select * from SERVICE_TYPE
 select * from LOGINclient
 select * from RESETPASSWORD
 select * from endow
+select * from REGULATIONS
