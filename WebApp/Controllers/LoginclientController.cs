@@ -7,19 +7,21 @@ using System.Text.Json;
 using System.Text;
 using WebApp.DTO;
 using WebApp.Models;
+using WebApp.Configs;
+using Microsoft.Extensions.Options;
 
 namespace WebApp.Controllers
 {
     public class LoginclientController : Controller
     {
 
-        Uri baseAddress = new Uri("https://localhost:7190/api/client");
+        private readonly ApiConfigs _apiConfigs;
         private readonly HttpClient _client;
 
-        public LoginclientController()
+        public LoginclientController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
 
         }
 
@@ -53,7 +55,7 @@ namespace WebApp.Controllers
             {
                 var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
                 // Gửi request đến API backend
-                HttpResponseMessage response = _client.PostAsync(_client.BaseAddress + "/Login/Login", jsonContent).Result;
+                HttpResponseMessage response = _client.PostAsync(_apiConfigs.BaseApiUrl + "/client/Login/Login", jsonContent).Result;
 
                 string dataJson = await response.Content.ReadAsStringAsync();
 
@@ -114,7 +116,7 @@ namespace WebApp.Controllers
             }
 
             var requestData = new { phoneNumber = request.phoneNumber, userEmail = request.userEmail };
-            HttpResponseMessage response = await _client.PostAsJsonAsync(_client.BaseAddress + "/Login/SendEmail_OTP", requestData);
+            HttpResponseMessage response = await _client.PostAsJsonAsync(_apiConfigs.BaseApiUrl + "/client/Login/SendEmail_OTP", requestData);
 
             if (response.IsSuccessStatusCode)
             {
@@ -130,7 +132,7 @@ namespace WebApp.Controllers
         [HttpGet]
         public IActionResult CheckEmailRegister(string phoneNumber, string otp)
         {
-            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Login/CheckEmail_Register/{phoneNumber}/{otp}").Result;
+            HttpResponseMessage response = _client.GetAsync(_apiConfigs.BaseApiUrl + $"/client/Login/CheckEmail_Register/{phoneNumber}/{otp}").Result;
 
             if (response.IsSuccessStatusCode)
             {
@@ -164,7 +166,7 @@ namespace WebApp.Controllers
             {
                 var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Login/UpdatePassword", jsonContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/client/Login/UpdatePassword", jsonContent);
 
                 var responseData = await response.Content.ReadAsStringAsync();
 

@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
+using WebApp.Configs;
 using WebApp.DTO;
 
 namespace WebApp.Areas.Admin.Controllers
@@ -14,13 +16,13 @@ namespace WebApp.Areas.Admin.Controllers
 
     public class RequestController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
         private readonly HttpClient _client;
+        private readonly ApiConfigs _apiConfigs;
 
-        public RequestController()
+        public RequestController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
         }
         [AuthorizeToken]
         [Route("")]
@@ -53,7 +55,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var reqjson = JsonConvert.SerializeObject(req);
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Request/GetAllRequest", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/Request/GetAllRequest", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -80,7 +82,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 List<CompanyAccountDTO> listRequest = new List<CompanyAccountDTO>();
 
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Request/GetAllInfor?req={customerID}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/Request/GetAllInfor?req={customerID}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -129,7 +131,7 @@ namespace WebApp.Areas.Admin.Controllers
                 // Gửi request với token
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _client.PostAsync(_client.BaseAddress + $"/Request/Insert?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/Request/Insert?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -162,7 +164,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 List<Requirement_Company> listRequest = new List<Requirement_Company>();
 
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Request/GetRequestByID?req={requestID}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/Request/GetRequestByID?req={requestID}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -191,7 +193,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var reqjson = JsonConvert.SerializeObject(historyReq);
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PutAsync(_client.BaseAddress + "/Request/UpdateStatus", httpContent);
+                HttpResponseMessage response = await _client.PutAsync(_apiConfigs.BaseApiUrl + "/admin/Request/UpdateStatus", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -246,7 +248,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 List<HistoryRequests> listRequest = new List<HistoryRequests>();
 
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Request/getHIS?req={requestID}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/Request/getHIS?req={requestID}");
 
                 if (response.IsSuccessStatusCode)
                 {

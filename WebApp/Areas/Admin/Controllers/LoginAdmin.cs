@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Authorization;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using static WebApp.Controllers.LoginclientController;
+using WebApp.Configs;
+using Microsoft.Extensions.Options;
 
 
 namespace WebApp.Areas.Admin.Controllers
@@ -23,13 +25,13 @@ namespace WebApp.Areas.Admin.Controllers
 
     public class LoginAdmin : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
         private readonly HttpClient _client;
+        private readonly ApiConfigs _apiConfigs;
 
-        public LoginAdmin()
+        public LoginAdmin(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
 
         }
 
@@ -70,7 +72,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 var jsonContent = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Home/Login", jsonContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/Home/Login", jsonContent);
                 string dataJson = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
@@ -146,7 +148,7 @@ namespace WebApp.Areas.Admin.Controllers
             }
 
             var requestData = new { phoneNumber = request.phoneNumber, userEmail = request.userEmail };
-            HttpResponseMessage response = await _client.PostAsJsonAsync(_client.BaseAddress + "/Home/SendEmail_OTP", requestData);
+            HttpResponseMessage response = await _client.PostAsJsonAsync(_apiConfigs.BaseApiUrl + "/admin/Home/SendEmail_OTP", requestData);
 
             if (response.IsSuccessStatusCode)
             {
@@ -163,7 +165,7 @@ namespace WebApp.Areas.Admin.Controllers
         [Route("CheckEmailRegister")]
         public IActionResult CheckEmailRegister(string phoneNumber, string otp)
         {
-            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Home/CheckEmail_Register/{phoneNumber}/{otp}").Result;
+            HttpResponseMessage response = _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/Home/CheckEmail_Register/{phoneNumber}/{otp}").Result;
 
             if (response.IsSuccessStatusCode)
             {
@@ -197,7 +199,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Home/UpdatePassword", jsonContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/Home/UpdatePassword", jsonContent);
 
                 var responseData = await response.Content.ReadAsStringAsync();
 

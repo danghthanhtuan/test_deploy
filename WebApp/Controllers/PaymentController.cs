@@ -1,9 +1,11 @@
 ﻿// PaymentController.cs
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Net.Http;
+using WebApp.Configs;
 using WebApp.DTO;
 using WebApp.Helpers; // Đảm bảo bạn có VnPayLibrary ở đây
 
@@ -13,9 +15,12 @@ namespace WebApp.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ApiConfigs _apiConfigs;
 
-        public PaymentController(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+        public PaymentController(IConfiguration configuration, IHttpClientFactory httpClientFactory, IOptions<ApiConfigs> apiConfigs)
         {
+            _apiConfigs = apiConfigs.Value;
+
             _configuration = configuration;
             _httpClientFactory = httpClientFactory;
         }
@@ -24,7 +29,9 @@ namespace WebApp.Controllers
         {
             using (var client = new HttpClient())
             {
-                var apiUrl = $"https://localhost:7190/api/admin/SeeContract_Sign/CheckStatus?fileName={fileName}&email={email}";
+                var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/SeeContract_Sign/CheckStatus?fileName={fileName}&email={email}";
+
+               
 
                 try
                 {
@@ -58,7 +65,7 @@ namespace WebApp.Controllers
                     }
                     else if (hopDong.status == 4)
                     {
-                        var apiUrl2 = $"https://localhost:7190/api/admin/Payment/GetByContractNumber?contractNumber={hopDong.contractnumber}";
+                        var apiUrl2 = $"{_apiConfigs.BaseApiUrl}/admin/Payment/GetByContractNumber?contractNumber={hopDong.contractnumber}";
 
                         var response2 = await client.GetAsync(apiUrl2);
                         var jsonString2 = await response2.Content.ReadAsStringAsync();
@@ -83,7 +90,9 @@ namespace WebApp.Controllers
         {
             // 🧾 Bước 1: Gọi API tạo bản ghi Payment
             var client = _httpClientFactory.CreateClient();
-            var response = await client.PostAsJsonAsync("https://localhost:7190/api/admin/payment/CreatePayment", new
+            var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/payment/CreatePayment";
+
+            var response = await client.PostAsJsonAsync(apiUrl, new
             {
                 SoTien = soTien,
                 MaHopDong = mahopdong,
@@ -273,8 +282,12 @@ namespace WebApp.Controllers
                         TinhTrang = status,
                         Email = email
                     };
+                   
+                    var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/payment/CapNhatThanhToan";
 
-                    var responseApi = await httpClient.PostAsJsonAsync("https://localhost:7190/api/admin/payment/CapNhatThanhToan", requestBody);
+
+
+                    var responseApi = await httpClient.PostAsJsonAsync(apiUrl, requestBody);
 
                     if (responseApi.IsSuccessStatusCode)
                     {

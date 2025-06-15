@@ -1,4 +1,5 @@
-﻿
+﻿@inject WebApp.Configs.ApiConfigs ApiConfigs
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -324,11 +325,18 @@
                 $(this).bootstrapSwitch('state', $(this).prop('checked'));
             })
 
+            const baseSiteUrl = "@ApiConfigs.BaseSiteUrl";
             const connection = new signalR.HubConnectionBuilder()
-                .withUrl("https://localhost:7190/notificationHub", {
-                    withCredentials: true // nếu server yêu cầu
+                .withUrl(`${baseSiteUrl}/notificationHub`, {
+                    withCredentials: true
                 })
                 .build();
+
+            // const connection = new signalR.HubConnectionBuilder()
+            //     .withUrl("https://localhost:7190/notificationHub", {
+            //         withCredentials: true // nếu server yêu cầu
+            //     })
+            //     .build();
 
             connection.on("UserGuest", function (userName) {
                 var data = {

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
+using WebApp.Configs;
 using WebApp.DTO;
 
 namespace WebApp.Areas.Admin.Controllers
@@ -12,14 +14,15 @@ namespace WebApp.Areas.Admin.Controllers
     [Authorize(AuthenticationSchemes = "AdminCookie")]
     public class TransactionController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
+        private readonly ApiConfigs _apiConfigs;
+
         private readonly HttpClient _client;
 
-        public TransactionController()
+        public TransactionController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
             _client.Timeout = TimeSpan.FromMinutes(5); // Thêm dòng này
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
         }
 
         [AuthorizeToken]
@@ -52,7 +55,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/transaction/GetAllCompany", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/transaction/GetAllCompany", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {

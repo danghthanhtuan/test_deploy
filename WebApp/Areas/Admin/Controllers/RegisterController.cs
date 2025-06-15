@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using WebApp.Configs;
 using WebApp.DTO;
 
 namespace WebApp.Areas.Admin.Controllers
@@ -12,13 +14,13 @@ namespace WebApp.Areas.Admin.Controllers
 
     public class RegisterController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
         private readonly HttpClient _client;
+        private readonly ApiConfigs _apiConfigs;
 
-        public RegisterController()
+        public RegisterController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
 
         }
         [Route("")]
@@ -41,7 +43,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
 
                 // Gửi request đến API backend với đường dẫn đúng
-                HttpResponseMessage response = _client.PostAsync(_client.BaseAddress + "/Register/Register", jsonContent).Result;
+                HttpResponseMessage response = _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/Register/Register", jsonContent).Result;
 
                 if (response.IsSuccessStatusCode)
                 {

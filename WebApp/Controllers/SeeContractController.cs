@@ -14,26 +14,29 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static WebApp.Areas.Admin.Controllers.AccountController;
 using System.Text.Json;
+using WebApp.Configs;
+using Microsoft.Extensions.Options;
 
 namespace WebApp.Areas.Controllers
 {
     public class SeeContractController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
         private readonly HttpClient _client;
+        private readonly ApiConfigs _apiConfigs;
+
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public SeeContractController(IHttpClientFactory httpClientFactory)
+        public SeeContractController(IHttpClientFactory httpClientFactory, IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
             _httpClientFactory = httpClientFactory;
         }
         public async Task<IActionResult> Index(string fileName, string email)
         {
             using (var client = new HttpClient())
             {
-                var apiUrl = $"https://localhost:7190/api/admin/SeeContract_Sign/CheckStatus?fileName={fileName}&email={email}";
+                var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/SeeContract_Sign/CheckStatus?fileName={fileName}&email={email}";
 
                 try
                 {
@@ -90,7 +93,8 @@ namespace WebApp.Areas.Controllers
 
             using (var client = new HttpClient())
             {
-                var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/SignPdfWithPfx";
+                var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/SeeContract_Sign/SignPdfWithPfx";
+
                 var formData = new MultipartFormDataContent();
 
                 // Copy stream thành mảng byte
@@ -157,7 +161,8 @@ namespace WebApp.Areas.Controllers
             {
                 using (var client = new HttpClient())
                 {
-                    var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/SaveSignedPdf";
+                    var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/SeeContract_Sign/SaveSignedPdf";
+
                     var formData = new MultipartFormDataContent();
 
                     using var ms = new MemoryStream();
@@ -200,7 +205,8 @@ namespace WebApp.Areas.Controllers
 
             using (var client = new HttpClient())
             {
-                var apiUrl = "https://localhost:7190/api/admin/SeeContract_Sign/SignPdfWithHand";
+                var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/SeeContract_Sign/SignPdfWithHand";
+
 
                 // Tách chuỗi base64 ra(loại bỏ tiền tố data: image / png; base64,)
                 var base64Data = Regex.Replace(base64Hand, @"^data:image\/[a-zA-Z]+;base64,", string.Empty);

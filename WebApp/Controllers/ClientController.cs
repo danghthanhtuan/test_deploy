@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
+using WebApp.Configs;
 using WebApp.DTO;
 using WebApp.Models;
 
@@ -13,13 +15,14 @@ namespace WebApp.Controllers
     [Authorize(AuthenticationSchemes = "User")]
     public class ClientController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/client");
         private readonly HttpClient _client;
+        private readonly ApiConfigs _apiConfigs;
 
-        public ClientController()
+
+        public ClientController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
         }
 
         public IActionResult Index()
@@ -63,7 +66,7 @@ namespace WebApp.Controllers
             {
                 List<CompanyAccountDTO> listRequest = new List<CompanyAccountDTO>();
 
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Requirements/GetAllInfor?req={customerID}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/client/Requirements/GetAllInfor?req={customerID}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -99,7 +102,7 @@ namespace WebApp.Controllers
                 // Chuẩn bị request body
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(Req), Encoding.UTF8, "application/json");
 
-                var response = await _client.PostAsync(_client.BaseAddress + "/Requirements/Insert", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/client/Requirements/Insert", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -130,7 +133,7 @@ namespace WebApp.Controllers
             try
             {
                 List<Requirement_Company> listHis = new List<Requirement_Company>();
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Requirements/GetdetailRequest?query={query}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/client/Requirements/GetdetailRequest?query={query}");
                 if (response.IsSuccessStatusCode)
                 {
                     var reponseData = await response.Content.ReadAsStringAsync();
@@ -160,7 +163,7 @@ namespace WebApp.Controllers
 
                 var reqjson = JsonConvert.SerializeObject(req);
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Requirements/GetAllRequest", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/client/Requirements/GetAllRequest", httpContent);
                 if (response.IsSuccessStatusCode)
                 {
                     var responseData = await response.Content.ReadAsStringAsync();

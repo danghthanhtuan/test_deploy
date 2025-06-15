@@ -3,6 +3,7 @@ using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,6 +13,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using WebApp.Configs;
 using WebApp.DTO;
 using WebApp.Models;
 using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
@@ -24,14 +26,17 @@ namespace WebApp.Areas.Admin.Controllers
     [Authorize(AuthenticationSchemes = "AdminCookie")]
     public class AccountController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
+        private readonly ApiConfigs _apiConfigs;
+
         private readonly HttpClient _client;
 
-        public AccountController()
+        public AccountController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
+            _apiConfigs = apiConfigs.Value;
+
             _client.Timeout = TimeSpan.FromMinutes(5); // Thêm dòng này
-            _client.BaseAddress = baseAddress;
+            //_client.BaseAddress = baseAddress;
         }
 
         [AuthorizeToken]
@@ -78,7 +83,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/account/GetAllCompany", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/account/GetAllCompany", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -114,7 +119,7 @@ namespace WebApp.Areas.Admin.Controllers
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Gửi request đến API backend với đường dẫn đúng
-                HttpResponseMessage response = await _client.PutAsync(_client.BaseAddress + "/account/UpdateStatus", httpContent);
+                HttpResponseMessage response = await _client.PutAsync(_apiConfigs.BaseApiUrl + "/admin/account/UpdateStatus", httpContent);
                 if (response.IsSuccessStatusCode)
                 {
                     var responseData = response.Content.ReadAsStringAsync();
@@ -157,7 +162,7 @@ namespace WebApp.Areas.Admin.Controllers
                 // Gửi request với token
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _client.PostAsync(_client.BaseAddress + $"/account/Update?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/account/Update?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
 
@@ -188,7 +193,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var reqJson = JsonConvert.SerializeObject(request);
                 var jsonContent = new StringContent(reqJson, Encoding.UTF8, "application/json");
 
-                var response = await _client.PostAsync(_client.BaseAddress + "/account/ExportToCsv", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/account/ExportToCsv", jsonContent);
                 if (!response.IsSuccessStatusCode)
                 {
                     return BadRequest(new { success = false, message = "Xuất file thất bại!" });
@@ -213,7 +218,7 @@ namespace WebApp.Areas.Admin.Controllers
                 List<ServiceTypeDTO2> listRegu = new List<ServiceTypeDTO2>();
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + "/account/GetListServiceID");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + "/admin/account/GetListServiceID");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -258,7 +263,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _client.PostAsync(_client.BaseAddress + $"/account/GenerateContract?id={id}", content);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/account/GenerateContract?id={id}", content);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
                 string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
@@ -294,7 +299,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/account/GetListPending", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/account/GetListPending", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -368,7 +373,7 @@ namespace WebApp.Areas.Admin.Controllers
                     return Unauthorized(new { success = false, message = "Thiếu token." });
                 var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/account/SendEmailtoclient", content);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/account/SendEmailtoclient", content);
 
                // var response = await _client.PostAsync(_client.BaseAddress + "/account/SendEmailtoclient", content);
                 var result = await response.Content.ReadAsStringAsync();
@@ -402,7 +407,7 @@ namespace WebApp.Areas.Admin.Controllers
                     return Unauthorized(new { success = false, message = "Thiếu token." });
                 var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/account/BrowseSignofClient", content);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/account/BrowseSignofClient", content);
 
                 var result = await response.Content.ReadAsStringAsync();
 
@@ -447,7 +452,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + "/account/Insert", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/account/Insert", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -492,7 +497,9 @@ namespace WebApp.Areas.Admin.Controllers
             using (var client = new HttpClient())
             {
 
-                var apiUrl = "https://localhost:7190/api/admin/Account/SignPdfWithPfx";
+                var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/Account/SignPdfWithPfx";
+
+
                 var formData = new MultipartFormDataContent();
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 // Copy stream thành mảng byte
@@ -567,7 +574,8 @@ namespace WebApp.Areas.Admin.Controllers
             {
 
                 using var client = new HttpClient();
-                var apiUrl = "https://localhost:7190/api/admin/account/SaveSignedPdf";
+                var apiUrl = $"{_apiConfigs.BaseApiUrl}/admin/Account/SaveSignedPdf";
+
                 var formData = new MultipartFormDataContent();
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 

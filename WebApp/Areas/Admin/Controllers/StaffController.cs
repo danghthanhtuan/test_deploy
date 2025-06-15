@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using WebApp.Configs;
 using WebApp.DTO;
 using WebApp.Models;
 
@@ -14,12 +17,13 @@ namespace WebApp.Areas.Admin.Controllers
     [Authorize(AuthenticationSchemes = "AdminCookie")]
     public class StaffController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
+        private readonly ApiConfigs _apiConfigs;
+
         private readonly HttpClient _client;
-        public StaffController()
+        public StaffController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
         }
 
         [AuthorizeToken]
@@ -41,7 +45,7 @@ namespace WebApp.Areas.Admin.Controllers
         {
             try
             {
-                HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Staff/GetAllNhanVien").Result;
+                HttpResponseMessage response = _client.GetAsync(_apiConfigs.BaseApiUrl + "/admin/Staff/GetAllNhanVien").Result;
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -74,7 +78,7 @@ namespace WebApp.Areas.Admin.Controllers
         {
             try
             {
-                HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Staff/GetById/{id}").Result;
+                HttpResponseMessage response = _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/Staff/GetById/{id}").Result;
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -122,7 +126,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + "/staff/ThemNhanVien", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/staff/ThemNhanVien", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -166,7 +170,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + "/staff/UpdateThongTinNhanVien", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/staff/UpdateThongTinNhanVien", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);

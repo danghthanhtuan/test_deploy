@@ -1,19 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
+using WebApp.Configs;
 using WebApp.DTO;
 
 namespace WebApp.Controllers
 {
     public class CRegisterController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/client");
         private readonly HttpClient _client;
+        private readonly ApiConfigs _apiConfigs;
 
-        public CRegisterController()
+        public CRegisterController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
         }
         public IActionResult Index()
         {
@@ -32,7 +34,7 @@ namespace WebApp.Controllers
                 var jsonContent = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
 
                 // Gửi request đến API backend với đường dẫn đúng
-                HttpResponseMessage response = _client.PostAsync(_client.BaseAddress + "/CRegister/Register", jsonContent).Result;
+                HttpResponseMessage response = _client.PostAsync(_apiConfigs.BaseApiUrl + "/client/CRegister/Register", jsonContent).Result;
 
                 if (response.IsSuccessStatusCode)
                 {

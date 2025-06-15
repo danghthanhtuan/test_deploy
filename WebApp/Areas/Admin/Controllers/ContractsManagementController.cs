@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
+using WebApp.Configs;
 using WebApp.DTO;
 using WebApp.Models;
 
@@ -14,13 +16,15 @@ namespace WebApp.Areas.Admin.Controllers
     [Authorize(AuthenticationSchemes = "AdminCookie")]
     public class ContractsManagementController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
+        private readonly ApiConfigs _apiConfigs;
+
         private readonly HttpClient _client;
 
-        public ContractsManagementController()
+        public ContractsManagementController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
+
         }
 
         [AuthorizeToken]
@@ -54,7 +58,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/ContractsManagement/GetAllCompany", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/ContractsManagement/GetAllCompany", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -99,7 +103,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(companyAccountDTO), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/GenerateContract?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/ContractsManagement/GenerateContract?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -146,7 +150,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/InsertExtend?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/ContractsManagement/InsertExtend?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
                 string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
@@ -189,7 +193,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/InsertUpgrade?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/ContractsManagement/InsertUpgrade?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
                 string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
@@ -226,7 +230,7 @@ namespace WebApp.Areas.Admin.Controllers
                 List<Endow> endow = new List<Endow>();
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/ContractsManagement/GetListEndow?id={id}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/ContractsManagement/GetListEndow?id={id}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -257,7 +261,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 List<CompanyAccountDTO> listRequest = new List<CompanyAccountDTO>();
 
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/ContractsManagement/GetAllInfor?req={customerID}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/ContractsManagement/GetAllInfor?req={customerID}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -302,7 +306,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/GenerateContractExtend?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/ContractsManagement/GenerateContractExtend?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -352,7 +356,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/ContractsManagement/GenerateContractUpgrade?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/ContractsManagement/GenerateContractUpgrade?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);

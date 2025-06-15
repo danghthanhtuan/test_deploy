@@ -1,27 +1,31 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
+using WebApp.Configs;
 using WebApp.DTO;
 
 namespace WebApp.Controllers.Introduce
 {
     public class ServiceGuestController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/introduce");
+        
+        private readonly ApiConfigs _apiConfigs;
+
         private readonly HttpClient _client;
-        public ServiceGuestController()
+        public ServiceGuestController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
         }
 
         public async Task<IActionResult> Index()
         {
             try
             {
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/ServiceGuest/GetAll", null);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/introduce/ServiceGuest/GetAll", null);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -53,7 +57,7 @@ namespace WebApp.Controllers.Introduce
                 var reqjson = JsonConvert.SerializeObject(req);
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/ServiceGuest/GetAllRegulations", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/introduce/ServiceGuest/GetAllRegulations", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {

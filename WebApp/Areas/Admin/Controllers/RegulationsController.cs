@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
+using WebApp.Configs;
 using WebApp.DTO;
 using WebApp.Models;
 
@@ -14,12 +16,14 @@ namespace WebApp.Areas.Admin.Controllers
     [Authorize(AuthenticationSchemes = "AdminCookie")]
     public class RegulationsController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
         private readonly HttpClient _client;
-        public RegulationsController()
+        private readonly ApiConfigs _apiConfigs;
+
+        public RegulationsController(IOptions<ApiConfigs> apiConfigs)
         {
+            _apiConfigs = apiConfigs.Value;
+
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
         }
         [AuthorizeToken]
         [Route("")]
@@ -51,7 +55,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Regulations/GetAllRegulations", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/Regulations/GetAllRegulations", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -87,7 +91,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Regulations/GetAllEndow", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/Regulations/GetAllEndow", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -131,7 +135,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(regu), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/regulations/InsertRegulation?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/regulations/InsertRegulation?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -180,7 +184,7 @@ namespace WebApp.Areas.Admin.Controllers
                 // Gửi request với token
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _client.PostAsync(_client.BaseAddress + $"/regulations/Update?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/regulations/Update?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
 
@@ -227,7 +231,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(regu), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/regulations/InsertTypename?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/regulations/InsertTypename?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -276,7 +280,7 @@ namespace WebApp.Areas.Admin.Controllers
                 // Gửi request với token
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _client.PostAsync(_client.BaseAddress + $"/regulations/UpdateTypename?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/regulations/UpdateTypename?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
 
@@ -323,7 +327,7 @@ namespace WebApp.Areas.Admin.Controllers
                 // Gửi request với token
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _client.PostAsync(_client.BaseAddress + $"/regulations/DeleteTypename?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/regulations/DeleteTypename?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
 
@@ -370,7 +374,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(endow), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/regulations/InsertEndow?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/regulations/InsertEndow?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -419,7 +423,7 @@ namespace WebApp.Areas.Admin.Controllers
                 // Gửi request với token
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var response = await _client.PostAsync(_client.BaseAddress + $"/regulations/UpdateEndow?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/regulations/UpdateEndow?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
 
@@ -456,7 +460,7 @@ namespace WebApp.Areas.Admin.Controllers
                 List<ServiceGroup> listRegu = new List<ServiceGroup>();
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + "/Regulations/GetListServiceID");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + "/admin/Regulations/GetListServiceID");
 
                 if (response.IsSuccessStatusCode)
                 {

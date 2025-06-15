@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using WebApp.Configs;
 
 namespace WebApp.Areas.Admin.Controllers
 {
@@ -7,13 +9,14 @@ namespace WebApp.Areas.Admin.Controllers
     [Route("admin/phanquyen")]
     public class PhanquyenController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7028/api/admin");
         private readonly HttpClient _client;
+        private readonly ApiConfigs _apiConfigs;
 
-        public PhanquyenController()
+        public PhanquyenController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = apiConfigs.Value;
+
 
         }
 

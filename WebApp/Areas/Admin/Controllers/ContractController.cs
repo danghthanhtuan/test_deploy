@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
+using WebApp.Configs;
 using WebApp.DTO;
 using WebApp.Models;
 
@@ -14,13 +16,13 @@ namespace WebApp.Areas.Admin.Controllers
     [Authorize(AuthenticationSchemes = "AdminCookie")]
     public class ContractController : Controller
     {
-        Uri baseAddress = new Uri("https://localhost:7190/api/admin");
+        private readonly ApiConfigs _apiConfigs;
         private readonly HttpClient _client;
 
-        public ContractController()
+        public ContractController(IOptions<ApiConfigs> apiConfigs)
         {
             _client = new HttpClient();
-            _client.BaseAddress = baseAddress;
+            _apiConfigs = new ApiConfigs();
         }
 
         
@@ -54,7 +56,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Contract/GetAllCompany", httpContent);
+                HttpResponseMessage response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/admin/Contract/GetAllCompany", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -96,7 +98,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/Contract/InsertExtend?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/Contract/InsertExtend?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
                 string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
@@ -139,7 +141,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(companyAccountDTO), Encoding.UTF8, "application/json");
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/Contract/InsertContract?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/Contract/InsertContract?id={id}", jsonContent);
 
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
@@ -185,7 +187,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(contractDTO), Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await _client.PostAsync(_client.BaseAddress + $"/Contract/InsertUpgrade?id={id}", jsonContent);
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + $"/admin/Contract/InsertUpgrade?id={id}", jsonContent);
                 var result = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
                 string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
@@ -221,7 +223,7 @@ namespace WebApp.Areas.Admin.Controllers
                 List<Endow> endow = new List<Endow>();
 
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Contract/GetListEndow?id={id}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/Contract/GetListEndow?id={id}");
 
                 if(response.IsSuccessStatusCode)
                 {
@@ -250,7 +252,7 @@ namespace WebApp.Areas.Admin.Controllers
             {
                 List<CompanyAccountDTO> listRequest = new List<CompanyAccountDTO>();
 
-                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Contract/GetAllInfor?req={customerID}");
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/Contract/GetAllInfor?req={customerID}");
 
                 if (response.IsSuccessStatusCode)
                 {

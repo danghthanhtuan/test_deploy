@@ -1,11 +1,12 @@
 ﻿@{
     Layout = "~/Views/Shared/_LayoutGuest.cshtml";
 }
-
+@inject WebApp.Configs.ApiConfigs ApiConfigs
 @{
     var fileName = Context.Request.Query["fileName"];
     var email = Context.Request.Query["email"];
-    var apiDomain = "https://localhost:7190"; // Địa chỉ API
+    // var apiDomain = "https://localhost:7190"; // Địa chỉ API
+    var apiDomain = "@ApiConfigs.BaseSiteUrl";
     var pdfUrl = $"{apiDomain}/signed-contracts/{fileName}";
     var contractNumber = Context.Request.Query["contractNumber"];
             <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>

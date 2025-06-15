@@ -12,6 +12,8 @@ builder.Services.AddStackExchangeRedisCache(options =>
 builder.Services.AddHttpClient();
 
 builder.Services.Configure<ApiConfigs>(builder.Configuration.GetSection("ApiConfigs"));
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<IOptions<ApiConfigs>>().Value);
 
 // thêm dịch vụ authentication
 builder.Services.AddAuthentication(option =>

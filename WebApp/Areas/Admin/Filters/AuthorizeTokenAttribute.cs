@@ -1,63 +1,68 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Options;
 using System;
-using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using WebApp.Configs;
 
 public class AuthorizeTokenAttribute : Attribute, IAuthorizationFilter
 {
-    private readonly Uri baseAddress = new Uri("https://localhost:7190/api/admin");
-    private readonly HttpClient _client;
-
-    public AuthorizeTokenAttribute()
-    {
-        _client = new HttpClient();
-        _client.BaseAddress = baseAddress;
-    }
-
     public void OnAuthorization(AuthorizationFilterContext context)
     {
         var httpContext = context.HttpContext;
         var token = httpContext.Request.Cookies["AuthToken"];
 
+        // Lấy cấu hình từ DI container thông qua RequestServices
+        var apiConfigs = httpContext.RequestServices
+            .GetService(typeof(IOptions<ApiConfigs>)) as IOptions<ApiConfigs>;
+
+        if (apiConfigs == null)
+        {
+            context.Result = new ContentResult
+            {
+                Content = "Cấu hình API chưa được khởi tạo.",
+                StatusCode = (int)HttpStatusCode.InternalServerError
+            };
+            return;
+        }
+
+        var baseApiUrl = apiConfigs.Value.BaseApiUrl;
+
         // Nếu không có token và đang truy cập trang Login -> Cho phép đi tiếp
-        if (string.IsNullOrEmpty(token) && httpContext.Request.Path.Value.Contains("/admin/LoginAdmin/Login"))
+        if (string.IsNullOrEmpty(token) && httpContext.Request.Path.Value.Contains("/admin/LoginAdmin/Login", StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
         // Nếu có token nhưng hết hạn -> Xóa token và chuyển hướng đến trang Login
-        if (!string.IsNullOrEmpty(token) && !ValidateToken(token).GetAwaiter().GetResult())
+        if (!string.IsNullOrEmpty(token) && !ValidateToken(token, baseApiUrl).GetAwaiter().GetResult())
         {
             context.HttpContext.Response.Cookies.Delete("AuthToken");
-            context.Result = new RedirectToActionResult("Login", "LoginAdmin", null); // Chuyển hướng về trang login
+            context.Result = new RedirectToActionResult("Login", "LoginAdmin", null);
             return;
         }
 
         // Nếu đã đăng nhập mà vào trang Login, thì chuyển hướng về HomeAdmin
-        if (!string.IsNullOrEmpty(token) && httpContext.Request.Path.Value.Contains("/admin/LoginAdmin/Login"))
+        if (!string.IsNullOrEmpty(token) && httpContext.Request.Path.Value.Contains("/admin/LoginAdmin/Login", StringComparison.OrdinalIgnoreCase))
         {
             context.HttpContext.Response.Redirect("/admin/homeadmin/Index");
             context.Result = new EmptyResult();
         }
     }
 
-    private async Task<bool> ValidateToken(string token)
+    private async Task<bool> ValidateToken(string token, string baseApiUrl)
     {
-        if (_client == null)
-        {
-            throw new Exception("_client chưa được khởi tạo.");
-        }
-
         try
         {
-            _client.DefaultRequestHeaders.Clear();
-            _client.DefaultRequestHeaders.Add("Authorization", token);
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("Authorization", token);
 
-            HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + "/home/ValidateToken/validate-token");
+            var response = await client.GetAsync($"{baseApiUrl}/admin/home/ValidateToken/validate-token");
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized) // Token hết hạn
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 return false;
             }
@@ -69,21 +74,4 @@ public class AuthorizeTokenAttribute : Attribute, IAuthorizationFilter
             return false;
         }
     }
-
-
-    //private async Task<bool> ValidateToken(string token)
-    //{
-    //    _client.DefaultRequestHeaders.Clear();
-    //    _client.DefaultRequestHeaders.Add("Authorization", token);
-    //    HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + "/home/ValidateToken/validate-token");
-    //    string dataJson = await response.Content.ReadAsStringAsync();
-
-    //    if (response.IsSuccessStatusCode)
-    //    {
-    //        return true;
-    //    }
-    //    return false;
-    //}
-
-
 }
