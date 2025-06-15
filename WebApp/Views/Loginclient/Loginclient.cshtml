@@ -324,7 +324,9 @@
 
                     // Hiện modal đăng nhập thành công
                     $('#successModal').modal('show');
-
+                    setTimeout(function () {
+                        $('#successModal').modal('hide'); // đóng modal
+                    }, 2000); // 2000ms = 2 giây
                     // Sau khi đóng modal, chuyển hướng đến trang chính
                     document.getElementById("buttonCloseModal").addEventListener("click", function () {
                         window.location.href = "/home/Index";
@@ -379,6 +381,9 @@
                     $('#forgotPasswordModal').off('hidden.bs.modal').on('hidden.bs.modal', function () {
                         $('#successModal').modal('show');
                     });
+                    setTimeout(function () {
+                        $('#successModal').modal('hide'); // đóng modal
+                    }, 2000); // 2000ms = 2 giây
 
                     // Khi modal `successModal` đóng thì mở modal tiếp theo
                     $('#successModal').off('hidden.bs.modal').on('hidden.bs.modal', function () {

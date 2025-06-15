@@ -10,16 +10,19 @@ using System.Net;
 using WebApi.DTO;
 using WebApi.Models;
 using Microsoft.EntityFrameworkCore;
+using WebApi.Configs;
 
 namespace WebApi.Service.Client
 {
     public class EmailService : IEmailService
     {
+        private readonly ApiConfigs _configa;
+
         private readonly EmailSettings _emailSettings;
         private readonly ManagementDbContext _context;
         private readonly IConfiguration _config;
 
-        public EmailService(IOptions<EmailSettings> emailSettings, ManagementDbContext context, IConfiguration config)
+        public EmailService(IOptions<EmailSettings> emailSettings, ManagementDbContext context, IConfiguration config, IOptions<ApiConfigs> configa)
         {
             _emailSettings = emailSettings.Value;
             _context = context;
@@ -29,6 +32,7 @@ namespace WebApi.Service.Client
             Console.WriteLine($"Host: {_emailSettings.Host}");
             Console.WriteLine($"Port: {_emailSettings.Port}");
             _config = config;
+            _configa = configa.Value;
         }
 
         public async Task SendEmailAsync(MailRequest mailRequest)
@@ -78,7 +82,9 @@ namespace WebApi.Service.Client
                 if (result == null)
                     throw new Exception("Không tìm thấy thông tin hợp đồng hoặc công ty.");
                 // Tạo link ký hợp đồng
-                string razorDomain = _config["App:RazorBaseUrl"] ?? "https://localhost:7176";
+                string razorDomain = _config["ApiConfigs:RazorBaseUrl"] ?? "https://localhost:7176";
+
+
                 string signingLink = $"{razorDomain}/SeeContract/Index?fileName={fileName}&email={result.Account.Rootaccount}";
 
                 var email = new MimeMessage();
@@ -168,7 +174,10 @@ namespace WebApi.Service.Client
                 if (result == null)
                     throw new Exception("Không tìm thấy thông tin hợp đồng hoặc công ty.");
                 // Tạo link ký hợp đồng
-                string razorDomain = _config["App:RazorBaseUrl"] ?? "https://localhost:7176";
+               // string razorDomain = _config["App:RazorBaseUrl"] ?? "https://localhost:7176";
+
+                string razorDomain = _config["ApiConfigs:RazorBaseUrl"] ?? "https://localhost:7176";
+
                 string signingLink = $"{razorDomain}/Payment/Index?fileName={fileName}&email={result.Account.Rootaccount}";
 
                 var email = new MimeMessage();

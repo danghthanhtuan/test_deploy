@@ -11,6 +11,7 @@ using WebApi.Models;
 using WebApi.Service.Admin;
 using WebApi.Service.Client;
 using WebApi.Service.Introduce;
+using WebApi.Configs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.Configure<ApiConfigs>(builder.Configuration.GetSection("ApiConfigs"));
 
 // Đăng ký DbContext
 builder.Services.AddDbContext<ManagementDbContext>(options =>
@@ -29,11 +31,6 @@ builder.Services.AddDbContext<ManagementDbContext>(options =>
 
 // đăng ký AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
-//đăng ký redis để restart cũng không mất mã otp
-//builder.Services.AddStackExchangeRedisCache(options =>
-//{
-//    options.Configuration = "localhost:6379"; // Redis chạy trên localhost
-//    options.InstanceName = "SampleInstance";
 
 //});
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));

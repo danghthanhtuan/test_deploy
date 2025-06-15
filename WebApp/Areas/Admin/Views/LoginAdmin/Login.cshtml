@@ -315,8 +315,13 @@
                 if (result.success && result.accessToken) {
                     localStorage.setItem("accessToken", result.accessToken); // Lưu token vào localStorage
                     $('#successModal').modal('show');
+                    // Đặt timeout để auto đóng modal sau 2 giây và redirect
+                    setTimeout(function () {
+                        $('#successModal').modal('hide'); // đóng modal
+                    }, 2000); // 2000ms = 2 giây
                     $('#successModal').on('hidden.bs.modal', function () {
                         window.location.href = "/admin/homeadmin/Index";
+
                     });
                 } else {
                     document.getElementById("contentModalError").innerHTML =  "Đăng nhập không thành công!";
@@ -373,7 +378,9 @@
                     $('#forgotPasswordModal').on('hidden.bs.modal', function () {
                         $('#successModal').modal('show');
                     });
-
+                    setTimeout(function () {
+                        $('#successModal').modal('hide'); // đóng modal
+                    }, 2000); // 2000ms = 2 giây
                     // Khi successModal đóng thì mới mở sendEmailModal
                     $('#successModal').on('hidden.bs.modal', function () {
                         $('#sendEmailModal').modal('show');
@@ -416,7 +423,9 @@
                     });
 
                     $('#successModal').modal('show');
-
+                    setTimeout(function () {
+                        $('#successModal').modal('hide'); // đóng modal
+                    }, 2000); // 2000ms = 2 giây
                     // Lưu số điện thoại vào sessionStorage
                     sessionStorage.setItem("resetPhoneNumber", phoneNumber);
                 } else {

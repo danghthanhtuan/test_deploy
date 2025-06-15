@@ -8,11 +8,13 @@ using iText.Kernel.Pdf;
 using iText.Signatures;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Pkcs;
 using System.Security.Claims;
 using System.Text;
+using WebApi.Configs;
 using WebApi.Content;
 using WebApi.DTO;
 using WebApi.Helper;
@@ -23,6 +25,8 @@ namespace WebApi.Service.Admin
 {
     public class AccountService
     {
+        private readonly ApiConfigs _config;
+
         private readonly ManagementDbContext _context;
         private readonly IEmailService _emailService;
         //private readonly IConnectionMultiplexer _redis;
@@ -30,13 +34,15 @@ namespace WebApi.Service.Admin
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWebHostEnvironment _env;
 
-        public AccountService(ManagementDbContext context, IEmailService emailService, ILogger<AccountService> logger, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env)
-        {
+        public AccountService(ManagementDbContext context, IEmailService emailService, ILogger<AccountService> logger, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env, IOptions<ApiConfigs> config)
+        {   
             _context = context;
             _emailService = emailService;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _env = env;
+            _config = config.Value;
+
         }
 
         //lấy những công ty đã chính thức isactive = true và hợp đồng đã duyệt
@@ -953,10 +959,12 @@ namespace WebApi.Service.Admin
         {
             // Ví dụ: filePath = "wwwroot/contracts/final/hd123.pdf"
             var fileName = Path.GetFileName(filePath);
-            return $"https://localhost:7190/signed-contracts/{fileName}";
+            //return $"https://localhost:7190/signed-contracts/{fileName}";
+            return $"{_config.ApiBaseUrl}/signed-contracts/{fileName}";
+
 
         }
-        
+
     }
 }
 
