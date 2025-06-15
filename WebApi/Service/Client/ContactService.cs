@@ -16,6 +16,8 @@ namespace WebApi.Service.Client
             _context = context;
             _notificationService = notificationService;
         }
+
+
         public async Task<(bool Success, string Message)> CreateContact(CreateContactDTO model)
         {
             if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Phone) || string.IsNullOrEmpty(model.Name))

@@ -16,6 +16,15 @@
         public string ServiceTypeNames { get; set; } = null!;
         public string Descriptionsr { get; set; } = null!;
     }
+
+    public class ServiceTypeDTO1
+    {
+        public int Id { get; set; }
+        public string ServiceTypeNames { get; set; } = null!;
+        public string Descriptionsr { get; set; } = null!;
+        public string GroupName { get; set; }
+        public decimal Price { get; set; }
+    }
     public class EndowDTO
     {
         public string Endowid { get; set; } 

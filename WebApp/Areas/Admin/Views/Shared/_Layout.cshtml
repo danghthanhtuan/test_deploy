@@ -7,7 +7,7 @@
     <title>ADMIN </title>
 
     <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    @* <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"> *@
 
     <link rel="stylesheet" href="~/Content/Assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
@@ -36,6 +36,64 @@
     <link rel="stylesheet" href="~/Content/Clients/dist/css/adminlte.min.css">
 
 
+    <style>
+        .notification {
+            border: 1px solid #ccc;
+            border-left: 5px solid;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+            .notification.unread {
+                background-color: #f0f8ff;
+                border-left-color: #007bff;
+            }
+
+            .notification.read {
+                background-color: #f8f9fa;
+                border-left-color: #6c757d;
+                color: #6c757d;
+            }
+
+        .notification-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .notification-content {
+            font-size: 13px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: gray;
+            margin-top: 3px;
+        }
+
+        .notification-icon {
+            position: relative;
+            display: inline-block;
+            font-size: 24px;
+        }
+
+        .badge {
+            position: sticky;
+            top: -5px;
+            right: -8px;
+            padding: 3px 6px;
+            border-radius: 50%;
+            background-color: red;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
+    </style>
 
 </head>
 @* <style>
@@ -61,7 +119,7 @@
 <body class="hold-transition sidebar-mini">
     <div class="wrapper">
         <!-- Navbar -->
-        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light" >
             <!-- Left navbar links -->
             <ul class="navbar-nav">
                 <li class="nav-item">
@@ -77,32 +135,35 @@
             </ul>
 
             <!-- Right navbar links -->
+            <!-- Right navbar links -->
             <ul class="navbar-nav ml-auto">
 
-                 @* <!-- Tên nhân viên + Chức vụ -->
+                @* <!-- Tên nhân viên + Chức vụ -->
                 <li class="nav-item">
-                    <a class="nav-link" data-widget="navbar-search" href="#" role="button">
-                        @{
-                            var user = User.Identity.Name;
-                          //  var chucvu = User.FindFirst("chucvu")?.Value;
+                <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+                @{
+                var user = User.Identity.Name;
+                //  var chucvu = User.FindFirst("chucvu")?.Value;
 
-                        }
-                        @user @* | @chucvu 
-                    </a>
-                </li> 
- *@
+                }
+                @user @* | @chucvu
+                </a>
+                </li>
+                *@
                 <!-- Messages Dropdown Menu -->
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
-                        <i class="far fa-comments"></i>
-                        @*<span class="badge badge-danger navbar-badge">3</span>*@
+                        <div class="notification-ico">
+                            <i class="far fa-comments"></i>
+                            <span id="notificationCountUnRead" class="badge"></span>
+                        </div>
+
                     </a>
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                        <span class="dropdown-item dropdown-header">Menu</span>
+                        <span class="dropdown-item dropdown-header">Thông báo</span>
                         <div class="dropdown-divider"></div>
+                        <div id="notificationList"></div>
 
-
-                        <div class="dropdown-divider"></div>
                     </div>
                 </li>
 
@@ -114,7 +175,7 @@
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                         <span class="dropdown-item dropdown-header">Menu</span>
                         <div class="dropdown-divider"></div>
-                        
+
                         <div class="dropdown-divider"></div>
                         <a href="javascript:void(0);" onclick="confirmLogoutAdmin()" class="dropdown-item">
                             <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
@@ -262,6 +323,7 @@
             $("input[data-bootstrap-switch]").each(function () {
                 $(this).bootstrapSwitch('state', $(this).prop('checked'));
             })
+
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("https://localhost:7190/notificationHub", {
                     withCredentials: true // nếu server yêu cầu
@@ -283,6 +345,7 @@
                     success: function (result) {
                         //$('#successModal').modal('show');
 
+                        loadNotifications();
 
                     },
                     error: function (xhr, status, error) {
@@ -306,6 +369,63 @@
             });
 
             start();
+
+            function loadNotifications() {
+                var data = {
+                    page: 1,
+                    pageSize: 10,
+                    isRead: -1,
+                };
+
+                $.ajax({
+                    url: "/Notification/GetListNotification",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function (result) {
+                        const container = document.getElementById("notificationList");
+                        const notificationCountUnReadElement = document.getElementById("notificationCountUnRead");
+                        notificationCountUnReadElement.innerHTML = result.data.countUnRead ?? 0;
+
+                        container.innerHTML = ""; // Xóa cũ nếu có
+
+                        result.data.data.forEach(item => {
+                            const notification = document.createElement("div");
+                            notification.className = `notification ${item.isRead ? 'read' : 'unread'}`;
+                            notification.setAttribute('data-id', item.id);
+
+                            var content = item.content.substring(0, 80) + "...";
+                            notification.innerHTML = `
+                                                    <div class="notification-title">${item.title}</div>
+                                                    <div class="notification-content">${content}</div>
+                                                    <div class="notification-time">${formatDate(item.createdAt)}</div>
+                                                `;
+
+                            notification.addEventListener("click", function () {
+                                markAsRead(notification, item.id);
+                            });
+                            container.appendChild(notification);
+                        });
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("Lỗi khi gửi yêu cầu AJAX:", xhr.responseText);
+                    }
+                });
+            };
+
+            loadNotifications();
+
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng bắt đầu từ 0
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                return `${day}/${month}/${year} ${hours}:${minutes}`;
+            }
         })
         // BS-Stepper Init
         document.addEventListener('DOMContentLoaded', function () {

@@ -484,3 +484,5 @@ select * from LOGINclient
 select * from RESETPASSWORD
 select * from endow
 select * from REGULATIONS
+select * from CONTACT
+select * from NOTIFICATIONS

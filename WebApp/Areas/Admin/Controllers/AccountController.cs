@@ -260,7 +260,8 @@ namespace WebApp.Areas.Admin.Controllers
 
                 var response = await _client.PostAsync(_client.BaseAddress + $"/account/GenerateContract?id={id}", content);
                 var result = await response.Content.ReadAsStringAsync();
-
+                var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
+                string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API";
                 if (response.IsSuccessStatusCode)
                 {
                     // Có thể trả về success + link để frontend xử lý
@@ -268,7 +269,7 @@ namespace WebApp.Areas.Admin.Controllers
                 }
                 else
                 {
-                    return BadRequest(new { success = false, message = result });
+                    return BadRequest(new { success = false, message = errorMessage });
                 }
             }
             catch (Exception ex)

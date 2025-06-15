@@ -13,7 +13,7 @@
         <div class="row no-gutters slider-text align-items-end justify-content-center">
             <div class="col-md-9 ftco-animate pb-5 text-center">
                 <h1 class="mb-3 bread">Contact us</h1>
-                <p class="breadcrumbs"><span class="mr-2"><a href="index.html">Home <i class="fa fa-chevron-right"></i></a></span> <span>Contact us <i class="fa fa-chevron-right"></i></span></p>
+                <p class="breadcrumbs"><span class="mr-2"><a href="/homeguest">Home <i class="fa fa-chevron-right"></i></a></span> <span>Contact us <i class="fa fa-chevron-right"></i></span></p>
             </div>
         </div>
     </div>
@@ -123,22 +123,15 @@
     </div>
 </section>
 @section Modals {
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="successModalLabel">Thành công!</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Tạo thành công.
-            </div>
-            <div class="modal-footer">
-                <button id="buttonCloseModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+    <div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center bg-green">
+                    <span id="contentModalSuccess"></span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 <!-- Modal thông báo -->
 <div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="failModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -225,12 +218,13 @@
                 contentType: "application/json",
                 data: JSON.stringify(data),
                 success: function (result) {
-                    $('#successModal').modal('show');
+                    // Gọi modal thành công (Bootstrap 5)
+                    const modalSuccess = new bootstrap.Modal(document.getElementById('ModalSuccess'));
+                    modalSuccess.show();
                 },
                 error: function (xhr, status, error) {
-                    console.log("Lỗi khi gửi yêu cầu AJAX:", xhr.responseText);
-                    document.getElementById("contentModalError").innerHTML = "Tạo liên hệ không thành công!";
-                    $('#failModal').modal('show');
+                    const modalFail = new bootstrap.Modal(document.getElementById('failModal'));
+                    modalFail.show();
                 }
             });
         }

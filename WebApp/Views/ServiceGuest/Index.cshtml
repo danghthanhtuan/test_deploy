@@ -1,6 +1,28 @@
-﻿@{
+﻿@using Newtonsoft.Json
+@using WebApp.DTO
+@model List<ServiceTypeDTO1>
+@{
     Layout = "~/Views/Shared/_LayoutIntroduce.cshtml";
 }
+<style>
+    #service-container {
+        display: flex !important;
+        flex-wrap: wrap;
+        min-height: 300px;
+    }
+
+    .services .icon {
+        line-height: 1.3;
+        position: relative;
+        text-align: center;
+    }
+
+    .services {
+        background: #2338e4;
+        padding: 20px;
+        position: relative;
+    }
+</style>
 <section class="hero-wrap hero-wrap-2" style="background-image: url('./Content2/images/bg_3.jpg');"
          data-stellar-background-ratio="0.5">
     <div class="overlay"></div>
@@ -10,11 +32,14 @@
                 <h1 class="mb-3 bread">Services</h1>
                 <p class="breadcrumbs">
                     <span class="mr-2">
-                        <a href="index.html">
+                        <a href="/HomeGuest">
                             Home <i class="fa fa-chevron-right"></i>
                         </a>
-                    </span> <span>
-                        Services <i class="fa fa-chevron-right"></i>
+                    </span>
+                    <span>
+                        <a href="/ServiceGuest">
+                            Services <i class="fa fa-chevron-right"></i>
+                        </a>
                     </span>
                 </p>
             </div>
@@ -30,50 +55,25 @@
                 <p>Chúng tôi cung cấp các giải pháp toàn diện từ viễn thông, phần mềm đến an toàn thông tin và hỗ trợ kỹ thuật.</p>
             </div>
         </div>
-        <div class="row d-flex no-gutters">
-            <div class="col-md-3 d-flex align-self-stretch ftco-animate">
-                <div class="media block-6 services d-block">
-                    <div class="line"></div>
-                    <div class="icon"><span class="flaticon-web-programming"></span></div>
-                    <div class="media-body">
-                        <h3 class="heading mb-3">Dịch vụ phần mềm (SaaS)</h3>
-                        <p>Triển khai phần mềm theo yêu cầu, nền tảng SaaS tối ưu quy trình quản lý và vận hành doanh nghiệp.</p>
-                    </div>
-                </div>
+
+        <!-- CHỈ giữ 1 container -->
+        <div id="service-container" >
+            <div class="row d-flex no-gutters">
+
             </div>
-            <div class="col-md-3 d-flex align-self-stretch ftco-animate">
-                <div class="media block-6 services d-block">
-                    <div class="line"></div>
-                    <div class="icon"><span class="flaticon-stats"></span></div>
-                    <div class="media-body">
-                        <h3 class="heading mb-3">Giám sát & Phân tích dữ liệu</h3>
-                        <p>Hệ thống giám sát, phân tích dữ liệu nhằm tối ưu hiệu suất và cảnh báo sự cố kịp thời.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 d-flex align-self-stretch ftco-animate">
-                <div class="media block-6 services d-block">
-                    <div class="line"></div>
-                    <div class="icon"><span class="flaticon-secure"></span></div>
-                    <div class="media-body">
-                        <h3 class="heading mb-3">An toàn & bảo mật hệ thống</h3>
-                        <p>Bảo vệ hạ tầng CNTT khỏi các rủi ro bảo mật, mã độc và các mối đe dọa mạng hiện đại.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 d-flex align-self-stretch ftco-animate">
-                <div class="media block-6 services d-block">
-                    <div class="line"></div>
-                    <div class="icon"><span class="flaticon-presentation"></span></div>
-                    <div class="media-body">
-                        <h3 class="heading mb-3">Tư vấn & thiết kế hệ thống</h3>
-                        <p>Đánh giá nhu cầu và thiết kế giải pháp CNTT tối ưu hóa hoạt động doanh nghiệp.</p>
-                    </div>
-                </div>
-            </div>
+
         </div>
+
+        <div class="row justify-content-center mt-4">
+            <nav>
+                <ul class="pagination" id="pagination"></ul>
+            </nav>
+        </div>
+
+        <p id="pagination-info" class="text-center mt-2 mb-3 text-muted"></p>
     </div>
 </section>
+
 
 <section class="ftco-section ftco-no-pt">
     <div class="container">
@@ -261,9 +261,9 @@
         </div>
     </div>
 </section>
-@section Scripts {
+@section Scripts { 
 
-    <script type="module">
+    <script>
         // Gọi sau khi DOM đã load xong
         $(document).ready(function () {
             fullHeight();
@@ -273,5 +273,83 @@
             counter();
             highlightTabActive();
         });
+        const data = @Html.Raw(JsonConvert.SerializeObject(Model));
+        const itemsPerPage = 12;
+        let currentPage = 1;
+
+        function renderItems(page) {
+            console.log("Tổng số dòng:", data.length);
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const currentItems = data.slice(start, end);
+            const totalItems = data.length;
+            const startRow = start + 1;
+            const endRow = Math.min(end, totalItems);
+            document.getElementById("pagination-info").innerText = `Đang xem ${startRow} - ${endRow} trên tổng ${totalItems} dịch vụ`;
+            console.log("Trang:", page);
+            console.log("Dữ liệu trang:", currentItems);
+            let html = '';
+            currentItems.forEach(item => {
+                html += `
+                            <div class="col-md-3 d-flex align-self-stretch ftco-animate ">
+                                <div class="media block-6 services d-block" style="margin-right: 5px; margin-left: 5px;">
+                                    <div class="line"></div>
+                                    <div class="icon"><span class="flaticon-web-programming"></span></div>
+                                    <div class="media-body">
+                                        <h3 class="heading mb-3">${item.ServiceTypeNames}</h3>
+                                        <p>${item.Descriptionsr}</p>
+                                        <p><strong>Giá:</strong> ${item.Price.toLocaleString()} VNĐ</p>
+                                    </div>
+                                </div>
+                            </div>`;
+            });
+            var serivceElement = document.getElementById("service-container");
+            serivceElement.innerHTML = '';
+            serivceElement.innerHTML = html;
+
+            // Cập nhật info trang
+            document.getElementById("pagination-info").innerText = `Đang xem ${startRow} - ${endRow} trên tổng ${totalItems} dịch vụ`;
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(data.length / itemsPerPage);
+            let pagHtml = '';
+
+            // Nút Previous
+            pagHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="goToPage(${currentPage - 1}, event)">&laquo;</a>
+                        </li>`;
+
+            // Các trang
+            for (let i = 1; i <= totalPages; i++) {
+                pagHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                                <a class="page-link" href="#" onclick="goToPage(${i}, event)">${i}</a>
+                            </li>`;
+            }
+
+            // Nút Next
+            pagHtml += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="goToPage(${currentPage + 1}, event)">&raquo;</a>
+                        </li>`;
+
+            document.getElementById('pagination').innerHTML = '';
+            document.getElementById('pagination').innerHTML = pagHtml;
+            contentWayPoint();
+        }
+
+        function goToPage(page, event) {
+            event.preventDefault(); // ✅ Ngăn reload
+
+            currentPage = page;
+            renderItems(page);
+            renderPagination();
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderItems(currentPage);
+            renderPagination();
+        });
     </script>
+
 }

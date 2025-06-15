@@ -3,9 +3,9 @@ using WebApi.DTO;
 using WebApi.Service.Admin;
 using WebApi.Service.Client;
 
-namespace WebApi.Controllers.Client
+namespace WebApi.Controllers.Introduce
 {
-    [Route("api/client/[controller]/[action]")]
+    [Route("api/introduce/[controller]/[action]")]
     [ApiController]
     public class ContactController : Controller
     {
@@ -15,6 +15,7 @@ namespace WebApi.Controllers.Client
             _contactService = contactService;
         }
 
+        //nhận thông tin liên hệ lưu db 
         [HttpPost]
         public async Task<IActionResult> CreateContact([FromBody] CreateContactDTO model)
         {

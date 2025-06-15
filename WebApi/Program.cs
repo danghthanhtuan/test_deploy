@@ -10,6 +10,7 @@ using WebApi.Helper;
 using WebApi.Models;
 using WebApi.Service.Admin;
 using WebApi.Service.Client;
+using WebApi.Service.Introduce;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -160,6 +161,9 @@ builder.Services.AddTransient<PaymentService>();
 builder.Services.AddTransient<TransactionService>();
 builder.Services.AddTransient<ContactService>();
 builder.Services.AddTransient<INotificationService, NotificationService>();
+
+builder.Services.AddTransient<ServiceGuest>();
+
 
 //builder.Services.AddTransient<TextLocationStrategy>();
 

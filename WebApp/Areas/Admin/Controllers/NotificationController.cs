@@ -28,7 +28,8 @@ namespace WebApp.Areas.Admin.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var responseData = await response.Content.ReadAsStringAsync();
-                return Ok(new { success = true, data = responseData });
+                var data = Newtonsoft.Json.JsonConvert.DeserializeObject<ListNotificationResponse>(responseData);
+                return Ok(new { success = true, data = data.data });
             }
             else
             {

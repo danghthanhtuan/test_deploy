@@ -24,6 +24,7 @@ namespace WebApp.Controllers.Introduce
             return View();
         }
 
+        //nhận thông tin liên hệ
         [HttpPost]
         public async Task<IActionResult> CreateContact([FromBody] CreateContactDTO model)
         {
@@ -35,7 +36,7 @@ namespace WebApp.Controllers.Introduce
             {
                 var jsonContent = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = _httpClient.PostAsync(_apiConfigs.BaseApiUrl + "/client/Contact/CreateContact", jsonContent).Result;
+                HttpResponseMessage response = _httpClient.PostAsync(_apiConfigs.BaseApiUrl + "/introduce/Contact/CreateContact", jsonContent).Result;
 
                 if (response.IsSuccessStatusCode)
                 {
