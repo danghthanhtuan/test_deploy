@@ -2315,7 +2315,6 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="Responses\" />
 	<Folder Include="wwwroot\Content2\css\" />
 	<Folder Include="wwwroot\Content2\js\" />
   </ItemGroup>
