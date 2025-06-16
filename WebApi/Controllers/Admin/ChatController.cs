@@ -4,7 +4,8 @@ using WebApi.Service.Introduce;
 
 namespace WebApi.Controllers.Admin
 {
-    [Route("api/admin/[controller]/[action]")]
+    [Route("api/introduce/[controller]/[action]")]
+
     [ApiController]
     public class ChatController : ControllerBase
     {
@@ -15,15 +16,12 @@ namespace WebApi.Controllers.Admin
             _chatbot = chatbot;
         }
 
-        //[HttpPost("tuvan")]
-        //public async Task<IActionResult> TuVan([FromBody] string message)
-        //{
-        //    if (string.IsNullOrWhiteSpace(message))
-        //        return BadRequest("Câu hỏi không hợp lệ.");
-
-        //    var result = await _chatbot.GetTuVanAsync(message);
-        //    return Ok(new { response = result });
-        //}
+        [HttpPost]
+        public async Task<IActionResult> GetAdvice([FromBody] ChatRequestDTO dto)
+        {
+            var reply = await _chatbot.GetAdviceViaHttpClientAsync(dto.Message);
+            return Ok(new { success = true, reply });
+        }
 
 
     }

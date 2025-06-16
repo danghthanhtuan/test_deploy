@@ -12,6 +12,7 @@ using WebApi.Service.Admin;
 using WebApi.Service.Client;
 using WebApi.Service.Introduce;
 using WebApi.Configs;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,14 +33,20 @@ builder.Services.AddDbContext<ManagementDbContext>(options =>
 // đăng ký AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-builder.Services.AddSingleton(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? config["OpenAI:ApiKey"];
-    return new ChatbotService(apiKey);
-});
 
+//builder.Configuration
+//    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+//    .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
+//    .AddJsonFile("appsettings.secret.json", optional: true, reloadOnChange: true); // <- dòng quan trọng
 
+//builder.Services.AddScoped<ChatbotService>(sp =>
+//{
+//    var config = sp.GetRequiredService<IConfiguration>();
+//    var db = sp.GetRequiredService<ManagementDbContext>();
+//    var apiKey = config["OpenAI:ApiKey"];
+//    Console.WriteLine($"🔑 API Key from config: {apiKey ?? "NULL"}"); // kiểm tra xem có ra key không
+
+//    return new ChatbotService(apiKey, db);
 //});
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
@@ -164,6 +171,8 @@ builder.Services.AddTransient<PaymentService>();
 
 builder.Services.AddTransient<TransactionService>();
 builder.Services.AddTransient<ContactService>();
+builder.Services.AddScoped<ChatbotService>();
+
 builder.Services.AddTransient<IAdminContactService, AdminContactService>();
 
 builder.Services.AddTransient<INotificationService, NotificationService>();

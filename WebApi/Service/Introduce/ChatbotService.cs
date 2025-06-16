@@ -1,39 +1,75 @@
-﻿using OpenAI;
-using OpenAI.Chat;
-using Org.BouncyCastle.Asn1.Crmf;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApi.DTO;
+using WebApi.Models;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace WebApi.Service.Introduce
 {
     public class ChatbotService
     {
-        private readonly OpenAIClient _client;
+        private readonly ManagementDbContext _context;
+        private readonly HttpClient _client;
 
-        public ChatbotService(string apiKey)
+        public ChatbotService(ManagementDbContext context)
         {
-            if (string.IsNullOrWhiteSpace(apiKey))
-                throw new ArgumentException("API Key không hợp lệ");
-
-            _client = new OpenAIClient(apiKey);
+            _context = context;
+            _client = new HttpClient
+            {
+                BaseAddress = new Uri("http://localhost:1234")
+            };
         }
 
-        //public async Task<string> GetTuVanAsync(string message)
-        //{
-        //    var chatMessages = new List<Message>
-        //    {
-        //        new Message(Role.System, "Bạn là trợ lý tư vấn cho công ty ABC. Trả lời ngắn gọn, rõ ràng và chuyên nghiệp."),
-        //        new Message(Role.User, message)
-        //    };
+        public async Task<string> GetAdviceViaHttpClientAsync(string userMessage)
+        {
+            // 1. Lấy dữ liệu dịch vụ từ DB
+            var query = from st in _context.ServiceTypes
+                        join r in _context.Regulations on st.ServiceGroupid equals r.ServiceGroupid
+                        join g in _context.ServiceGroups on st.ServiceGroupid equals g.ServiceGroupid
+                        select new ServiceTypeDTO1
+                        {
+                            Id = st.Id,
+                            ServiceTypeNames = st.ServiceTypename,
+                            Descriptionsr = st.DescriptionSr,
+                            GroupName = g.GroupName,
+                            Price = r.Price
+                        };
 
-        //    var chatRequest = new ChatRequest(chatMessages, "gpt-3.5-turbo");
+            var danhSach = await query.ToListAsync();
 
-        //    var response = await _client.ChatEndpoint.GetCompletionAsync(chatRequest);
+            var moTa = string.Join("\n", danhSach.Select(d =>
+                $"- {d.ServiceTypeNames} ({d.GroupName}): {d.Descriptionsr}. Giá: {d.Price:N0}đ"));
 
-        //    return response.Choices.First().Message.Content;
-        //}
+            // 2. Gửi prompt đến mô hình Local
+            var requestData = new
+            {
+                model = "mistral-7b-instruct-v0.1.Q4_K_M.gguf",
+                messages = new[]
+                {
+                    new {
+                        role = "system",
+                        content = $"Bạn là tư vấn viên chuyên nghiệp. Dưới đây là các dịch vụ:\n{moTa}"
+                    },
+                    new {
+                        role = "user",
+                        content = userMessage
+                    }
+                }
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/v1/chat/completions", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Local LLM error: {error}");
+            }
+
+            var resultJson = await response.Content.ReadAsStringAsync();
+            dynamic result = JsonConvert.DeserializeObject(resultJson);
+            return result.choices[0].message.content.ToString();
+        }
     }
 }
