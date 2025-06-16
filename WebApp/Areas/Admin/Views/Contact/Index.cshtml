@@ -1,0 +1,400 @@
+﻿@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+};
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+         .popup-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .popup {
+        background-color: #fff;
+        padding: 20px 30px;
+        border-radius: 12px;
+        width: 500px;
+        max-width: 90%;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        position: relative;
+        font-family: sans-serif;
+    }
+
+    .popup h3 {
+        margin-top: 0;
+        color: #333;
+        text-align: center;
+    }
+
+    .popup .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        font-size: 22px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #888;
+    }
+
+    .popup .close-btn:hover {
+        color: #000;
+    }
+
+    .popup .popup-content {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 10px 15px;
+        margin-top: 15px;
+    }
+
+    .popup .label {
+        font-weight: bold;
+        color: #444;
+    }
+
+    .popup .value {
+        color: #333;
+        word-break: break-word;
+    }
+
+    .popup .footer-time {
+        margin-top: 15px;
+        font-size: 0.85em;
+        text-align: right;
+        color: #888;
+    }
+
+    .popup .popup-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .popup .popup-actions button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .popup .btn-confirm {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .popup .btn-close {
+        background-color: #ccc;
+        color: #333;
+    }
+
+    .popup .btn-confirm:hover {
+        background-color: #45a049;
+    }
+
+    .popup .btn-close:hover {
+        background-color: #bbb;
+    }
+
+        @Html.Raw(@"
+            <style>
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+            </style>
+            ")
+    </style>
+</head>
+<body>
+    <div id="contactListContainer" class="container-fluid d-flex flex-column vh-100">
+        <!-- Mục lọc -->
+        <div class="row flex-shrink-0">
+            <div class="col-12">
+                <div class="card p-2">
+                    <form class="d-flex align-items-center w-100" style="gap: 10px;">
+                        <input id="keyword" type="text" class="form-control form-control-sm w-25" style="min-width: 170px; padding: 5px;" placeholder="SĐT/Tên khách hàng/Email">
+                        <select class="form-select form-select-sm" style="padding: 5px;">
+                            <option value="-1" selected>Tất cả</option>
+                            <option value="1">Đã liên hệ</option>
+                            <option value="0">Chưa liên hệ</option>
+                        </select>
+
+                        <button id="searchBtn" onclick="init(event)" class="btn btn-primary btn-sm flex-grow-1 px-3" style="padding: 5px; margin-right: 10px;width: 500px;">🔍 Tìm kiếm</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mục hiển thị danh sách -->
+        <div class="row flex-grow-1 overflow-auto">
+            <div class="col-12">
+                <div class="card p-3 h-100">
+                    <div class="table-responsive h-100">
+                        <table id="listContact" class="table table-striped table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên khách hàng</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Email</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Nội dung</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Thêm các dòng khác tương tự -->
+                            </tbody>
+                        </table>
+
+                        <!-- iframe hiển thị PDF -->
+                        @* <div id="pdfViewer" class="hidden mt-3" style="border:none; text-align: center;">
+                        <iframe id="pdfFrame" src="" width="90%" height="470px" style="border:none;"></iframe>
+                        </div> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<!-- Modal confirm -->
+@* <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="xacNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xacNhanModalLabel">Xác nhận hành động</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span class="" id="contentModalConfirm"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" id="confirmButton1">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div> *@
+
+<!-- Modal success-->
+<div class="popup-overlay" id="popupOverlay">
+ <div class="popup">
+        <button class="close-btn" onclick="closePopup()">×</button>
+        <h3 id="popupTitle">Thông tin chi tiết</h3>
+
+        <div class="popup-content">
+            <div class="label">Tên khách hàng:</div>
+            <div class="value" id="popupCustomerName">-</div>
+
+            <div class="label">Số điện thoại:</div>
+            <div class="value" id="popupPhone">-</div>
+
+            <div class="label">Email:</div>
+            <div class="value" id="popupEmail">-</div>
+
+            <div class="label">Chủ đề:</div>
+            <div class="value" id="popupSubject">-</div>
+
+            <div class="label">Nội dung:</div>
+            <div class="value" id="popupMessage">-</div>
+        </div>
+
+        <div class="footer-time" id="popupTime">Thời gian: --/--/----</div>
+
+        <div class="popup-actions">
+            <button class="btn-confirm" onclick="handleConfirm()">Xác nhận</button>
+            <button class="btn-close" onclick="closePopup()">Close</button>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    var Department = "@User.FindFirst("Department")?.Value";
+    var StaffId = "@User.FindFirst("StaffId")?.Value";
+    const tokenJWT = localStorage.getItem("accessToken");
+    let idContact = '';
+    $(document).ready(function () {
+        // Khởi tạo bảng lần đầu
+        init(null);
+
+        window.onload = function () {
+           const urlParams = new URLSearchParams(window.location.search);
+           idContact = urlParams.get("id");
+
+            if (idContact && idContact !== '') {
+                $.ajax({
+                    url: "/admin/Contact/GetContactById?id=" + idContact,
+                    type: "GET",
+                    contentType: "application/json",
+                    success: function (result) {
+                        showPopup(result.data);
+                    },  
+                    error: function (xhr, status, error) {
+                        console.log("Lỗi khi gửi yêu cầu AJAX:", xhr.responseText);
+                    }
+                });
+            }
+        }
+    });
+      function handleConfirm() {
+       // alert("Đã xác nhận xử lý!");
+        updateContact(idContact);
+        closePopup();
+    }
+
+    function showPopup(data) {
+          document.getElementById("popupCustomerName").textContent = data.name || "-";
+        document.getElementById("popupPhone").textContent = data.phone || "-";
+        document.getElementById("popupEmail").textContent = data.email || "-";
+        document.getElementById("popupSubject").textContent = data.subject || "-";
+        document.getElementById("popupMessage").textContent = data.message || "-";
+        document.getElementById("popupTime").textContent = "Thời gian: " + (data.time || new Date().toLocaleString());
+
+        document.getElementById('popupOverlay').style.display = 'flex';
+    }
+
+    function closePopup() {
+        document.getElementById('popupOverlay').style.display = 'none';
+    }
+
+    function updateContact(id) {
+                var req = { Id: id, Status : 1 };
+                $.ajax({
+                    url: "/admin/Contact/UpdateStatus",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(req),
+                    success: function (result) {
+                        init(null);
+                    },  
+                    error: function (xhr, status, error) {
+                        console.log("Lỗi khi gửi yêu cầu AJAX:", xhr.responseText);
+                    }
+                });
+            };
+
+
+    function init(event) {
+        if (event) event.preventDefault();
+
+        if ($.fn.DataTable.isDataTable("#listContact")) {
+            $("#listContact").DataTable().destroy();
+        }
+
+        const today = new Date().toISOString().split("T")[0];
+
+        var table = $('#listContact').DataTable({
+            processing: true,
+            serverSide: true,
+            paging: true,
+            searching: false,
+            searchDelay: 400,
+            iDisplayLength: 7,
+            bLengthChange: false,
+            language: {
+                info: "Hiển thị _START_ đến _END_ của _TOTAL_ thông báo",
+                lengthMenu: "Hiển thị _MENU_  thông báo",
+                processing: "Đang tải dữ liệu...",
+                paginate: {
+                    previous: "Trước",
+                    next: "Tiếp theo",
+                    last: "Cuối"
+                }
+            },
+
+            ajax: {
+                url: "/admin/Contact/GetListContact",
+                type: "POST",
+                headers: {
+                    "Authorization": "Bearer " + tokenJWT
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: function (data) {
+                    var currentPageIndex = data.start / data.length + 1;
+
+                    const keyword = $('input[placeholder="SĐT/Tên khách hàng/Email"]').val().trim();
+                    var status = $('select').val(); // Lấy giá trị từ select
+
+                    return JSON.stringify({
+                        PageSize: data.length,
+                        Page: currentPageIndex,
+                        Keyword: keyword || "",
+                        Status: status,
+                    });
+                },
+                dataSrc: function (res) {
+                    console.log("Kết quả giao dịch: ", res);
+                    return res.success && res.data?.data ? res.data.data : [];
+                },
+                dataFilter: function (data) {
+                    var page = $.parseJSON(data);
+                    page.recordsTotal = page.data?.totalRow || 0;
+                    page.recordsFiltered = page.data?.totalRow || 0;
+                    return JSON.stringify(page);
+                },
+                error: function (xhr, status, error) {
+                    //console.error("Lỗi khi lấy dữ liệu:", error);
+                    //showError("Không thể tải danh sách công ty. Vui lòng thử lại!");
+                }
+            },
+
+            columns: [
+                { data: "id", width: "4%" },
+                { data: "name", width: "10%" },
+                { data: "phone", width: "9%" },
+                { data: "email", width: "15%" },
+                { data: "subject", width: "15%" },
+                { data: "message", width: "35%" },
+                {
+                    data: "status",
+                    width: "10%",
+                    render: function (data, type, row) {
+                        if (data == 1) {
+                            return '<span class="text-success">Đã liên hệ</span>';
+                        } else {
+                            return '<span class="text-danger">Chưa liên hệ</span>';
+                        }
+                    }
+                },
+                { data: "createdDate", width: "15%" }
+            ],
+            createdRow: function (row, data, dataIndex) {
+                $(row).data("fullData", data);
+            },
+            columnDefs: [{
+                "defaultContent": "-",
+                "targets": "_all"
+            }]
+        });
+    }
+
+  $('#listContact tbody').on('click', 'tr', function () {
+    var table = $('#listContact').DataTable();
+    var rowData = table.row(this).data();
+      idContact = rowData.id;
+    if (rowData) {
+        showPopup({
+            name: rowData.name,
+            phone: rowData.phone,
+            email: rowData.email,
+            subject: rowData.subject,
+            message: rowData.message,
+            time: rowData.createdDate
+        });
+    }
+});
+    
+</script>

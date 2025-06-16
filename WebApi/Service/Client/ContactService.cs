@@ -34,7 +34,8 @@ namespace WebApi.Service.Client
                     Name = model.Name,
                     Message = model.Message,
                     Subject = model.Subject,
-                    CreatedDate = DateTime.Now
+                    CreatedDate = DateTime.Now,
+                    Status = (int)ContactStatusEnum.New,
                 };
 
                 _context.Contacts.Add(contact);

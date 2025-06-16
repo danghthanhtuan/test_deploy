@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Areas\Admin\Views\Contact\Index.cshtml" />
     <None Include="Areas\Admin\Views\Register\Index.cshtml" />
     <None Include="Views\AboutGuest\Index.cshtml" />
     <None Include="Views\BlogGuest\Index.cshtml" />
@@ -2306,6 +2307,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.5" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
+    <PackageReference Include="OpenAI" Version="2.1.0" />
     <PackageReference Include="QuestPDF" Version="2025.4.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.8" />
     <PackageReference Include="Syncfusion.Pdf.Net.Core" Version="29.2.4" />

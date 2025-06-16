@@ -269,7 +269,7 @@ CREATE TABLE [dbo].[CONTACT](
 	[Email] [nvarchar](50) NULL,
 	[Subject] [nvarchar](500) NULL,
 	[Message] [nvarchar](2000) NULL,
-	[Status] [int] NULL,
+	[Status] [int] NOT NULL,
 	[CreatedDate] [datetime] NULL,
  CONSTRAINT [PK_CONTACT] PRIMARY KEY CLUSTERED 
 (

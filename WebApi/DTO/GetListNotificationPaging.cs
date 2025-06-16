@@ -4,8 +4,9 @@
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-
         public int IsRead { get; set; } // -1 All, 1 Read, 0 UnRead
+
+        public string KeyWord { get; set; } = string.Empty;
 
         public void CheckValue()
         {
@@ -22,6 +23,9 @@
         public int CountUnRead { get; set; }
         public List<NotificationModelRes> Data { get; set; }
         public bool IsNextPage { get; set; } = false;
+
+        public int TotalRow { get; set; }
+
     }
 
     public class NotificationModelRes

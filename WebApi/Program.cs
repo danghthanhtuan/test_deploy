@@ -32,6 +32,14 @@ builder.Services.AddDbContext<ManagementDbContext>(options =>
 // đăng ký AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? config["OpenAI:ApiKey"];
+    return new ChatbotService(apiKey);
+});
+
+
 //});
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
@@ -145,7 +153,6 @@ builder.Services.AddTransient<LoginService>();
 builder.Services.AddTransient<RequirementService>();
 builder.Services.AddTransient<RequestService>();
 builder.Services.AddTransient<EmailService>();
-builder.Services.AddTransient<ContractService>();
 builder.Services.AddTransient<RegulationsService>();
 builder.Services.AddTransient<AccountService>();
 builder.Services.AddTransient<ContractsManagementService>();
@@ -157,6 +164,8 @@ builder.Services.AddTransient<PaymentService>();
 
 builder.Services.AddTransient<TransactionService>();
 builder.Services.AddTransient<ContactService>();
+builder.Services.AddTransient<IAdminContactService, AdminContactService>();
+
 builder.Services.AddTransient<INotificationService, NotificationService>();
 
 builder.Services.AddTransient<ServiceGuest>();

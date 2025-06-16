@@ -5,6 +5,7 @@
         public int Page { get; set; }
         public int PageSize { get; set; }
         public int IsRead { get; set; }
+        public string KeyWord { get; set; } = string.Empty;
     }
 
     public class ListNotificationResponse
@@ -18,6 +19,7 @@
         public int countUnRead { get; set; }
         public List<NotificationModelRes> data { get; set; }
         public bool isNextPage { get; set; } = false;
+        public int TotalRow { get; set; }
     }
 
     public class NotificationModelRes

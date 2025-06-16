@@ -82,7 +82,7 @@ namespace WebApi.Service.Client
                 if (result == null)
                     throw new Exception("Không tìm thấy thông tin hợp đồng hoặc công ty.");
                 // Tạo link ký hợp đồng
-                string razorDomain = _config["ApiConfigs:RazorBaseUrl"] ?? "https://localhost:7176";
+                string razorDomain = _config["ApiConfigs:RazorBaseUrl"];
 
 
                 string signingLink = $"{razorDomain}/SeeContract/Index?fileName={fileName}&email={result.Account.Rootaccount}";

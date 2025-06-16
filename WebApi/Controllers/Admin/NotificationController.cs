@@ -15,9 +15,9 @@ namespace WebApi.Controllers.Admin
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateRead([FromBody] int notificationId)
+        public async Task<IActionResult> UpdateRead([FromBody] UpdateReadNotificationReq req)
         {
-            var result = await _notificationService.Update(notificationId);
+            var result = await _notificationService.Update(req.NotificationId);
             if (!result)
             {
                 return BadRequest(new { success = false });

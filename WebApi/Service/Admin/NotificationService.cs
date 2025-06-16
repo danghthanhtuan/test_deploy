@@ -32,14 +32,19 @@ namespace WebApi.Service.Admin
                 IsNextPage = false
             };
 
-            var query = _context.Notifications;
+            IQueryable<Notification> query = _context.Notifications.Where(item => item.IsRead == false);
 
-            var countUnRead = await query.Where(item => item.IsRead == false).CountAsync();
+            var countUnRead = await query.CountAsync();
 
-            if (req.IsRead > 0)
+            if (req.IsRead >= 0)
             {
                 var isRead = (req.IsRead == 1 ? true : false);
-                query.Where(n => n.IsRead == isRead);
+                query = query.Where(n => n.IsRead == false);
+            }
+
+            if (!string.IsNullOrEmpty(req.KeyWord))
+            {
+                query = query.Where(n => n.Content.Contains(req.KeyWord.Trim()));
             }
 
             var pagedResult = await query
@@ -51,6 +56,8 @@ namespace WebApi.Service.Admin
             var isNextPage = await query
                 .Skip(req.Page)
                 .Take(1).AnyAsync();
+
+            var totalRow = await query.CountAsync();
 
             res.Data = pagedResult.Select(item => new NotificationModelRes()
             {
@@ -68,6 +75,8 @@ namespace WebApi.Service.Admin
 
             res.IsNextPage = isNextPage;
             res.CountUnRead = countUnRead;
+            res.TotalRow = totalRow;
+
             return (true, res);
         }
 
