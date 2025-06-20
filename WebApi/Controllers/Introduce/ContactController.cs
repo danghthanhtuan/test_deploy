@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WebApi.DTO;
 using WebApi.Service.Admin;
-using WebApi.Service.Client;
+using WebApi.Service.Introduce;
 
 namespace WebApi.Controllers.Introduce
 {
@@ -26,6 +27,14 @@ namespace WebApi.Controllers.Introduce
             }
 
             return Ok(new { success = true, message = result.Message });
+        }
+
+
+        [HttpGet]
+        public async Task<ActionResult<ServiceTypeDTO2>> GetListServiceID()
+        {
+            var regu = await _contactService.GetListServiceID();
+            return Ok(regu);
         }
     }
 }

@@ -85,6 +85,7 @@ namespace WebApi.Service.Admin
                 Status = item.Status,
                 Subject = item.Subject,
                 Id = item.Id,
+                CompanyName = item.CompanyName
             }).ToList();
 
             res.TotalRow = totalRow;

@@ -271,6 +271,8 @@ CREATE TABLE [dbo].[CONTACT](
 	[Message] [nvarchar](2000) NULL,
 	[Status] [int] NOT NULL,
 	[CreatedDate] [datetime] NULL,
+	[CompanyName] [nvarchar](500) NULL,
+
  CONSTRAINT [PK_CONTACT] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
@@ -481,7 +483,7 @@ select * from Payment
 select * from PAYMENT_TRANSACTION
 select * from SERVICE_TYPE
 select * from LOGINclient
-select * from RESETPASSWORD
+select * from PASSWORDRESETTOKEN
 select * from endow
 select * from REGULATIONS
 select * from CONTACT

@@ -756,7 +756,38 @@
             init(keyword, category);
         });
 
+    
+        window.onload = function () {
+            const currentPath = window.location.pathname;
+
+            document.querySelectorAll(".nav-link").forEach(link => {
+                const href = link.getAttribute("href");
+                if (href && href !== "#" && href === currentPath) {
+                    link.classList.add("active");
+                } else {
+                    link.classList.remove("active");
+                }
+            });
+            const urlParams = new URLSearchParams(window.location.search);
+            var data = urlParams.get("data");
+            const decoded = decodeObject(data);
+
+            if (decoded !== '' && decoded !== undefined) {
+                console.log(decoded);
+                const createAccountBtn = document.getElementById("createAccountBtn");
+                createAccountBtn.click();
+                $("#aName").val(decoded.name);
+                document.getElementById("aPhone").value = decoded.phone;
+                document.getElementById("aEmail").value = decoded.email;
+                document.getElementById("cName").value = decoded.companyName;
+            }
+        }
     });
+
+    function decodeObject(base64Str) {
+        const jsonStr = decodeURIComponent(escape(atob(base64Str)));
+        return JSON.parse(jsonStr);
+    }
 
     function init(keyword, category) {
         if ($.fn.DataTable.isDataTable("#listCompany")) {
@@ -1385,6 +1416,9 @@
                 showError("Xuất file thất bại!");
             }
         });
+    }
+    function transferDataFromContact() {
+
     }
 
 </script>

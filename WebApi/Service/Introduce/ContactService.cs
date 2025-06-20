@@ -1,10 +1,11 @@
-﻿using WebApi.DTO;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApi.DTO;
 using WebApi.Enum;
 using WebApi.Helper;
 using WebApi.Models;
 using WebApi.Service.Admin;
 
-namespace WebApi.Service.Client
+namespace WebApi.Service.Introduce
 {
     public class ContactService
     {
@@ -36,6 +37,8 @@ namespace WebApi.Service.Client
                     Subject = model.Subject,
                     CreatedDate = DateTime.Now,
                     Status = (int)ContactStatusEnum.New,
+                    CompanyName = model.CompanyName,
+
                 };
 
                 _context.Contacts.Add(contact);
@@ -59,6 +62,22 @@ namespace WebApi.Service.Client
             {
                 return (false, "Tạo thất bại, vui lòng thử lại.");
             }
+        }
+
+        public async Task<List<ServiceTypeDTO2>> GetListServiceID()
+        {
+            // Thực hiện join giữa ServiceGroups và Regulations để lấy thêm thông tin về giá
+            var regulationsWithGroups = await (from serviceGroup in _context.ServiceTypes
+                                               join regulation in _context.Regulations
+                                               on serviceGroup.ServiceGroupid equals regulation.ServiceGroupid
+                                               select new ServiceTypeDTO2
+                                               {
+                                                   ServiceGroupid = serviceGroup.ServiceGroupid,
+                                                   ServiceTypeNames = serviceGroup.ServiceTypename,
+                                                   Price = regulation.Price
+                                               }).ToListAsync();
+
+            return regulationsWithGroups;
         }
     }
 }

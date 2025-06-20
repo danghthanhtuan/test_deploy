@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using WebApp.Configs;
@@ -34,7 +36,7 @@ namespace WebApp.Controllers.Introduce
             }
             try
             {
-                var jsonContent = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
+                var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response = _httpClient.PostAsync(_apiConfigs.BaseApiUrl + "/introduce/Contact/CreateContact", jsonContent).Result;
 
@@ -42,6 +44,34 @@ namespace WebApp.Controllers.Introduce
                 {
                     var responseData = await response.Content.ReadAsStringAsync();
                     return Ok(new { success = true, message = "Tạo liên hệ thành công!", data = responseData });
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetListServiceID()
+        {
+            try
+            {
+                
+                List<ServiceTypeDTO2> listRegu = new List<ServiceTypeDTO2>();
+
+                HttpResponseMessage response = await _httpClient.GetAsync(_apiConfigs.BaseApiUrl + "/introduce/Contact/GetListServiceID");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseData = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<List<ServiceTypeDTO2>>(responseData);
+                    return Ok(new { success = true, listRegu = responseObject });
                 }
                 else
                 {

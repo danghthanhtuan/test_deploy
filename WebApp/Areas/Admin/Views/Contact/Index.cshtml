@@ -145,6 +145,7 @@
                                     <th>ID</th>
                                     <th>Tên khách hàng</th>
                                     <th>Số điện thoại</th>
+                                    <th>Tên công ty</th>
                                     <th>Email</th>
                                     <th>Tiêu đề</th>
                                     <th>Nội dung</th>
@@ -196,14 +197,17 @@
         <div class="popup-content">
             <div class="label">Tên khách hàng:</div>
             <div class="value" id="popupCustomerName">-</div>
-
+            
+            <div class="label">Tên công ty:</div>
+            <div class="value" id="popupCompanyName">-</div>
+            
             <div class="label">Số điện thoại:</div>
             <div class="value" id="popupPhone">-</div>
 
             <div class="label">Email:</div>
             <div class="value" id="popupEmail">-</div>
 
-            <div class="label">Chủ đề:</div>
+            <div class="label">Loại dịch vụ:</div>
             <div class="value" id="popupSubject">-</div>
 
             <div class="label">Nội dung:</div>
@@ -214,6 +218,7 @@
 
         <div class="popup-actions">
             <button class="btn-confirm" onclick="handleConfirm()">Xác nhận</button>
+            <button class="btn-confirm" onclick="handleCreateContract()">Tạo hợp đồng</button>
             <button class="btn-close" onclick="closePopup()">Close</button>
         </div>
     </div>
@@ -225,6 +230,8 @@
     var StaffId = "@User.FindFirst("StaffId")?.Value";
     const tokenJWT = localStorage.getItem("accessToken");
     let idContact = '';
+        let dataTmp = '';
+
     $(document).ready(function () {
         // Khởi tạo bảng lần đầu
         init(null);
@@ -256,6 +263,8 @@
 
     function showPopup(data) {
           document.getElementById("popupCustomerName").textContent = data.name || "-";
+          document.getElementById("popupCompanyName").textContent = data.companyName || "-";
+
         document.getElementById("popupPhone").textContent = data.phone || "-";
         document.getElementById("popupEmail").textContent = data.email || "-";
         document.getElementById("popupSubject").textContent = data.subject || "-";
@@ -263,6 +272,11 @@
         document.getElementById("popupTime").textContent = "Thời gian: " + (data.time || new Date().toLocaleString());
 
         document.getElementById('popupOverlay').style.display = 'flex';
+        
+
+        const jsonStr = JSON.stringify(data);
+        dataTmp = encodeUnicode(jsonStr);
+        console.log(dataTmp);
     }
 
     function closePopup() {
@@ -355,6 +369,8 @@
                 { data: "id", width: "4%" },
                 { data: "name", width: "10%" },
                 { data: "phone", width: "9%" },
+                { data: "companyName", width: "15%" },
+
                 { data: "email", width: "15%" },
                 { data: "subject", width: "15%" },
                 { data: "message", width: "35%" },
@@ -380,6 +396,13 @@
             }]
         });
     }
+    function handleCreateContract(){
+        window.location.href = "/admin/Account?data=" + dataTmp;
+    }
+
+    function encodeUnicode(str) {
+        return btoa(unescape(encodeURIComponent(str)));
+    }
 
   $('#listContact tbody').on('click', 'tr', function () {
     var table = $('#listContact').DataTable();
@@ -392,7 +415,9 @@
             email: rowData.email,
             subject: rowData.subject,
             message: rowData.message,
-            time: rowData.createdDate
+            time: rowData.createdDate,
+            companyName: rowData.companyName
+
         });
     }
 });

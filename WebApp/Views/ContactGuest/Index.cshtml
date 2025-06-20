@@ -5,6 +5,13 @@
     .show {
         display: block !important;
     }
+
+   .bg-green {
+    background-color: #04ce35;
+    color: #f8f9fa;
+    padding: 20px;
+    font-size: 16px;
+}
 </style>
 
 <section class="hero-wrap hero-wrap-2" style="background-image: url('./Content2/images/bg_3.jpg');" data-stellar-background-ratio="0.5">
@@ -32,7 +39,7 @@
                                     <span class="fa fa-map-marker"></span>
                                 </div>
                                 <div class="text">
-                                    <p><span>Địa chỉ:</span> 12 Nguyễn Văn Bảo, Phường 4, Gò Vấp, TP. Hồ Chí Minh</p>
+                                    <p><span>Địa chỉ:</span>450-451 Lê Văn Việt, Phường Tăng Nhơn Phú A, Hồ Chí Minh</p>
                                 </div>
                             </div>
                         </div>
@@ -42,7 +49,7 @@
                                     <span class="fa fa-phone"></span>
                                 </div>
                                 <div class="text">
-                                    <p><span>Điện thoại:</span> <a href="tel://0987654321">+84 987 654 321</a></p>
+                                    <p><span>Điện thoại:</span> <a href="tel://0365812847">0365812847</a></p>
                                 </div>
                             </div>
                         </div>
@@ -52,7 +59,7 @@
                                     <span class="fa fa-paper-plane"></span>
                                 </div>
                                 <div class="text">
-                                    <p><span>Email:</span> <a href="mailto:lienhe@congty.com">lienhe@congty.com</a></p>
+                                    <p><span>Email:</span> <a href="mailto:liennbtbt11@gmail.com">liennbtbt11@gmail.com</a></p>
                                 </div>
                             </div>
                         </div>
@@ -62,7 +69,7 @@
                                     <span class="fa fa-globe"></span>
                                 </div>
                                 <div class="text">
-                                    <p><span>Website:</span> <a href="#">www.congty.com</a></p>
+                                    <p><span>Website:</span> <a href="#">www.ITsolution.com</a></p>
                                 </div>
                             </div>
                         </div>
@@ -95,8 +102,17 @@
                                     </div>
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label class="label" for="subject">Chủ đề</label>
-                                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Nhập chủ đề">
+                                            <label class="label" for="subject">Tên công ty</label>
+                                            <input type="text" class="form-control" name="companyName" id="companyName" placeholder="Nhập tên công ty">
+                                            <div class="invalid-feedback" id="company-name-error"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="label">Loại dịch vụ</label>
+                                           <select class="form-control w-75" id="serviceType">
+                                            </select
+
                                         </div>
                                     </div>
                                     <div class="col-md-12">
@@ -123,15 +139,16 @@
     </div>
 </section>
 @section Modals {
-    <div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-body text-center bg-green">
-                    <span id="contentModalSuccess"></span>
-                </div>
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-green">
+                <span id="contentModalSuccess"></span>
             </div>
         </div>
     </div>
+</div>
 <!-- Modal thông báo -->
 <div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="failModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -161,21 +178,58 @@
             counter();
             highlightTabActive();
 
+            $.ajax({
+                url: `/ContactGuest/GetListServiceID`, // Thay URL này bằng URL thật trong backend
 
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log("Kết quả list dịch vụ dropdown", data);
+                    const select = $('#serviceType'); // sửa ID cho đúng
+
+                    select.empty().append('<option value="">-- Chọn --</option>');
+
+                    data.listRegu.forEach(function (item) {
+                        select.append(`<option value="${item.serviceGroupid}" data-price="${item.price}">${item.serviceTypeNames}</option>`);
+                    });
+
+                    select.change(function () {
+                        const selectedOption = $(this).find("option:selected");
+                        const price = selectedOption.data("price");
+                        const totalPriceElement = $('#totalPrice');
+
+                        if (price) {
+                            totalPriceElement.text(`Tổng tiền: ${price} VNĐ`);
+                        } else {
+                            totalPriceElement.text('Tổng tiền: 0 VNĐ');
+                        }
+                    });
+
+                },
+                error: function () {
+                    showError("Không lấy được danh sách loại dịch vụ!");
+                }
+            });
         });
     </script>
     <script>
+
         function validateAndCreateContact() {
 
             // Xóa thông báo cũ
             document.getElementById('name-error').innerHTML = '';
             document.getElementById('email-error').innerHTML = '';
             document.getElementById('phone-error').innerHTML = '';
+            document.getElementById('serviceType-error')?.remove(); // nếu có lỗi cũ
 
+            var serviceTypeDropdown = document.getElementById("serviceType");
+            var selectedOption = serviceTypeDropdown.options[serviceTypeDropdown.selectedIndex];
+            var subject = selectedOption.text;
+            var serviceValue = serviceTypeDropdown.value;
 
+            var companyName = document.getElementById("companyName").value.trim();
             var name = document.getElementById("name").value.trim();
             var email = document.getElementById("email").value.trim();
-            var subject = document.getElementById("subject").value.trim();
             var message = document.getElementById("message").value.trim();
             var phone = document.getElementById("phone").value.trim();
 
@@ -204,11 +258,21 @@
                 return;
             }
 
+            // Kiểm tra chọn dịch vụ
+            if (serviceValue === '') {
+                var errorSpan = document.createElement('div');
+                errorSpan.id = 'serviceType-error';
+                errorSpan.className = 'invalid-feedback d-block';
+                errorSpan.textContent = 'Vui lòng chọn loại dịch vụ';
+                serviceTypeDropdown.closest('.form-group').appendChild(errorSpan);
+                return;
+            }
             var data = {
                 name: name,
                 email: email,
                 subject: subject,
                 message: message,
+                companyName: companyName,
                 phone: phone
             };
 
@@ -220,6 +284,7 @@
                 success: function (result) {
                     // Gọi modal thành công (Bootstrap 5)
                     const modalSuccess = new bootstrap.Modal(document.getElementById('ModalSuccess'));
+                    document.getElementById('contentModalSuccess').innerText = 'Gửi liên hệ thành công! Chúng tôi sẽ phản hồi sớm nhất.';
                     modalSuccess.show();
                 },
                 error: function (xhr, status, error) {

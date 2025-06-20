@@ -41,5 +41,7 @@
         public int Status { get; set; }
 
         public DateTime? CreatedDate { get; set; }
+        public string CompanyName { get; set; }
+
     }
 }

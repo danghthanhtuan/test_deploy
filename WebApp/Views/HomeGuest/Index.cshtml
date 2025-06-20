@@ -1,7 +1,17 @@
 ﻿@{
     Layout = "~/Views/Shared/_LayoutIntroduce.cshtml";
 }
-
+<style>
+   .bg-green {
+    background-color: #04ce35;
+    color: #f8f9fa;
+    padding: 20px;
+    font-size: 16px;
+   }
+    .row {
+        color: white;
+    }
+</style>
 <div class="hero-wrap js-fullheight" style="background-image: url('./Content2/images/bg_1.jpg');"
      data-stellar-background-ratio="0.5">
     <div class="overlay"></div>
@@ -167,8 +177,9 @@
                     <div class="line"></div>
                     <div class="icon"><span class="flaticon-web-programming"></span></div>
                     <div class="media-body">
-                        <h3 class="heading mb-3">Dịch vụ phần mềm (SaaS)</h3>
-                        <p>Triển khai phần mềm theo yêu cầu, nền tảng SaaS tối ưu quy trình quản lý và vận hành doanh nghiệp.</p>
+                        <h3 class="heading mb-3">
+                            Đầu số thoại</h3>
+                        <p>Cung cấp đầu số điện thoại cố định hoặc di động cho doanh nghiệp. Hỗ trợ đăng ký, chuyển đổi, và duy trì hoạt động đầu số phục vụ tổng đài hoặc hệ thống liên lạc nội bộ.</p>
                     </div>
                 </div>
             </div>
@@ -177,8 +188,8 @@
                     <div class="line"></div>
                     <div class="icon"><span class="flaticon-stats"></span></div>
                     <div class="media-body">
-                        <h3 class="heading mb-3">Giám sát & Phân tích dữ liệu</h3>
-                        <p>Hệ thống giám sát, phân tích dữ liệu nhằm tối ưu hiệu suất và cảnh báo sự cố kịp thời.</p>
+                        <h3 class="heading mb-3">Hợp đồng hợp tác</h3>
+                        <p>Các hợp đồng hợp tác chiến lược giữa hai bên để cùng khai thác dịch vụ, chia sẻ lợi ích, thúc đẩy chuyển đổi số hoặc phát triển hạ tầng.</p>
                     </div>
                 </div>
             </div>
@@ -187,8 +198,8 @@
                     <div class="line"></div>
                     <div class="icon"><span class="flaticon-secure"></span></div>
                     <div class="media-body">
-                        <h3 class="heading mb-3">An toàn & bảo mật hệ thống</h3>
-                        <p>Bảo vệ hạ tầng CNTT khỏi các rủi ro bảo mật, mã độc và các mối đe dọa mạng hiện đại.</p>
+                        <h3 class="heading mb-3">Đối tác</h3>
+                        <p>Thiết lập và duy trì mối quan hệ với các đối tác chiến lược nhằm mở rộng thị trường, nâng cao năng lực cung cấp dịch vụ và tạo ra giá trị cộng hưởng. Hỗ trợ tư vấn mô hình hợp tác, chia sẻ hạ tầng, công nghệ và khai thác dịch vụ chung.</p>
                     </div>
                 </div>
             </div>
@@ -197,8 +208,8 @@
                     <div class="line"></div>
                     <div class="icon"><span class="flaticon-presentation"></span></div>
                     <div class="media-body">
-                        <h3 class="heading mb-3">Tư vấn & thiết kế hệ thống</h3>
-                        <p>Đánh giá nhu cầu và thiết kế giải pháp CNTT tối ưu hóa hoạt động doanh nghiệp.</p>
+                        <h3 class="heading mb-3">An toàn thông tin</h3>
+                        <p>Cung cấp giải pháp bảo mật mạng, bảo vệ dữ liệu, giám sát tấn công, quản lý rủi ro an ninh. Có đội ngũ SOC hỗ trợ 24/7.</p>
                     </div>
                 </div>
             </div>
@@ -560,42 +571,49 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <input type="text" class="form-control" placeholder="Họ và tên của bạn">
+                                <label class="label" for="name">Họ và tên</label>
+                                <input type="text" class="form-control" name="name" id="name" placeholder="Nhập họ tên">
+                                <div class="invalid-feedback" id="name-error"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <input type="email" class="form-control" placeholder="Email của bạn">
+                                <label class="label" for="email">Địa chỉ Email</label>
+                                <input type="email" class="form-control" name="email" id="email" placeholder="Nhập email">
+                                <div class="invalid-feedback" id="email-error"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="label" for="phone">Số điện thoại</label>
+                                <input type="text" class="form-control" name="phone" id="phone" placeholder="Nhập số điện thoại">
+                                <div class="invalid-feedback" id="phone-error"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="label" for="subject">Tên công ty</label>
+                                <input type="text" class="form-control" name="companyName" id="companyName" placeholder="Nhập tên công ty">
+                                <div class="invalid-feedback" id="company-name-error"></div>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
-                                <div class="form-field">
-                                    <div class="select-wrap">
-                                        <div class="icon"><span class="fa fa-chevron-down"></span></div>
-                                        <select name="" id="" class="form-control">
-                                            <option value="">Chọn dịch vụ</option>
-                                            <option value="">Phát triển Website</option>
-                                            <option value="">Phân tích Cơ sở dữ liệu</option>
-                                            <option value="">Bảo mật Máy chủ</option>
-                                            <option value="">Chiến lược UX/UI</option>
-                                            <option value="">Xây dựng Thương hiệu</option>
-                                            <option value="">Ứng dụng di động</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <textarea name="" id="" cols="30" rows="7" class="form-control"
-                                          placeholder="Nội dung tin nhắn"></textarea>
+                                <label class="label">Loại dịch vụ</label>
+                                <select class="form-control w-75" id="serviceType">
+                                </select
 
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
-                                <input type="submit" value="Gửi liên hệ" class="btn btn-primary py-3 px-4">
+                                <label class="label" for="message">Nội dung</label>
+                                <textarea name="message" class="form-control" id="message" cols="30" rows="4" placeholder="Nhập nội dung tin nhắn"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input type="button" value="Gửi liên hệ" onclick="validateAndCreateContact()" class="btn btn-primary">
                             </div>
                         </div>
                     </div>
@@ -604,7 +622,35 @@
         </div>
     </div>
 </section>
-
+@section Modals {
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-green">
+                <span id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal thông báo -->
+<div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="failModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="failModalLabel">Tạo thất bại</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span id="contentModalError"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
 <!-- loader -->
 <!-- <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px">
         <circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee" />
@@ -622,6 +668,7 @@
             contentWayPoint();
             counter();
             highlightTabActive();
+
         });
 
         $(document).ready(function () {
@@ -642,7 +689,130 @@
                     1000: { items: 3 }
                 }
             });
+            $.ajax({
+                url: `/ContactGuest/GetListServiceID`, // Thay URL này bằng URL thật trong backend
+
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log("Kết quả list dịch vụ dropdown", data);
+                    const select = $('#serviceType'); // sửa ID cho đúng
+
+                    select.empty().append('<option value="">-- Chọn --</option>');
+
+                    data.listRegu.forEach(function (item) {
+                        select.append(`<option value="${item.serviceGroupid}" data-price="${item.price}">${item.serviceTypeNames}</option>`);
+                    });
+
+                    select.change(function () {
+                        const selectedOption = $(this).find("option:selected");
+                        const price = selectedOption.data("price");
+                        const totalPriceElement = $('#totalPrice');
+
+                        if (price) {
+                            totalPriceElement.text(`Tổng tiền: ${price} VNĐ`);
+                        } else {
+                            totalPriceElement.text('Tổng tiền: 0 VNĐ');
+                        }
+                    });
+
+                },
+                error: function () {
+                    showError("Không lấy được danh sách loại dịch vụ!");
+                }
+            });
         });
 
     </script>
+    <script>
+
+        function validateAndCreateContact() {
+
+            // Xóa thông báo cũ
+            document.getElementById('name-error').innerHTML = '';
+            document.getElementById('email-error').innerHTML = '';
+            document.getElementById('phone-error').innerHTML = '';
+            document.getElementById('serviceType-error')?.remove(); // nếu có lỗi cũ
+
+            var serviceTypeDropdown = document.getElementById("serviceType");
+            var selectedOption = serviceTypeDropdown.options[serviceTypeDropdown.selectedIndex];
+            var subject = selectedOption.text;
+            var serviceValue = serviceTypeDropdown.value;
+
+            var companyName = document.getElementById("companyName").value.trim();
+            var name = document.getElementById("name").value.trim();
+            var email = document.getElementById("email").value.trim();
+            var message = document.getElementById("message").value.trim();
+            var phone = document.getElementById("phone").value.trim();
+
+            if (name === '') {
+                document.getElementById('name-error').innerHTML = 'Vui lòng nhập họ tên';
+                document.getElementById('name-error').classList.add('show');
+                return;
+            }
+
+            if (email === '') {
+                document.getElementById('email-error').innerHTML = 'Vui lòng nhập email';
+                document.getElementById('email-error').classList.add('show');
+                return;
+            }
+            else
+
+                if (!validateEmail(email)) {
+                    document.getElementById('email-error').innerHTML = 'Email không hợp lệ';
+                    document.getElementById('email-error').classList.add('show');
+                    return;
+                }
+
+            if (phone === '') {
+                document.getElementById('phone-error').innerHTML = 'Vui lòng nhập số điện thoại';
+                document.getElementById('phone-error').classList.add('show');
+                return;
+            }
+
+            // Kiểm tra chọn dịch vụ
+            if (serviceValue === '') {
+                var errorSpan = document.createElement('div');
+                errorSpan.id = 'serviceType-error';
+                errorSpan.className = 'invalid-feedback d-block';
+                errorSpan.textContent = 'Vui lòng chọn loại dịch vụ';
+                serviceTypeDropdown.closest('.form-group').appendChild(errorSpan);
+                return;
+            }
+            var data = {
+                name: name,
+                email: email,
+                subject: subject,
+                message: message,
+                companyName: companyName,
+                phone: phone
+            };
+
+            $.ajax({
+                url: "/ContactGuest/CreateContact",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(data),
+                success: function (result) {
+                    // Gọi modal thành công (Bootstrap 5)
+                    const modalSuccess = new bootstrap.Modal(document.getElementById('ModalSuccess'));
+                    document.getElementById('contentModalSuccess').innerText = 'Gửi liên hệ thành công! Chúng tôi sẽ phản hồi sớm nhất.';
+                    modalSuccess.show();
+                },
+                error: function (xhr, status, error) {
+                    const modalFail = new bootstrap.Modal(document.getElementById('failModal'));
+                    modalFail.show();
+                }
+            });
+        }
+
+    </script>
+@Html.Raw(@"
+            <script>
+            function validateEmail(email) {
+            var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+            }
+            </script>
+            ")
 }
