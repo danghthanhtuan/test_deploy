@@ -147,6 +147,15 @@
 
     <form id="loginForm">
         <div class="mb-3">
+            <label for="contractnumber" class="form-label">Mã hợp đồng</label>
+            <input type="text"
+                   class="form-control"
+                   id="contractnumber"
+                   placeholder="Nhập mã hợp đồng"
+                   name="contractnumber">
+        </div>
+
+        <div class="mb-3">
             <label for="username" class="form-label">Username</label>
             <input type="text"
                    class="form-control"
@@ -257,7 +266,8 @@
     document.addEventListener("DOMContentLoaded", function () {
         const username = document.getElementById("username");
         const password = document.getElementById("password");
-
+        const contractnumber = document.getElementById("contractnumber");
+ 
         [username, password].forEach(function (input) {
             input.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") {
@@ -289,11 +299,13 @@
     function login() {
         var username = document.getElementById("username").value.trim();
         var password = document.getElementById("password").value.trim();
+        var contractnumber = document.getElementById("contractnumber").value.trim();
 
         console.log("Thông tin đăng nhập: ", username);
         console.log("Thông tin đăng nhập: ", password);
+        console.log("Mã hợp đồng ", contractnumber);
 
-        if (username === "" || password === "") {
+        if (username === "" || password === "" || contractnumber === "") {
             document.getElementById("contentModalError").innerHTML = "Vui lòng điền đủ thông tin";
             $('#failModal').modal('show');
             return;
@@ -307,7 +319,8 @@
 
         var data = {
             UserName: username,
-            PassWord: password
+            PassWord: password, 
+            Contractnumber: contractnumber
         };
 
         $.ajax({

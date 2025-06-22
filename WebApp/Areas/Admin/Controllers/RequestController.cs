@@ -46,7 +46,7 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("GetAllRequest")]
-        public async Task<IActionResult> GetAllRequest([FromBody] GetListReq req)
+        public async Task<IActionResult> GetAllRequest([FromBody] GetListReqad req)
         {
             try
             {

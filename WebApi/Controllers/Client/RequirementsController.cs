@@ -21,17 +21,10 @@ namespace WebApi.Controllers.Client
             _context = context;
         }
 
-        //[HttpPost]
-        //public async Task<ActionResult<Requirement_Company>> GetAllRequest([FromBody] GetListReq entity)
-        //{
-        //    var sup = await _requirementService.GetAllRequest(entity);
-        //    return Ok(sup);
-        //}
-
-        [HttpGet]
-        public async Task<ActionResult<CompanyAccountDTO>> GetAllInfor([FromQuery] string req)
+        [HttpPost]
+        public async Task<ActionResult<CompanyAccountDTO>> GetAllInfor([FromBody] reqSelect reqSelect)
         {
-            var company = await _requirementService.GetAllInfor(req);
+            var company = await _requirementService.GetAllInfor(reqSelect.CustomerId, reqSelect.ContractNumber);
             return Ok(company);
         }
 
@@ -62,6 +55,7 @@ namespace WebApi.Controllers.Client
             }
         }
 
+        //xem chi tiet
         [HttpGet]
         public async Task<ActionResult<Requirement_Company>> GetdetailRequest([FromQuery] string query)
         {
@@ -70,12 +64,40 @@ namespace WebApi.Controllers.Client
             return Ok(sup);
         }
 
+        //list hiển thị 
         [HttpPost]
         public async Task<ActionResult<PagingResult<Request_GroupCompany_DTO>>> GetAllRequest([FromBody] GetListReq req)
         {
             var phieuTra = await _requirementService.GetAllRequest(req);
 
             return Ok(phieuTra);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Review([FromBody] ReviewDTO request)
+        {
+            if (request == null)
+            {
+                Console.WriteLine("Dữ liệu đầu vào không hợp lệ.");
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+            }
+
+            var result = await _requirementService.Review(request);
+
+            if (result?.StartsWith("REVIEW_") == true)  // Kiểm tra null trước
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đánh giá dịch vụ thành công",
+                    companyID = result
+                });
+            }
+            else
+            {
+                return BadRequest(new { success = false, message = result ?? "Lỗi không xác định." });
+            }
+
         }
     }
 }

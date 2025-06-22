@@ -9,8 +9,6 @@ public partial class Requirement
 
     public string Requirementsid { get; set; } = null!;
 
-    public string Requirementsstatus { get; set; } = null!;
-
     public DateTime? Dateofrequest { get; set; }
 
     public string Descriptionofrequest { get; set; } = null!;
@@ -18,6 +16,10 @@ public partial class Requirement
     public string Contractnumber { get; set; } = null!;
 
     public string SupportCode { get; set; } = null!;
+
+    public int? Requirementsstatus { get; set; }
+
+    public bool IsReviewed { get; set; }
 
     public virtual ICollection<Assign> Assigns { get; set; } = new List<Assign>();
 

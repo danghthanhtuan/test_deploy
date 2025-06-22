@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Ocsp;
 using System.Net.Http.Headers;
 using System.Text;
 using WebApp.Configs;
@@ -30,43 +31,18 @@ namespace WebApp.Controllers
             return View();
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> GetAllRequest([FromBody] GetListReq req)
-        //{
-        //    try
-        //    {
-        //        List<Requirement_Company> listRequest = new List<Requirement_Company>();
-        //        var reqjson = JsonConvert.SerializeObject(req);
-        //        var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
-        //        HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Requirements/GetAllRequest", httpContent);
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            var responseData = await response.Content.ReadAsStringAsync();
-        //            var responseObject = JsonConvert.DeserializeObject<PagingResult<Requirement_Company>>(responseData);
-        //            return Ok(new { success = true, listRequest = responseObject });
-        //        }
-        //        else
-        //        {
-        //            var errorMessage = await response.Content.ReadAsStringAsync();
-        //            return BadRequest(new { success = false, message = errorMessage });
-        //        }
-        //    }
-        //    catch
-        //    {
-        //        return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
-        //    }
-        //}
-
-        [HttpGet]
-        public async Task<IActionResult> GetAllInfor([FromQuery] string customerID)
+        [HttpPost]
+        public async Task<IActionResult> GetAllInfor([FromBody] reqSelect reqSelect)
         {
             try
             {
                 List<CompanyAccountDTO> listRequest = new List<CompanyAccountDTO>();
 
-                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/client/Requirements/GetAllInfor?req={customerID}");
+                // Chuẩn bị request body
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(reqSelect), Encoding.UTF8, "application/json");
+
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/client/Requirements/GetAllInfor", jsonContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -86,6 +62,7 @@ namespace WebApp.Controllers
             }
         }
 
+
         [HttpPost]
         public async Task<IActionResult> Insert([FromBody] Requirement_C Req)
         {
@@ -97,8 +74,6 @@ namespace WebApp.Controllers
                 return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
             try
             {
-
-
                 // Chuẩn bị request body
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(Req), Encoding.UTF8, "application/json");
 
@@ -139,14 +114,12 @@ namespace WebApp.Controllers
                     var reponseData = await response.Content.ReadAsStringAsync();
                     var responseObject = JsonConvert.DeserializeObject<Requirement_Company>(reponseData);
                     return Ok(new { success = true, listHis = responseObject });
-
                 }
                 else
                 {
                     var errorMessage = await response.Content.ReadAsStringAsync();
                     return BadRequest(new { success = false, message = errorMessage });
                 }
-
             }
             catch
             {
@@ -154,6 +127,7 @@ namespace WebApp.Controllers
             }
         }
 
+        //lấy list yêu cầu hiển thị  
         [HttpPost]
         public async Task<IActionResult> GetAllRequest([FromBody] GetListReq req)
         {
@@ -184,5 +158,40 @@ namespace WebApp.Controllers
             }
             
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Review([FromBody] ReviewDTO request)
+        {
+            if (request == null)
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+
+            try
+            {
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+                var response = await _client.PostAsync(_apiConfigs.BaseApiUrl + "/client/Requirements/Review", jsonContent);
+
+                var result = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<JObject>(result);
+
+                string errorMessage = apiResponse["message"]?.ToString() ?? "Có lỗi xảy ra từ API.";
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok(new { success = true, message = errorMessage });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi hệ thống: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống, vui lòng thử lại sau." });
+            }
+        }
+
     }
 }

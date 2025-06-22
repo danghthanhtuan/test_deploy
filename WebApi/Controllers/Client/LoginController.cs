@@ -23,7 +23,7 @@ namespace WebApi.Controllers.Client
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody] LoginRequesta model)
+        public async Task<IActionResult> Login([FromBody] LoginRequestClient model)
         {
             try
             {
@@ -32,13 +32,13 @@ namespace WebApi.Controllers.Client
                     return BadRequest(new { success = false, message = "Tài khoản hoặc mật khẩu không được để trống." });
                 }
 
-                Account clients = _loginService.LoginAsync(model.UserName, model.PassWord);
+                Accountlogin clients = _loginService.LoginAsync(model.UserName, model.PassWord, model.Contractnumber);
 
                 if (clients != null)
                 {
-                    var token = await _jwtService.CreateTokenUser(clients.Rootname);
+                    var token = await _jwtService.CreateTokenUser(clients.Rootname, clients.Contractnumber);
 
-                    return Ok(new APIResponse<Account>()
+                    return Ok(new APIResponse<Accountlogin>()
                     {
                         Success = true,
                         Message = token!.AccessToken!,
@@ -47,7 +47,7 @@ namespace WebApi.Controllers.Client
                 }
                 else
                 {
-                    string checkLogin = _loginService.CheckLogin(model.UserName, model.PassWord);
+                    string checkLogin = _loginService.CheckLogin(model.UserName, model.PassWord, model.Contractnumber);
 
                     return Ok(new APIResponse<object>()
                     {

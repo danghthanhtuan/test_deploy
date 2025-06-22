@@ -168,6 +168,13 @@
         padding: 5px;
         margin-top: 10px;
     }
+
+    #expiredNotice {
+        color: red;
+        font-weight: bold;
+        padding-top: 10px;
+    }
+
 </style>
 <body>
     <div id="listRequestContainer" class="container-fluid d-flex flex-column vh-100">
@@ -433,13 +440,12 @@
                         <div class="form-group d-flex align-items-center">
                             <label class="w-25">Trạng thái hỗ trợ:</label>
                             <select id="reqStatus" class="form-control w-75">
-                                <option value="Yeucauhotro">Yêu cầu hỗ trợ</option> 
-                                <option value="Yeucauchapnhan">Yêu cầu chấp nhận</option>
-                                <option value="Dangxuly">Đang xử lý</option>
-                                <option value="Hotrohoantat">Hỗ trợ hoàn tất</option>
-                                <option value="Trihoan">Trì hoãn</option>
-                                <option value="Dong">Đóng</option>
-                                <option value="Huy">Hủy</option>
+                                <option value="0">Yêu cầu hỗ trợ</option> 
+                                <option value="1">Yêu cầu chấp nhận</option>
+                                <option value="2">Đang xử lý</option>
+                                <option value="3">Hỗ trợ hoàn tất</option>
+                                <option value="4">Trì hoãn</option>
+                                <option value="5">Đóng</option>
                             </select>
                         </div>
 
@@ -484,12 +490,7 @@
                 <div class="status-time"></div>
             </div>
             <div class="status-column alt">
-                <div class="status-content">Đóng</div>
-                <div class="status-dot"></div>
-                <div class="status-time"></div>
-            </div>
-            <div class="status-column">
-                <div class="status-content">Hủy</div>
+                <div class="status-content">Đóng/Hủy</div>
                 <div class="status-dot"></div>
                 <div class="status-time"></div>
             </div>
@@ -546,32 +547,6 @@
     </div>
 </div>
 
-@* <div class="modal fade" id="mySupportModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">Phân công yêu cầu</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <label class="w-25">Bộ phận:</label>
-                <select class="form-control w-75" id="Assign" name="Assign">
-                    <option value="Truyenthong">Viễn thông & Truyền thông</option>
-                    <option value="Dientoandammay">Điện toán đám mây & Phần mềm</option>
-                    <option value="Antoanthongtin">Hỗ trợ & An toàn thông tin</option>
-                    <option value="Hopdong">Hợp đồng & Đối tác</option>
-                </select>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" id="confirmBtn">Xác nhận</button>
-            </div>
-        </div>
-    </div>
-</div> *@
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -626,7 +601,7 @@
             event.preventDefault();
             console.log("Nhấn Quay lại từ update!");
             document.getElementById("description2").value = "";
-            document.getElementById("reqStatus").value = "Yeucauhotro";
+            document.getElementById("reqStatus").value = "0";
             listRequestContainer.classList.remove("hidden");
             createRequestContainer.classList.add("hidden");
             detailRequestContainer.classList.add("hidden");
@@ -711,10 +686,24 @@
                     data: "requirementsStatus",
                     width: "14%",
                     render: function (data, type, row) {
-                        if (data === "Yêu cầu hỗ trợ") {
-                            return `<span class="status-clickable text-danger fw-bold" data-id="${row.requirementsId}" style="cursor: pointer;">${data}</span>`;
+                        const statusLabels = {
+                            0: "Yêu cầu hỗ trợ",
+                            1: "Yêu cầu chấp nhận",
+                            2: "Đang xử lý",
+                            3: "Hỗ trợ hoàn tất",
+                            4: "Trì hoãn",
+                            5: "Đóng/Hủy"
+                        };
+
+                        const status = parseInt(data); // Đảm bảo là số
+                        const label = statusLabels[status] || "Không xác định";
+
+                        // Nếu là trạng thái cần click để thao tác (ví dụ chỉ cho trạng thái 0)
+                        if (status === 0) {
+                            return `<span class="status-clickable text-danger fw-bold" data-id="${row.requirementsId}" style="cursor: pointer;">${label}</span>`;
                         }
-                        return data || "";
+
+                        return `<span>${label}</span>`;
                     }
                 },
                 {
@@ -724,13 +713,6 @@
                         return data ? new Date(data).toLocaleDateString("vi-VN") : "";
                     }
                 },
-                // {
-                //     data: null,
-                //     width: "20%",
-                //     render: function (data, type, row) {
-                //         return `<button id="btnDetail"  class="btn btn-sm btn-primary detail-btn" data-id="${row.requirementsId}">Chi tiết</button>`;
-                //     }
-                // }
                 {
                     data: null,
                     width: "10%",
@@ -746,22 +728,7 @@
                     }
                 }
 
-
-
             ],
-            // drawCallback: function (settings) {
-            //     $(".status-clickable").off("click").on("click", function () {
-            //         var id = $(this).data("id");
-
-            //         // Gán ID vào một phần tử riêng biệt trong modal
-            //         $("#modalLabel").text("Phân công yêu cầu: " + id);
-            //         $("#mySupportModal").data("request-id", id); // nếu sau này cần dùng
-
-            //         // Hiển thị modal
-            //         $("#mySupportModal").modal("show");
-            //     });
-            // },
-
             createdRow: function (row, data) {
                 $(row).data("fullData", data);
             },
@@ -881,24 +848,38 @@
             contentType: "application/json; charset=utf-8",
             success: function (res) {
                 const listRequest = res.listRequest || [];
+                console.log("Dữ liệu lịch sử:", listRequest);
 
-                // Reset toàn bộ
+                // Reset toàn bộ UI trước
                 $(".status-time").text("");
                 $(".status-dot").removeClass("active skipped");
                 $(".status-column").removeClass("skipped-bg");
 
-                // Lấy danh sách status đã có thời gian
+                // Map status code sang label hiển thị
+                const statusLabelMap = {
+                    0: "Yêu cầu hỗ trợ",
+                    1: "Yêu cầu chấp nhận",
+                    2: "Đang xử lý",
+                    3: "Hỗ trợ hoàn tất",
+                    4: "Trì hoãn",
+                    5: "Đóng/Hủy"
+                };
+
+                // Tạo map lưu trạng thái đã hoàn thành và thời gian tương ứng
                 const statusDoneMap = {};
                 listRequest.forEach(item => {
-                    const status = item.apterstatus?.trim();
-                    const time = formatDateTime(item.dateOfRequest);
-                    statusDoneMap[status] = time;
+                    const statusCode = item.apterstatus;
+                    const label = statusLabelMap[statusCode];
+                    const time = formatDateTime(item.dateofupdate);
+                    if (label) {
+                        statusDoneMap[label] = time;
+                    }
                 });
 
                 const $columns = $(".status-column");
                 let lastDoneIndex = -1;
 
-                // B1: Gán thời gian và đánh dấu các bước đã hoàn thành (active)
+                // B1: Gán thời gian cho các bước đã làm
                 $columns.each(function (index) {
                     const statusName = $(this).find(".status-content").text().trim();
                     const time = statusDoneMap[statusName];
@@ -910,17 +891,17 @@
                     }
                 });
 
-                // B2: Kiểm tra bước bị bỏ qua (skipped) và đổi màu nền
+                // B2: Đánh dấu các bước bị bỏ qua
                 $columns.each(function (index) {
                     const hasTime = $(this).find(".status-time").text().trim() !== "";
 
                     if (index < lastDoneIndex && !hasTime) {
                         $(this).find(".status-dot").addClass("skipped");
-                        $(this).addClass("skipped-bg"); // đổi nền
+                        $(this).addClass("skipped-bg");
                     }
                 });
 
-                // B3: Reset và disable các option đã đi qua
+                // B3: Disable option đã qua trong dropdown
                 const $select = $("#reqStatus");
                 $select.find("option").prop("disabled", false).each(function () {
                     const text = $(this).text().trim();
@@ -929,7 +910,7 @@
                     }
                 });
 
-                // Nếu dùng select2 hoặc thư viện khác thì nhớ trigger lại để giao diện cập nhật
+                // Nếu có dùng select2
                 if ($select.hasClass("select2-hidden-accessible")) {
                     $select.trigger("change.select2");
                 }
@@ -966,26 +947,37 @@
 
                     console.log("Trạng thái hỗ trợ:", company.requirementsStatus);
                     var statusMap = {
-                        "Yêu cầu hỗ trợ": "Yeucauhotro",
-                        "Yêu cầu chấp nhận": "Yeucauchapnhan",
-                        "Đang xử lý": "Dangxuly",
-                        "Hỗ trợ hoàn tất": "Hotrohoantat",
-                        "Trì hoãn": "Trihoan",
-                        "Đóng": "Dong",
-                        "Hủy": "Huy"
-                    };
+                        "0": "Yêu cầu hỗ trợ",
+                        "1": "Yêu cầu chấp nhận",
+                        "2": "Đang xử lý",
+                        "3": "Hỗ trợ hoàn tất",
+                        "4": "Trì hoãn",
+                        "5": "Đóng/Hủy"
+                    }; 
 
                     // Lấy value tương ứng từ map
-                    var statusValue = statusMap[company.requirementsStatus.trim()] || "";
+                    var statusValue = company.requirementsStatus?.toString() || "";
+
+                    // Nếu trạng thái hiện tại là Hoàn tất (3) hoặc Đóng (5) => khóa các trường
+                    if (statusValue === "3" || statusValue === "5") {
+                        $("#reqStatus").prop("disabled", true);
+                        $("#description2").prop("readonly", true);
+                        $("#updateStatus").prop("disabled", true);
+
+                        $("#expiredNotice").text("Yêu cầu đã hoàn tất hoặc đã bị đóng. Bạn không thể chỉnh sửa.").show();
+                        return; // Thoát luôn nếu đã kết thúc
+                    }
+
 
                     // Nếu tìm thấy giá trị phù hợp thì gán
                     if ($("#reqStatus option[value='" + statusValue + "']").length > 0) {
                         $("#reqStatus").val(statusValue);
+                        $("#reqStatus").data("current", parseInt(statusValue)); // Gán trạng thái hiện tại để dùng khi kiểm tra
+
                     } else {
                         console.warn("Không tìm thấy trạng thái:", company.requirementsStatus);
                     }
-
-
+                    
                     // 🔍 Kiểm tra ngày kết thúc và trạng thái hoạt động
                     var endDate = new Date(company.enddate);
                     var today = new Date();
@@ -1035,7 +1027,7 @@
         // Lấy text của option đang chọn
         var selectElement = document.getElementById("Support");
         var Support = selectElement.options[selectElement.selectedIndex].text.trim();
-        var requirementsStatus = "Yêu cầu hỗ trợ";
+        var requirementsStatus = "0";
         var dateOfRequest = new Date().toISOString();
 
         if (!descriptionOfRequest) {
@@ -1060,11 +1052,12 @@
             RequirementsStatus: requirementsStatus,
             DateOfRequest: dateOfRequest,
             DescriptionOfRequest: descriptionOfRequest,
-            ContractNumber: contractNumber
+            ContractNumber: contractNumber, 
+            CustomerId: customerId
         };
         var StaffId = "@User.FindFirst("StaffId")?.Value";
 
-        document.getElementById("contentModalConfirm").innerHTML;
+        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn cập nhật trạng thái không?";
         const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
         modal.show();
 
@@ -1116,14 +1109,50 @@
     function updateStatus(event) {
         event.preventDefault(); // Ngăn chặn load lại trang nếu là <button>
         console.log("Gọi updateStatus()"); // Kiểm tra xem hàm có được gọi không
-        // Lấy giá trị từ input
+       // Lấy giá trị từ input
         var reqID = $("#reqID2").val().trim();
-        var reqStatusElement = document.getElementById("reqStatus");
-        var reqStatus = reqStatusElement.options[reqStatusElement.selectedIndex].text; // Lấy nội dung hiển thị
-        console.log("reqStatus:", reqStatus);
-        console.log("reqID2:", reqID2);
-
+        var reqStatusValue = parseInt(document.getElementById("reqStatus").value); // ✅ Lấy value dạng số nguyên
+        console.log("reqStatus (int):", reqStatusValue);
+        console.log("reqID2:", reqID); // Sửa từ reqID2 (sai) thành reqID (đã lấy đúng)
         var descriptionOfRequest = description2.value.trim();
+
+        // ⚠️ Lấy trạng thái hiện tại từ data gán trước đó
+        var currentStatus = parseInt($("#reqStatus").data("current"));
+
+
+        console.log("Trạng thái hiện tại:", currentStatus);
+        console.log("Trạng thái muốn chuyển:", reqStatusValue);
+        const statusNames = {
+            0: "Yêu cầu hỗ trợ",
+            1: "Yêu cầu chấp nhận",
+            2: "Đang xử lý",
+            3: "Hỗ trợ hoàn tất",
+            4: "Trì hoãn",
+            5: "Đóng/Hủy"
+        };
+
+        // ✅ Map chuyển trạng thái hợp lệ
+        const validTransitions = {
+            0: [1, 5],
+            1: [2, 4, 5],
+            2: [3, 5],
+            3: [],        // không chuyển tiếp được
+            4: [2, 5],
+            5: []         // đã kết thúc
+        };
+
+        // ⚠️ Check luồng chuyển trạng thái hợp lệ
+        if (!validTransitions[currentStatus]?.includes(reqStatusValue)) {
+            const message = `⛔ Không thể chuyển trạng thái từ "${statusNames[currentStatus]}" sang "${statusNames[reqStatusValue]}".`;
+            console.warn(message);
+            showErrorModal(message);
+            document.getElementById("btnCloseModal").addEventListener("click", function () {
+                $("#ModalError").modal("hide");
+            });
+            return;
+        }
+
+
         if (!descriptionOfRequest) {
             showErrorModal("Vui lòng mô tả tình trạng cập nhật mới nhất.");
             // Gán sự kiện đóng modal vào nút "Đóng"
@@ -1145,11 +1174,13 @@
         }
         var StaffId = "@User.FindFirst("StaffId")?.Value";
         console.log("StaffId:", StaffId);
+
+
         // Dữ liệu gửi đi
         var requestData = {
             RequirementsId: reqID,
             Descriptionofrequest: descriptionOfRequest,
-            Apterstatus: reqStatus,
+            Apterstatus: reqStatusValue,
             Staffid: StaffId
         };
             

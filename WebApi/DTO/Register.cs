@@ -12,6 +12,27 @@
         public string UserName { get; set; } = null!;
         public string PassWord { get; set; } = null!;
     }
+
+    public class LoginRequestClient
+    {
+        public string UserName { get; set; } = null!;
+        public string PassWord { get; set; } = null!;
+        public string Contractnumber { get; set; } = null!;
+    }
+
+    public class Accountlogin
+    {
+        public string Customerid { get; set; } = null!;
+
+        public string Rootaccount { get; set; } = null!;
+
+        public string Rootname { get; set; } = null!;
+
+        public string Rphonenumber { get; set; } = null!;
+
+        public string Contractnumber { get; set; } = null!;
+
+    }
     public class APIResponse<T>
     {
         public bool Success { get; set; }

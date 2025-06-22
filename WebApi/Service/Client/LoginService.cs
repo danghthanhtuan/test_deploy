@@ -25,7 +25,7 @@ namespace WebApi.Service.Client
             _context = context;
             _emailService = emailService;
         }
-        public Account LoginAsync( string username, string password)
+        public Accountlogin LoginAsync( string username, string password, string contractnumber)
         {
             try
             {
@@ -33,22 +33,26 @@ namespace WebApi.Service.Client
                 (from cl in _context.Accounts
                  join lg in _context.Loginclients
                  on cl.Customerid equals lg.Customerid
-                 where lg.Username == username
+                 join contract in _context.Contracts
+                 on lg.Customerid equals contract.Customerid
+                 where lg.Username == username && contract.Contractnumber == contractnumber && contract.IsActive == true
                  select new
                  {
                      cl.Customerid,
                      cl.Rootname,
                      cl.Rphonenumber,
-                     lg.Passwordclient // Lấy mật khẩu đã mã hóa từ DB
+                     lg.Passwordclient, 
+                     contract.Contractnumber// Lấy mật khẩu đã mã hóa từ DB
                  }).FirstOrDefault();
 
                 if (client != null && BCrypt.Net.BCrypt.Verify(password, client.Passwordclient))
                 {
-                    return new Account
+                    return new Accountlogin
                     {
                         Customerid = client.Customerid,
                         Rootname = client.Rootname,
-                        Rphonenumber = client.Rphonenumber
+                        Rphonenumber = client.Rphonenumber, 
+                        Contractnumber = client.Contractnumber
                     };
                 }
 
@@ -59,7 +63,7 @@ namespace WebApi.Service.Client
                 throw;
             }
         }
-        public string CheckLogin(string username, string password)
+        public string CheckLogin(string username, string password, string contractnumber)
         {
             try
             {
@@ -81,79 +85,6 @@ namespace WebApi.Service.Client
                 throw;
             }
         }
-
-        //public async Task<string> SendEmail_OTP(string phoneNumber, string userEmail)
-        //{
-        //    try
-        //    {
-        //        var user = (from login in _context.Loginclients
-        //                    join acc in _context.Accounts on login.Username equals acc.Rphonenumber
-        //                    where login.Username == phoneNumber && acc.Rootaccount == userEmail
-        //                    select new
-        //                    {
-        //                        login,
-        //                        acc.Rootaccount
-        //                    }).FirstOrDefault();
-
-        //        if (user == null)
-        //        {
-        //            return "Số điện thoại hoặc email không hợp lệ!";
-        //        }
-
-        //        Random rd = new Random();
-        //        int otpCode = rd.Next(100000, 1000000);
-        //        OTP_email = otpCode;
-
-        //        // Lưu OTP vào Redis
-        //        await _cache.SetStringAsync(phoneNumber, otpCode.ToString(), new DistributedCacheEntryOptions
-        //        {
-        //            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
-        //        });
-
-        //        var emailSender = new SendEmailRegister();
-        //        MailRequest mailRequest = new MailRequest
-        //        {
-        //            ToEmail = userEmail,
-        //            Subject = "Mã OTP khôi phục mật khẩu",
-        //            Body = emailSender.SendEmail_Register(otpCode, userEmail)
-        //        };
-
-        //        await _emailService.SendEmailAsync(mailRequest);
-        //        return "Ok";
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return e.Message;
-        //    }
-        //}
-
-        //public async Task<string> CheckEMmail_Register(string phoneNumber, int otp)
-        //{
-        //    try
-        //    {
-        //        // Lấy OTP từ Redis
-        //        var storedOtp = await _cache.GetStringAsync(phoneNumber);
-
-        //        if (string.IsNullOrEmpty(storedOtp))
-        //        {
-        //            return "Mã OTP đã hết hạn!";
-        //        }
-
-        //        if (otp.ToString() == storedOtp)
-        //        {
-        //            // Xóa OTP sau khi xác thực thành công
-        //            await _cache.RemoveAsync(phoneNumber);
-        //            return "OTP hợp lệ!";
-        //        }
-
-        //        return "Mã OTP không chính xác!";
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return "Lỗi hệ thống, vui lòng thử lại!";
-        //    }
-        //}
-
 
         public async Task<(bool Success, string Message)> UpdatePassword(LoginRequesta model)
         {

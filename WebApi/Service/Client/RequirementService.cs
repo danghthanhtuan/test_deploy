@@ -70,13 +70,13 @@ namespace WebApi.Service.Client
         //    };
         //}
 
-        public async Task<List<CompanyAccountDTO>> GetAllInfor(string req)
+        public async Task<List<CompanyAccountDTO>> GetAllInfor(string req, string Contractnumber)
         {
             var query = from c in _context.Companies
                         join a in _context.Accounts on c.Customerid equals a.Customerid
                         join b in _context.Contracts on c.Customerid equals b.Customerid
                         join h in _context.ServiceTypes on b.ServiceTypeid equals h.Id
-                        where c.Customerid == req
+                        where c.Customerid == req && b.Contractnumber == Contractnumber
                         select new CompanyAccountDTO
                         {
                             CustomerId = c.Customerid,
@@ -160,7 +160,7 @@ namespace WebApi.Service.Client
                         Requirementsid = newRequirements,
                         SupportCode = support.SupportCode,
                         Requirementsstatus = Req.RequirementsStatus,
-                        Dateofrequest = Req.DateOfRequest,
+                        Dateofrequest = DateTime.Now,
                         Descriptionofrequest = Req.DescriptionOfRequest,
                         Contractnumber = Req.ContractNumber,
                     };
@@ -220,6 +220,7 @@ namespace WebApi.Service.Client
             return await query.ToListAsync();
         }
 
+        //1. list hiển thị  của hop đồng được đăng nhập getall    
         public async Task<PagingResult<Request_GroupCompany_DTO>> GetAllRequest(GetListReq req)
         {
 
@@ -232,7 +233,7 @@ namespace WebApi.Service.Client
                          join h in _context.Historyreqs on r.Requirementsid equals h.Requirementsid into historyJoin
                          from h in historyJoin.DefaultIfEmpty() // Left Join
 
-                         where c.Customerid == req.Cutomer
+                         where c.Customerid == req.Cutomer && b.Contractnumber == req.Contractnumber
                          select new Requirement_Company1
                          {
                              RequirementsId = r.Requirementsid,
@@ -245,7 +246,10 @@ namespace WebApi.Service.Client
                              Descriptionofrequest2 = h.Descriptionofrequest,
                              BeforStatus = h.Beforstatus,
                              Apterstatus = h.Apterstatus,
-                         }).AsQueryable().GroupBy(g => new { g.RequirementsId, g.Support, g.RequirementsStatus, g.DateOfRequest, g.DescriptionOfRequest1, g.ContractNumber }, (key, getHistory) => new Request_GroupCompany_DTO
+                             Dateofupdate = h.Dateofupdate,
+                             IsReviewed = r.IsReviewed,
+                             
+                         }).AsQueryable().GroupBy(g => new { g.RequirementsId, g.Support, g.RequirementsStatus, g.DateOfRequest, g.DescriptionOfRequest1, g.ContractNumber, g.IsReviewed }, (key, getHistory) => new Request_GroupCompany_DTO
                          {
                              Request_Group = new Request_Group()
                              {
@@ -255,6 +259,8 @@ namespace WebApi.Service.Client
                                  DateOfRequest = key.DateOfRequest,
                                  DescriptionOfRequest = key.DescriptionOfRequest1,
                                  ContractNumber = key.ContractNumber,
+                                 IsReviewed = key.IsReviewed,
+
                              },
                              HistoryRequests = getHistory.Select(req => new HistoryRequests
                              {
@@ -263,6 +269,7 @@ namespace WebApi.Service.Client
                                  Descriptionofrequest = req.Descriptionofrequest2,
                                  BeforStatus = req.BeforStatus,
                                  Apterstatus = req.Apterstatus,
+                                 Dateofupdate = req.Dateofupdate,
                              }).ToList(),
                          });
 
@@ -320,6 +327,70 @@ namespace WebApi.Service.Client
                         };
 
             return await query.FirstOrDefaultAsync(); // Lấy duy nhất một yêu cầu
+        }
+        public async Task<string?> Review(ReviewDTO request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Requirementsid))
+                return "Dữ liệu không hợp lệ.";
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // 1. Thêm vào bảng REVIEW
+                var review = new Review
+                {
+                    Requirementsid = request.Requirementsid,
+                    Comment = request.Comment,
+                    Dateofupdate =  DateTime.Now
+                };
+
+                _context.Reviews.Add(review);
+                await _context.SaveChangesAsync(); // để có được REVIEW.ID
+
+                int reviewId = review.Id;
+
+                foreach (var detail in request.ReviewDetails)
+                {
+                    // 2. Tìm ID của tiêu chí từ bảng REVIEW_CRITERIA
+                    var criteria = await _context.ReviewCriteria
+                        .FirstOrDefaultAsync(c => c.CriteriaName == detail.CriteriaName);
+
+                    if (criteria == null)
+                    {
+                        return $"Không tìm thấy tiêu chí: {detail.CriteriaName}";
+                    }
+
+                    // 3. Thêm vào bảng REVIEW_DETAIL
+                    var reviewDetail = new ReviewDetail
+                    {
+                        ReviewId = reviewId,
+                        CriteriaId = criteria.Id,
+                        Star = detail.Star
+                    };
+
+                    _context.ReviewDetails.Add(reviewDetail);
+                }
+
+                var requirement = await _context.Requirements
+                .FirstOrDefaultAsync(r => r.Requirementsid == request.Requirementsid);
+
+                if (requirement != null)
+                {
+                    requirement.IsReviewed = true;
+                    _context.Requirements.Update(requirement);
+                }
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return $"REVIEW_{ reviewId}"; // Thành công
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                // Log lỗi nếu cần
+                return $"Lỗi khi đánh giá: {ex.Message}";
+            }
         }
 
     }

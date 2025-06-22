@@ -13,11 +13,11 @@ public partial class Historyreq
 
     public DateTime? Dateofupdate { get; set; }
 
-    public string Beforstatus { get; set; } = null!;
-
-    public string Apterstatus { get; set; } = null!;
-
     public string Staffid { get; set; } = null!;
+
+    public int? Beforstatus { get; set; }
+
+    public int? Apterstatus { get; set; }
 
     public virtual Requirement Requirements { get; set; } = null!;
 

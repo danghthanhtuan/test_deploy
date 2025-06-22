@@ -24,9 +24,9 @@ namespace WebApi.Controllers.Admin
         }
 
         [HttpPost]
-        public async Task<ActionResult<Requirement_Company>> GetAllRequest([FromBody] GetListReq entity)
+        public async Task<ActionResult<Requirement_Company>> GetAllRequest([FromBody] GetListReqad aa)
         {
-            var sup = await _requestService.GetAllRequest(entity);
+            var sup = await _requestService.GetAllRequest(aa);
             return Ok(sup);
         }
         [HttpGet]

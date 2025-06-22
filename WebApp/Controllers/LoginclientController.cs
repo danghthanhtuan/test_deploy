@@ -44,7 +44,7 @@ namespace WebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> LoginAuthenticate([FromBody] LoginRequest model)
+        public async Task<IActionResult> LoginAuthenticate([FromBody] LoginRequestClient model)
         {
             if (model == null)
             {
@@ -65,7 +65,7 @@ namespace WebApp.Controllers
                     return View("Loginclient");
                 }
 
-                var apiResponse = JsonConvert.DeserializeObject<APIResponse<Account>>(dataJson);
+                var apiResponse = JsonConvert.DeserializeObject<APIResponse<Accountlogin>>(dataJson);
 
                 if (apiResponse == null || !apiResponse.Success || apiResponse.Data == null)
                 {
@@ -77,7 +77,9 @@ namespace WebApp.Controllers
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Name, apiResponse.Data.Rootname),
-                        new Claim("CustomerId", apiResponse.Data.Customerid.ToString())
+                        new Claim("CustomerId", apiResponse.Data.Customerid.ToString()),
+                        new Claim("Contractnumber", apiResponse.Data.Contractnumber.ToString()),
+
                     };
 
                 var claimsIdentity = new ClaimsIdentity(claims, "User");

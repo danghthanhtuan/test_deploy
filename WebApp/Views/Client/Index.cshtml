@@ -167,6 +167,7 @@
                                     <th>Trạng thái</th>
                                     <th>Ngày tạo</th>
                                     <th>Chi tiết</th>
+                                    <th>Đánh giá</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -354,7 +355,36 @@
     </div>
 </div>
 
+<!-- Modal đánh giá -->
+<div class="modal fade" id="evaluateModal" tabindex="-1" aria-labelledby="evaluateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đánh giá dịch vụ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <form id="evaluateForm">
+                    <div id="ratingFields"></div>
+
+                    <div class="mb-3 mt-4">
+                        <label class="form-label"><strong>Đánh giá</strong></label>
+                        <textarea id="evaluateComment" class="form-control" rows="5" style="resize: none; overflow-y: auto; overflow-x: hidden;"
+                                  placeholder="Viết nội dung đánh giá ở đây (>3 ký tự và <1000 ký tự)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="submitEvaluation">Gửi đánh giá</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         console.log("DOM đã tải xong!");
@@ -396,14 +426,21 @@
         init();
     });
   
-
+    //lấy thông tin tạo yêu cầu
     function getInfor() {
         var userId = "@User.FindFirst("CustomerId")?.Value";
-
+        var Contractnumber = "@User.FindFirst("Contractnumber")?.Value";
+        var cValues = {
+            Contractnumber: Contractnumber,
+            CustomerId: userId,
+        };
         $.ajax({
-            url: `/client/GetAllInfor?customerID=${userId}`, // Truyền tham số qua query string
-            type: "GET",
+            url: `/client/GetAllInfor`, // Truyền tham số qua query string
+            type: "POST",
+            dataType: "json",
             contentType: "application/json; charset=utf-8",
+
+            data: JSON.stringify(cValues),
             success: function (res) {
                 console.log("API Response:", res.listRequest);
 
@@ -445,6 +482,8 @@
 
     function Save() {
         var userId = "@User.FindFirst("CustomerId")?.Value";
+        var Contractnumber = "@User.FindFirst("Contractnumber")?.Value";
+
         var descriptionOfRequest = document.getElementById("descriptionOfRequest").value.trim();
         // Lấy text của option đang chọn
         // Kiểm tra nếu mô tả yêu cầu trống
@@ -458,14 +497,16 @@
         }
         var selectElement = document.getElementById("Support");
         var Support = selectElement.options[selectElement.selectedIndex].text.trim();
-        var requirementsStatus = "Yêu cầu hỗ trợ";
+        var requirementsStatus = "0";
         var dateOfRequest = new Date().toISOString();
         var cValues = {
             Support: Support,
             RequirementsStatus: requirementsStatus,
             DateOfRequest: dateOfRequest,
             DescriptionOfRequest : descriptionOfRequest,
-            CustomerId : userId
+            Contractnumber: Contractnumber,
+            CustomerId : userId,
+
         };
         document.getElementById("contentModalConfirm").innerHTML;
         const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
@@ -519,32 +560,13 @@
         $("#ModalError").modal("show");
     }
 
-    function showDetails(data) {
-        $("#reqId").text(data.requirementsId);
-        $("#reqSupport").text(data.support);
-        $("#reqStatus").text(data.requirementsStatus);
-        $("#reqDate").text(data.dateOfRequest ? new Date(data.dateOfRequest).toLocaleDateString("vi-VN") : "N/A");
-        $("#reqDescription").text(data.descriptionOfRequest || "N/A");
-        $("#reqCustomerId").text(data.customerId);
-        $("#reqCompanyName").text(data.companyName);
-        $("#reqTaxCode").text(data.taxCode);
-        $("#reqCompanyAccount").text(data.companyAccount);
-        $("#reqPhone").text(data.cPhoneNumber);
-        $("#reqAddress").text(data.cAddress);
-        $("#reqCustomerType").text(data.customerType ? "Vip" : "Bình thường");
-        $("#reqServiceType").text(data.serviceType);
-        $("#reqContractNumber").text(data.contractNumber);
-        $("#reqRootAccount").text(data.rootAccount);
-        $("#reqRootName").text(data.rootName);
-        $("#reqRootPhone").text(data.rPhoneNumber);
-        $("#detailModal").modal("show");
-    }
-
+   
     function init() {
         if ($.fn.DataTable.isDataTable("#listRe")) {
             $("#listRe").DataTable().destroy(); // Xóa DataTable cũ trước khi tạo lại
         }
         var userId = "@User.FindFirst("CustomerId")?.Value";
+        var Contractnumber = "@User.FindFirst("Contractnumber")?.Value";
 
         $('#listRe').DataTable({
             processing: true,
@@ -577,8 +599,9 @@
                     return JSON.stringify({
                         PageSize: 7,
                         Page: currentPageIndex,
-                        Cutomer: userId
-                    });
+                        Cutomer: userId, 
+                        Contractnumber: Contractnumber
+                        });
                 },
                 dataSrc: function (res) {
                     console.log("Dữ liệu nhận được từ server:", res);
@@ -586,16 +609,26 @@
                     if (!res || !res.listRequest || !Array.isArray(res.listRequest.results)) {
                         return [];
                     }
-
+                    const statusMap = {
+                        0: "Yêu cầu hỗ trợ",
+                        1: "Yêu cầu chấp nhận",
+                        2: "Đang xử lý",
+                        3: "Hỗ trợ hoàn tất",
+                        4: "Trì hoãn",
+                        5: "Đóng/Hủy"
+                    };
                     return res.listRequest.results.map(item => ({
                         requirementsId: item.request_Group.requirementsId,
                         contractNumber: item.request_Group.contractNumber || "Không có hợp đồng", // Sửa lại đoạn này
                         support: item.request_Group.support,
-                        requirementsStatus: item.request_Group.requirementsStatus,
+                        requirementsStatus: statusMap[item.request_Group.requirementsStatus] || "Không xác định",
                         dateOfRequest: item.request_Group.dateOfRequest,
                         historyRequests: item.historyRequests && item.historyRequests.length > 0
                             ? item.historyRequests
-                            : [{ descriptionofrequest: "Chưa có sự thay đổi nào" }]
+                            : [{ descriptionofrequest: "Chưa có sự thay đổi nào" }],
+                        evaluate: item.request_Group.requirementsStatus === 3 && item.request_Group.isReviewed == false
+                            ? `<button class="btn btn-sm btn-success evaluate-btn" data-id="${item.request_Group.requirementsId}">Đánh giá</button>`
+                            : ''
                     }));
                 },
 
@@ -652,7 +685,17 @@
                     render: function (data, type, row) {
                         return `<button class="btn btn-primary btn-sm" onclick='getDetailRequest("${row.requirementsId}")'>Chi tiết</button>`;
                     }
+                },
+                {
+                    data: "evaluate",
+                    width: "12%",
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row) {
+                        return data; // data chứa nút <button> HTML do bạn render sẵn trong dataSrc
+                    }
                 }
+
             ],
     
             createdRow: function (row, data, dataIndex) {
@@ -665,7 +708,6 @@
             }]
         });
     }
-
     // Khai báo biến theo dõi hàng mở
     let currentOpenRowIndex = null;
 
@@ -699,7 +741,14 @@
 
     function format(d) {
         let render = "";
-
+        const statusMap = {
+            0: "Yêu cầu hỗ trợ",
+            1: "Yêu cầu chấp nhận",
+            2: "Đang xử lý",
+            3: "Hỗ trợ hoàn tất",
+            4: "Trì hoãn",
+            5: "Đóng/Hủy"
+        };
         // Check if historyRequests exists and is an array
         if (d.historyRequests && Array.isArray(d.historyRequests)) {
             // If the historyRequests array has no changes, display a message
@@ -712,8 +761,10 @@
                     render += '<td>' + (item.requirementsid || "-") + '</td>';
                     render += '<td>' + (item.staffid || "-") + '</td>';
                     render += '<td>' + (item.descriptionofrequest || "-") + '</td>';
-                    render += '<td>' + (item.beforStatus || "-") + '</td>';
-                    render += '<td>' + (item.apterstatus || "-") + '</td>';
+                    render += '<td>' + (statusMap[item.beforStatus] || item.beforStatus || "-") + '</td>';
+                    render += '<td>' + (statusMap[item.apterstatus] || item.apterstatus || "-") + '</td>';
+                    render += '<td>' + (item.dateofupdate ? new Date(item.dateofupdate).toLocaleString("vi-VN") : "-") + '</td>';
+
                     render += '</tr>';
                 });
             }
@@ -730,6 +781,9 @@
                         <th style="text-align: center;">Mô tả</th>
                         <th style="text-align: center;">Tình trạng cũ</th>
                         <th style="text-align: center;">Tình trạng mới</th>
+                        <th style="text-align: center;">Ngày cập nhật</th>
+
+
                     </tr>
                 </thead>
                 <tbody>
@@ -759,5 +813,170 @@
             }
         });
     }
+
+    function showDetails(data) {
+
+        const statusMap = {
+            0: "Yêu cầu hỗ trợ",
+            1: "Yêu cầu chấp nhận",
+            2: "Đang xử lý",
+            3: "Hỗ trợ hoàn tất",
+            4: "Trì hoãn",
+            5: "Đóng/Hủy"
+        };
+        $("#reqId").text(data.requirementsId);
+        $("#reqSupport").text(data.support);
+        $("#reqStatus").text(statusMap[data.requirementsStatus] || "Không xác định");
+        $("#reqDate").text(data.dateOfRequest ? new Date(data.dateOfRequest).toLocaleDateString("vi-VN") : "N/A");
+        $("#reqDescription").text(data.descriptionOfRequest || "N/A");
+        $("#reqCustomerId").text(data.customerId);
+        $("#reqCompanyName").text(data.companyName);
+        $("#reqTaxCode").text(data.taxCode);
+        $("#reqCompanyAccount").text(data.companyAccount);
+        $("#reqPhone").text(data.cPhoneNumber);
+        $("#reqAddress").text(data.cAddress);
+        $("#reqCustomerType").text(data.customerType ? "Vip" : "Bình thường");
+        $("#reqServiceType").text(data.serviceType);
+        $("#reqContractNumber").text(data.contractNumber);
+        $("#reqRootAccount").text(data.rootAccount);
+        $("#reqRootName").text(data.rootName);
+        $("#reqRootPhone").text(data.rPhoneNumber);
+        $("#detailModal").modal("show");
+    }
+
+    const ratingQuestions = [
+        { id: "attitude", label: "Thái độ phục vụ", desc: "Nhân viên có lịch sự, thân thiện, sẵn sàng hỗ trợ không?" },
+        { id: "speed", label: "Tốc độ xử lý yêu cầu", desc: "Thời gian xử lý có nhanh chóng, kịp thời, không để khách hàng chờ?" },
+        { id: "quality", label: "Chất lượng xử lý", desc: "Vấn đề có được giải quyết triệt để, đúng kỹ thuật không?" },
+        { id: "satisfaction", label: "Mức độ hài lòng tổng thể", desc: "Cảm nhận chung của khách hàng sau khi yêu cầu được xử lý." },
+    ];
+
+    function generateRatingStars(id) {
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+            html += `<i class="fa fa-star star-icon" data-group="${id}" data-value="${i}" style="cursor:pointer; font-size: 20px; color: #f1c40f;"></i> `;
+        }
+        return html;
+    }
+
+    function renderRatingFields() {
+        const container = document.getElementById('ratingFields');
+        container.innerHTML = '';
+        ratingQuestions.forEach(q => {
+            const group = document.createElement('div');
+            group.className = 'mb-3';
+            group.innerHTML = `
+                <label><strong>${q.label}</strong> <small>(${q.desc})</small></label><br/>
+                ${generateRatingStars(q.id)}
+            `;
+            container.appendChild(group);
+
+            // Gán mặc định 5 sao
+            $('#evaluateForm').data(q.id, 5);
+        });
+    }
+
+    $(document).on('click', '.star-icon', function () {
+        const group = $(this).data('group');
+        const value = $(this).data('value');
+
+        $(`.star-icon[data-group="${group}"]`).each(function () {
+            const v = $(this).data('value');
+            $(this).removeClass('fa-star fa-star-o')
+                .addClass(v <= value ? 'fa-star' : 'fa-star-o')
+                .css('color', v <= value ? '#f1c40f' : '#ccc'); // vàng và xám
+        });
+        $('#evaluateForm').data(group, value);
+    });
+
+
+    // Sự kiện khi nhấn nút "Đánh giá"
+    $(document).on('click', '.evaluate-btn', function () {
+        const reqId = $(this).data('id');
+        $('#evaluateForm').data('requestId', reqId);
+        $('#evaluateComment').val('');
+        renderRatingFields();
+        $('#evaluateModal').modal('show');
+    });
+
+    // Submit đánh giá
+    $('#submitEvaluation').on('click', function () {
+        const reqId = $('#evaluateForm').data('requestId');
+        const comment = $('#evaluateComment').val().trim();
+
+        if (comment.length < 3 || comment.length > 1000) {
+            alert("Nội dung đánh giá phải từ 3 đến 1000 ký tự.");
+            return;
+        }
+
+        const reviewDetails = [];
+        let valid = true;
+
+        ratingQuestions.forEach(q => {
+            const star = $('#evaluateForm').data(q.id);
+            if (!star) valid = false;
+
+            reviewDetails.push({
+                criteriaName: q.label,
+                star: star || 0
+            });
+        });
+
+        if (!valid) {
+            alert("Vui lòng đánh giá đầy đủ 4 mục bằng sao.");
+            return;
+        }
+
+        const data = {
+            requirementsid: reqId,
+            comment: comment,
+            dateofupdate: new Date().toISOString(),
+            reviewDetails: reviewDetails
+        };
+
+        // Gửi xác nhận
+        document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn gửi đánh giá?";
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
+
+        $("#confirmButton1").off("click").on("click", function () {
+            modal.hide();
+
+            $.ajax({
+                url: "/Client/Review", // <-- API nhận ReviewGroupDTO
+                type: 'POST',
+               
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response.success) {
+                        $("#contentModalSuccess").html("Đánh giá dịch vụ thành công");
+                        $("#ModalSuccess").modal("show");
+                        refresh();
+                        init();
+                        backBtn.click();
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = "Lỗi không xác định.";
+                    if (xhr.responseJSON?.message) {
+                        errorMessage = Array.isArray(xhr.responseJSON.message)
+                            ? xhr.responseJSON.message.join("<br>")
+                            : xhr.responseJSON.message;
+                    }
+                    $("#contentModalError").html(errorMessage);
+                    $("#ModalError").modal("show");
+
+                    $("#btnCloseModal").on("click", function () {
+                        $("#ModalError").modal("hide");
+                    });
+                }
+            });
+        });
+
+        console.log("Dữ liệu gửi đi:", data);
+        $('#evaluateModal').modal('hide');
+    });
 
 </script>

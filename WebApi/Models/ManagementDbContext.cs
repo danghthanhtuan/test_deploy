@@ -334,12 +334,8 @@ public partial class ManagementDbContext : DbContext
             entity.ToTable("HISTORYREQ");
 
             entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.Apterstatus)
-                .HasMaxLength(40)
-                .HasColumnName("APTERSTATUS");
-            entity.Property(e => e.Beforstatus)
-                .HasMaxLength(40)
-                .HasColumnName("BEFORSTATUS");
+            entity.Property(e => e.Apterstatus).HasColumnName("APTERSTATUS");
+            entity.Property(e => e.Beforstatus).HasColumnName("BEFORSTATUS");
             entity.Property(e => e.Dateofupdate)
                 .HasColumnType("datetime")
                 .HasColumnName("DATEOFUPDATE");
@@ -568,9 +564,7 @@ public partial class ManagementDbContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("REQUIREMENTSID");
-            entity.Property(e => e.Requirementsstatus)
-                .HasMaxLength(40)
-                .HasColumnName("REQUIREMENTSSTATUS");
+            entity.Property(e => e.Requirementsstatus).HasColumnName("REQUIREMENTSSTATUS");
             entity.Property(e => e.SupportCode)
                 .HasMaxLength(10)
                 .IsUnicode(false)

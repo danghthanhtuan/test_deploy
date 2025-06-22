@@ -6,7 +6,7 @@
 
         public string Support { get; set; } = null!;
 
-        public string RequirementsStatus { get; set; } = null!;
+        public int? RequirementsStatus { get; set; }
 
         public DateTime? DateOfRequest { get; set; }
         public string? DescriptionOfRequest { get; set; } = null!;
@@ -47,6 +47,14 @@
         public int Page { get; set; }
         public int PageSize { get; set; }
         public string Cutomer { get; set; }
+        public string Contractnumber { get; set; }
+    }
+
+    public class GetListReqad
+    {
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public string Cutomer { get; set; }
     }
 
     public class Requirement_C
@@ -55,12 +63,13 @@
 
         public string Support { get; set; } = null!;
 
-        public string RequirementsStatus { get; set; } = null!;
+        public int? RequirementsStatus { get; set; }
 
         public DateTime? DateOfRequest { get; set; }
         public string? DescriptionOfRequest { get; set; } = null!;
-
         public string ContractNumber { get; set; } = null!;
+
+        public string CustomerId { get; set; } = null!;
 
     }
 
@@ -73,7 +82,7 @@
     {
         public string Requirementsid { get; set; }
         public string Descriptionofrequest { get; set; }
-        public string Apterstatus { get; set; }
+        public int? Apterstatus { get; set; }
 
         public string Staffid { get; set; }
     }
@@ -88,10 +97,11 @@
     {
         public string RequirementsId { get; set; } = null!;
         public string Support { get; set; } = null!;
-        public string RequirementsStatus { get; set; } = null!;
+        public int? RequirementsStatus { get; set; }
         public DateTime? DateOfRequest { get; set; }
         public string? DescriptionOfRequest { get; set; } = null!;
         public string ContractNumber { get; set; } = null!;
+        public bool IsReviewed { get; set; }
 
     }
     public class HistoryRequests
@@ -99,9 +109,9 @@
         public string Requirementsid { get; set; }
         public string Staffid { get; set; }
         public string Descriptionofrequest { get; set; }
-        public string BeforStatus { get; set; }
-        public string Apterstatus { get; set; }
-        public DateTime? DateOfRequest { get; set; }
+        public int? BeforStatus { get; set; }
+        public int? Apterstatus { get; set; }
+        public DateTime? Dateofupdate { get; set; }
 
     }
     public class Requirement_Company1
@@ -110,7 +120,7 @@
 
         public string Support { get; set; } = null!;
 
-        public string RequirementsStatus { get; set; } = null!;
+        public int? RequirementsStatus { get; set; } 
 
         public DateTime? DateOfRequest { get; set; }
         public string? DescriptionOfRequest1 { get; set; } = null!;
@@ -118,8 +128,18 @@
         public string ContractNumber { get; set; } = null!;
         public string Staffid { get; set; }
         public string Descriptionofrequest2 { get; set; }
-        public string BeforStatus { get; set; }
-        public string Apterstatus { get; set; }
+        public int? BeforStatus { get; set; }
+        public int? Apterstatus { get; set; }
+        public DateTime? Dateofupdate { get; set; }
+
+
+    }
+
+    public class reqSelect
+    {
+        public string ContractNumber { get; set; } = null!;
+
+        public string CustomerId { get; set; } = null!;
 
     }
 }

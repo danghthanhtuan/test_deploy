@@ -426,7 +426,7 @@
             showError("Không thể hiển thị hợp đồng. Thiếu thông tin cần thiết");
             return;
         }
-        const pdfUrl = `https://localhost:7190/${folder}/${confileName}`;
+        const pdfUrl = `${baseSiteUrl}/${folder}/${confileName}`;
 
         $('#signBtn').data('fileName', confileName);
         $('#signBtn').data('email', rootaccount);

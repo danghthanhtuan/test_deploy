@@ -332,7 +332,7 @@
             })
 
             const connection = new signalR.HubConnectionBuilder()
-                .withUrl("https://localhost:7190/notificationHub", {
+                .withUrl("${baseSiteUrl}/notificationHub", {
                     withCredentials: true // nếu server yêu cầu
                 })
                 .build();

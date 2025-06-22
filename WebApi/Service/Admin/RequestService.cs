@@ -16,7 +16,7 @@ namespace WebApi.Service.Admin
         }
 
         //lấy tất cả yêu cầu của công ty 
-        public async Task<PagingResult<Requirement_Company>> GetAllRequest(GetListReq req)
+        public async Task<PagingResult<Requirement_Company>> GetAllRequest(GetListReqad req)
         {
             // Truy vấn dữ liệu với điều kiện CustomerId
             var query = from r in _context.Requirements
@@ -136,7 +136,7 @@ namespace WebApi.Service.Admin
                         {
                             RequirementsId = r.Requirementsid,
                             Support =s.SupportName,
-                            RequirementsStatus = r.Requirementsstatus.Trim(),
+                            RequirementsStatus = r.Requirementsstatus,
                             DateOfRequest = r.Dateofrequest,
                             DescriptionOfRequest = r.Descriptionofrequest,
                             CustomerId = c.Customerid,
@@ -308,15 +308,47 @@ namespace WebApi.Service.Admin
 
                 if (currentStatus == null)
                 {
-                    Console.WriteLine($"Lỗi: Không tìm thấy yêu cầu với RequirementsId: {historyReq.Requirementsid}");
                     return $"Lỗi: Không tìm thấy yêu cầu với RequirementsId: {historyReq.Requirementsid}";
                 }
                 // Kiểm tra nếu trạng thái mới giống trạng thái hiện tại
                 if (currentStatus == historyReq.Apterstatus)
                 {
-                    Console.WriteLine("Trạng thái mới giống với trạng thái hiện tại. Không cần cập nhật.");
                     return "Trạng thái mới giống với trạng thái hiện tại. Không cần cập nhật.";
                 }
+
+                var statusNames = new Dictionary<int, string>
+        {
+            { 0, "Yêu cầu hỗ trợ" },
+            { 1, "Yêu cầu chấp nhận" },
+            { 2, "Đang xử lý" },
+            { 3, "Hỗ trợ hoàn tất" },
+            { 4, "Trì hoãn" },
+            { 5, "Đóng/Hủy" }
+        };
+
+                var allowedTransitions = new Dictionary<int?, List<int>>()
+                    {
+                        { 0, new List<int> { 1, 5 } },
+                        { 1, new List<int> { 2, 4, 5 } },
+                        { 2, new List<int> { 3, 5 } },
+                        { 3, new List<int>() },
+                        { 4, new List<int> { 2, 5 } },
+                        { 5, new List<int>() }
+                    };
+
+                if (!allowedTransitions.TryGetValue(currentStatus, out var validNextStatuses))
+                {
+                    return $"⚠️ Trạng thái hiện tại ({currentStatus}) không hợp lệ.";
+                }
+
+                if (!validNextStatuses.Contains(historyReq.Apterstatus))
+                {
+                    var oldStatusName = statusNames.GetValueOrDefault(currentStatus.Value, $"({currentStatus})");
+                    var newStatusName = statusNames.GetValueOrDefault(historyReq.Apterstatus, $"({historyReq.Apterstatus})");
+
+                    return $"⛔ Không thể chuyển trạng thái từ \"{oldStatusName}\" sang \"{newStatusName}\".";
+                }
+
 
                 // Kiểm tra nếu trạng thái đã từng xuất hiện trong lịch sử
                 var historyExists = _context.Historyreqs.Any(h =>
@@ -326,7 +358,6 @@ namespace WebApi.Service.Admin
 
                 if (historyExists)
                 {
-                    Console.WriteLine("Trạng thái mới đã từng được sử dụng trước đây. Không được cập nhật lại.");
                     return "Trạng thái mới đã từng được sử dụng trước đây. Không được cập nhật lại.";
                 }
 
@@ -335,7 +366,6 @@ namespace WebApi.Service.Admin
                 var existingRequirement = _context.Requirements.FirstOrDefault(c => c.Requirementsid == historyReq.Requirementsid);
                 if (existingRequirement == null)
                 {
-                    Console.WriteLine($"Lỗi: Không tìm thấy yêu cầu với RequirementsId: {historyReq.Requirementsid}");
                     return $"Lỗi: Không tìm thấy yêu cầu với RequirementsId: {historyReq.Requirementsid}";
                 }
 
@@ -474,8 +504,8 @@ namespace WebApi.Service.Admin
                               Staffid = a.Staffid,
                               Descriptionofrequest = c.Descriptionofrequest,
                               //BeforStatus = "Khởi tạo",
-                              Apterstatus = "Yêu cầu hỗ trợ",
-                              DateOfRequest = c.Dateofrequest // hoặc tên cột tương ứng
+                              Apterstatus = 0,
+                              Dateofupdate = c.Dateofrequest // hoặc tên cột tương ứng
                           };
 
             // Các bản ghi tiếp theo từ bảng Historyreqs
@@ -489,13 +519,13 @@ namespace WebApi.Service.Admin
                               Descriptionofrequest = h.Descriptionofrequest,
                              // BeforStatus = h.Beforstatus,
                               Apterstatus = h.Apterstatus,
-                              DateOfRequest = h.Dateofupdate,
+                              Dateofupdate = h.Dateofupdate,
                           };
 
             // Gộp lại và sắp xếp theo thời gian
             var result = await initial
                 .Union(history)
-                .OrderBy(r => r.DateOfRequest)
+                .OrderBy(r => r.Dateofupdate)
                 .ToListAsync();
 
             return result;
