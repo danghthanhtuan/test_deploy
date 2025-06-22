@@ -1,4 +1,5 @@
-﻿@{
+﻿@inject WebApp.Configs.ApiConfigs ApiConfigs
+@{
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 <style>
@@ -426,6 +427,7 @@
             showError("Không thể hiển thị hợp đồng. Thiếu thông tin cần thiết");
             return;
         }
+        const baseSiteUrl = "@ApiConfigs.BaseSiteUrl".replace(/\/+$/, '');
         const pdfUrl = `${baseSiteUrl}/${folder}/${confileName}`;
 
         $('#signBtn').data('fileName', confileName);

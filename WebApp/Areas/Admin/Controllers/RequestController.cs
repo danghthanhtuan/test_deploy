@@ -190,10 +190,19 @@ namespace WebApp.Areas.Admin.Controllers
         {
             try
             {
+                // Lấy token từ header Authorization
+                if (!Request.Headers.ContainsKey("Authorization"))
+                    return Unauthorized(new { success = false, message = "Thiếu token." });
+
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+                if (string.IsNullOrEmpty(token))
+                    return Unauthorized(new { success = false, message = "Token không hợp lệ." });
+
                 var reqjson = JsonConvert.SerializeObject(historyReq);
                 var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response = await _client.PutAsync(_apiConfigs.BaseApiUrl + "/admin/Request/UpdateStatus", httpContent);
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -255,6 +264,43 @@ namespace WebApp.Areas.Admin.Controllers
                     var responseData = await response.Content.ReadAsStringAsync();
                     var responseObject = JsonConvert.DeserializeObject<List<HistoryRequests>>(responseData);
                     return Ok(new { success = true, listRequest = responseObject });
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
+            }
+        }
+
+
+        [HttpGet]
+        [Route("GetViewReview")]
+
+        public async Task<IActionResult> GetViewReview([FromQuery] string query)
+        {
+            try
+            {
+                // Lấy token từ header Authorization
+                if (!Request.Headers.ContainsKey("Authorization"))
+                    return Unauthorized(new { success = false, message = "Thiếu token." });
+
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+                if (string.IsNullOrEmpty(token))
+                    return Unauthorized(new { success = false, message = "Token không hợp lệ." });
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                List<ReviewDTO> listHis = new List<ReviewDTO>();
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/admin/Request/GetViewReview?query={query}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var reponseData = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<ReviewDTO>(reponseData);
+                    return Ok(new { success = true, listHis = responseObject });
                 }
                 else
                 {

@@ -99,5 +99,15 @@ namespace WebApi.Controllers.Client
             }
 
         }
+
+        [HttpGet]
+        public async Task<ActionResult<ReviewDTO>> GetViewReview([FromQuery] string query)
+        {
+
+            var sup = await _requirementService.GetViewReview(query);
+            if (sup == null)
+                return NotFound(new { success = false, message = "Không tìm thấy đánh giá." });
+            return Ok(sup);
+        }
     }
 }

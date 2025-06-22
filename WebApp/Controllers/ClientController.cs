@@ -193,5 +193,29 @@ namespace WebApp.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetViewReview([FromQuery] string query)
+        {
+            try
+            {
+                List<ReviewDTO> listHis = new List<ReviewDTO>();
+                HttpResponseMessage response = await _client.GetAsync(_apiConfigs.BaseApiUrl + $"/client/Requirements/GetViewReview?query={query}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var reponseData = await response.Content.ReadAsStringAsync();
+                    var responseObject = JsonConvert.DeserializeObject<ReviewDTO>(reponseData);
+                    return Ok(new { success = true, listHis = responseObject });
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = errorMessage });
+                }
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối đến server." });
+            }
+        }
     }
 }

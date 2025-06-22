@@ -39,6 +39,7 @@
         public DateTime Startdate { get; set; }
         public DateTime Enddate { get; set; }
         public bool IsActive { get; set; }
+        public bool IsReviewed { get; set; }
 
     }
 

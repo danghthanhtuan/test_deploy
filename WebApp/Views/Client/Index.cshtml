@@ -138,6 +138,9 @@
     white-space: nowrap;
 }
 
+    .star-icon-disabled {
+        pointer-events: none;
+    }
 </style>
 <body>
     <div id="listRequestContainer" class="container-fluid d-flex flex-column vh-100">
@@ -375,7 +378,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal1">Đóng</button>
                 <button type="button" class="btn btn-primary" id="submitEvaluation">Gửi đánh giá</button>
             </div>
         </div>
@@ -384,6 +387,7 @@
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -417,7 +421,9 @@
             console.log("Nhấn Quay lại!");
             listRequestContainer.classList.remove("hidden");
             createRequestContainer.classList.add("hidden");
-            
+            init();
+            refresh();
+
         });
 
     });
@@ -626,8 +632,10 @@
                         historyRequests: item.historyRequests && item.historyRequests.length > 0
                             ? item.historyRequests
                             : [{ descriptionofrequest: "Chưa có sự thay đổi nào" }],
-                        evaluate: item.request_Group.requirementsStatus === 3 && item.request_Group.isReviewed == false
-                            ? `<button class="btn btn-sm btn-success evaluate-btn" data-id="${item.request_Group.requirementsId}">Đánh giá</button>`
+                        evaluate: item.request_Group.requirementsStatus === 3
+                            ? (item.request_Group.isReviewed == false
+                                ? `<button class="btn btn-sm btn-success evaluate-btn" data-id="${item.request_Group.requirementsId}">Đánh giá</button>`
+                                : `<button class="btn btn-sm btn-primary view-evaluate-btn" data-id="${item.request_Group.requirementsId}">Xem đánh giá</button>`)
                             : ''
                     }));
                 },
@@ -889,15 +897,15 @@
         $('#evaluateForm').data(group, value);
     });
 
-
-    // Sự kiện khi nhấn nút "Đánh giá"
     $(document).on('click', '.evaluate-btn', function () {
         const reqId = $(this).data('id');
         $('#evaluateForm').data('requestId', reqId);
-        $('#evaluateComment').val('');
+        $('#evaluateComment').val('').prop('disabled', false); // 👈 Bổ sung dòng này
+        $('#submitEvaluation').show(); // 👈 Đảm bảo nút gửi hiển thị
         renderRatingFields();
         $('#evaluateModal').modal('show');
     });
+
 
     // Submit đánh giá
     $('#submitEvaluation').on('click', function () {
@@ -955,7 +963,6 @@
                         $("#ModalSuccess").modal("show");
                         refresh();
                         init();
-                        backBtn.click();
                     }
                 },
                 error: function (xhr) {
@@ -975,8 +982,61 @@
             });
         });
 
-        console.log("Dữ liệu gửi đi:", data);
         $('#evaluateModal').modal('hide');
+
+
     });
+
+    $(document).on('click', '.view-evaluate-btn', function () {
+        const requirementId = $(this).data('id');
+
+        $.ajax({
+            url: `/client/GetViewReview?query=${requirementId}`,
+            method: 'GET',
+            success: function (res) {
+                if (res && res.success && res.listHis) {
+                    const data = res.listHis;
+
+                    // Reset lại đánh giá sao
+                    $('#ratingFields').html('');
+                    ratingQuestions.forEach(q => {
+                        const starData = data.reviewDetails.find(r => r.criteriaName === q.label);
+                        const starValue = starData ? starData.star : 0;
+
+                        let starsHtml = '';
+                        for (let i = 1; i <= 5; i++) {
+                            starsHtml += `<i class="fa fa-star star-icon-disabled" style="font-size: 20px; color: ${i <= starValue ? '#f1c40f' : '#ccc'};"></i> `;
+                        }
+
+                        $('#ratingFields').append(`
+                            <div class="mb-3">
+                                <label><strong>${q.label}</strong> <small>(${q.desc})</small></label><br/>
+                                ${starsHtml}
+                            </div>
+                        `);
+                    });
+
+                    // Gán comment
+                    $('#evaluateComment').val(data.comment || '').prop('disabled', true);
+
+                    // Ẩn nút gửi đánh giá
+                    $('#submitEvaluation').hide();
+                    $('#evaluateModal').modal('show');
+                } else {
+                    alert("Không tìm thấy đánh giá hoặc dữ liệu lỗi.");
+                }
+            },
+            error: function () {
+                alert("Đã xảy ra lỗi khi tải đánh giá.");
+            }
+        });
+    });
+
+    $('#evaluateModal').on('hidden.bs.modal', function () {
+        $('#ratingFields').html('');
+        $('#evaluateComment').val('').prop('disabled', false); // giữ nguyên ✅
+        $('#submitEvaluation').show(); // giữ nguyên ✅
+    });
+
 
 </script>

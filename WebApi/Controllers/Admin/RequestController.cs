@@ -115,5 +115,16 @@ namespace WebApi.Controllers.Admin
             var company = await _requestService.getHIS(req);
             return Ok(company);
         }
+
+
+        [HttpGet]
+        public async Task<ActionResult<ReviewDTO>> GetViewReview([FromQuery] string query)
+        {
+
+            var sup = await _requestService.GetViewReview(query);
+            if (sup == null)
+                return NotFound(new { success = false, message = "Không tìm thấy đánh giá." });
+            return Ok(sup);
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Buffers;
@@ -154,9 +155,9 @@ namespace WebApi.Service.Admin
                             Department = b.Department,
                             Startdate = h.Startdate, 
                             Enddate = h.Enddate,
-                            IsActive = h.IsActive
+                            IsActive = h.IsActive, 
+                            IsReviewed = r.IsReviewed,
                         };
-
             return await query.ToListAsync();
         }
 
@@ -531,5 +532,40 @@ namespace WebApi.Service.Admin
             return result;
         }
 
+        public async Task<ReviewDTO?> GetViewReview([FromQuery] string requestid)
+        {
+            // Lấy bản ghi đánh giá chính
+            var review = await _context.Reviews
+                .Where(r => r.Requirementsid == requestid)
+                .FirstOrDefaultAsync();
+
+            if (review == null)
+                return null; // Không có đánh giá thì trả về null
+
+            // Lấy ID đánh giá
+            int reviewId = review.Id;
+
+            // Lấy chi tiết đánh giá kèm tên tiêu chí
+            var reviewDetails = await (
+                from detail in _context.ReviewDetails
+                join criteria in _context.ReviewCriteria on detail.CriteriaId equals criteria.Id
+                where detail.ReviewId == reviewId
+                select new ReviewDetails
+                {
+                    CriteriaName = criteria.CriteriaName,
+                    Star = detail.Star
+                }).ToListAsync();
+
+            // Gộp dữ liệu thành DTO
+            var dto = new ReviewDTO
+            {
+                Requirementsid = review.Requirementsid,
+                Comment = review.Comment,
+                Dateofupdate = review.Dateofupdate,
+                ReviewDetails = reviewDetails
+            };
+
+            return dto;
+        }
     }
 }
